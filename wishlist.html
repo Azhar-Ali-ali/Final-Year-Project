@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Wishlist | LUMINA</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script src="https://unpkg.com/lucide@latest"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+	<style>
+		body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #111827; }
+		.serif { font-family: 'Playfair Display', serif; }
+		.glass { background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+		.panel-card { background: #fff; border: 1px solid #e8edf5; border-radius: 18px; box-shadow: 0 12px 28px rgba(15,23,42,0.06); }
+		.hero-panel { background: linear-gradient(140deg, #f0f7ff 0%, #ffffff 40%, #f5f0ff 100%); }
+		.hero-title { color: #111827; font-size: 32px; line-height: 1.1; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 4px; }
+		.hero-subtitle { color: #5b6472; font-size: 15px; line-height: 1.55; }
+		.hero-stats { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e8edf5; }
+		.hero-stat { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+		.hero-stat-dot { width: 10px; height: 10px; border-radius: 999px; flex-shrink: 0; }
+		.hero-stat-value { font-size: 15px; line-height: 1; font-weight: 800; color: #111827; }
+		.hero-stat-label { font-size: 15px; line-height: 1; font-weight: 500; color: #667085; }
+		.wishlist-summary-value { font-size: 15px; line-height: 1; font-weight: 800; color: #111827; }
+		.wishlist-summary-label { font-size: 15px; line-height: 1; font-weight: 500; color: #667085; }
+		.wishlist-summary-dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+		.wishlist-shell { padding-top: 1rem; }
+		
+		/* Wishlist Item Animation */
+		.wishlist-item {
+			transition: all 0.3s ease;
+		}
+		.wishlist-item:hover {
+			transform: translateY(-4px);
+			box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+		}
+		
+		/* Heart Animation */
+		.heart-btn {
+			cursor: pointer;
+			transition: all 0.3s;
+		}
+		.heart-btn.filled {
+			animation: heartBeat 0.3s;
+		}
+		
+		@keyframes heartBeat {
+			0%, 100% { transform: scale(1); }
+			50% { transform: scale(1.2); }
+		}
+
+		.account-flyout { width: 360px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
+		.signin-btn { display: inline-block; width: 130px; text-align: center; background: #facc15; border: 1px solid #f59e0b; color: #111827; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 7px; }
+		.signin-btn:hover { background: #fbbf24; }
+		.account-col-title { font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
+		.account-link { display: block; font-size: 12px; color: #374151; line-height: 1.55; }
+		.account-link:hover { color: #111827; text-decoration: underline; }
+		@media (max-width: 768px) {
+			.hero-title { font-size: 26px; }
+			.hero-subtitle { font-size: 14px; }
+			.hero-stats { gap: 12px 16px; }
+			.panel-card { border-radius: 16px; }
+		}
+	</style>
+	<script src="/customer-pages/auth.js"></script>
+	<script src="/customer-pages/page-access.js"></script>
+</head>
+<body class="bg-[#f8fafc] text-[#111827]">
+
+	<!-- Header (Navigation Bar) -->
+	<nav class="fixed top-0 w-full z-[100] glass">
+		<div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
+			<div class="flex items-center gap-2 shrink-0">
+				<button class="p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
+				<a href="homepage.html" class="text-2xl font-bold tracking-tighter uppercase shrink-0">Lumina</a>
+			</div>
+
+			<div class="hidden md:flex flex-grow relative max-w-2xl mx-auto">
+				<input type="text" placeholder="Search for unique products, clothing or artisans..." class="w-full bg-gray-100 border-transparent border focus:border-black focus:bg-white rounded-full py-2.5 px-6 pl-12 text-sm transition-all outline-none">
+				<i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+			</div>
+
+			<div class="flex items-center gap-2 lg:gap-6 shrink-0">
+				<div id="accountMenuWrap" class="relative group">
+					<button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
+						<i data-lucide="user" class="w-5 h-5"></i>
+						<span id="accountMenuLabel" class="hidden sm:block text-xs font-bold uppercase tracking-widest">Account</span>
+					</button>
+					<div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block">
+						<div id="accountMenuContent" class="account-flyout"></div>
+					</div>
+				</div>
+				<a href="cart.html" class="relative p-2">
+					<i data-lucide="shopping-cart" class="w-5 h-5"></i>
+					<span class="absolute top-0 right-0 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">3</span>
+				</a>
+				<a href="wishlist.html" class="p-2 relative">
+					<i data-lucide="heart" class="w-5 h-5"></i>
+					<span id="wishlistBadge" class="absolute top-0 right-0 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
+				</a>
+				<button class="md:hidden p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
+			</div>
+		</div>
+	</nav>
+
+	<!-- Main Content -->
+	<main class="mt-20 p-4 lg:p-8 min-h-[calc(100vh-5rem)]">
+		<div class="max-w-7xl mx-auto wishlist-shell space-y-6">
+			
+			<!-- Page Header -->
+			<section class="panel-card hero-panel p-5 lg:p-7">
+				<div class="flex flex-col sm:flex-row sm:items-center gap-4">
+					<div class="w-14 h-14 bg-white border border-indigo-100 rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0">
+						<i data-lucide="heart" class="w-7 h-7 text-indigo-600"></i>
+					</div>
+					<div class="flex-1">
+						<h1 class="hero-title">Your Wishlist</h1>
+						<p class="hero-subtitle">Save your favorite items for later.</p>
+					</div>
+					<div class="text-left sm:text-right">
+						<div class="hero-stat flex items-center gap-2 sm:justify-end">
+							<span class="hero-stat-dot" style="background:#fbbf24;"></span>
+							<span class="hero-stat-value" id="wishlistCount">0</span>
+							<span class="hero-stat-label">Items</span>
+						</div>
+					</div>
+				</div>
+				<div class="hero-stats">
+					<div class="hero-stat"><span class="hero-stat-dot" style="background:#fbbf24;"></span><span class="hero-stat-value" id="wishlistBadgeStat">0</span><span class="hero-stat-label">Saved</span></div>
+					<div class="hero-stat"><span class="hero-stat-dot" style="background:#3b82f6;"></span><span class="hero-stat-value" id="selectedCountStat">0</span><span class="hero-stat-label">Selected</span></div>
+					<div class="hero-stat"><span class="hero-stat-dot" style="background:#10b981;"></span><span class="hero-stat-value" id="priceStatValue">Rs. 0</span><span class="hero-stat-label">Selected Value</span></div>
+					<div class="hero-stat"><span class="hero-stat-dot" style="background:#9ca3af;"></span><span class="hero-stat-value">Ready</span><span class="hero-stat-label">Status</span></div>
+				</div>
+			</section>
+
+			<!-- Empty Wishlist State -->
+			<div id="emptyWishlist" class="text-center py-20 panel-card">
+				<div class="inline-block mb-6 p-8 bg-gray-100 rounded-full">
+					<i data-lucide="heart" class="w-16 h-16 text-gray-400"></i>
+				</div>
+				<h2 class="text-3xl font-bold mb-3">Your wishlist is empty</h2>
+				<p class="text-gray-600 text-lg mb-8">Start adding your favorite products to save them for later!</p>
+				<div class="flex flex-col sm:flex-row gap-4 items-center justify-center">
+					<a href="all_product_spages.html" class="bg-black text-white px-8 py-4 rounded-lg font-bold hover:bg-gray-800 transition-all inline-flex items-center gap-2">
+						<i data-lucide="shopping-bag" class="w-5 h-5"></i>
+						Continue Shopping
+					</a>
+					<a href="homepage.html" class="border-2 border-black px-8 py-3 rounded-lg font-bold hover:bg-black hover:text-white transition-all">
+						Back to Home
+					</a>
+				</div>
+			</div>
+
+			<!-- Wishlist Content -->
+			<div id="wishlistContent" class="hidden">
+				
+				<!-- Action Bar -->
+				<div class="flex items-center justify-between mb-8 pb-6 border-b border-gray-100">
+					<div class="flex items-center gap-4">
+						<button onclick="selectAllWishlist()" id="selectAllBtn" class="flex items-center gap-2 text-sm font-semibold hover:text-black transition-all">
+							<input type="checkbox" id="selectAllCheckbox" onchange="selectAllWishlist()" class="w-5 h-5 accent-black">
+							<span>Select All</span>
+						</button>
+					</div>
+					<div class="flex items-center gap-4">
+						<button onclick="addSelectedToCart()" id="addToCartBtn" class="bg-black text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-800 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed" disabled>
+							<i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-2"></i>
+							Add to Cart
+						</button>
+						<button onclick="clearWishlist()" class="border-2 border-red-500 text-red-500 px-6 py-2 rounded-lg font-semibold hover:bg-red-50 transition-all">
+							<i data-lucide="trash-2" class="w-4 h-4 inline-block mr-2"></i>
+							Clear All
+						</button>
+					</div>
+				</div>
+
+				<!-- Wishlist Grid -->
+				<div id="wishlistGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+					<!-- Wishlist items will be inserted here -->
+				</div>
+
+				<!-- Price Summary (if items selected) -->
+				<div id="priceSummary" class="hidden mt-8 pt-8 border-t border-gray-100">
+					<div class="max-w-sm ml-auto panel-card p-6">
+						<h3 class="font-bold text-lg mb-4">Wishlist Summary</h3>
+						<div class="space-y-2 text-sm mb-4 pb-4 border-b">
+							<div class="flex justify-between">
+								<span class="text-gray-600">Selected items</span>
+								<span id="selectedCount" class="font-semibold">0</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-gray-600">Total price</span>
+								<span id="totalPrice" class="font-bold text-lg text-[#b12704]">Rs. 0</span>
+							</div>
+						</div>
+						<button onclick="addSelectedToCart()" class="w-full bg-[#FFD814] hover:bg-[#F7CA00] text-black font-bold py-3 rounded-lg transition-all">
+							Move Selected to Cart
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<!-- Footer -->
+	<footer class="pt-24 pb-12 bg-white mt-12">
+		<div class="px-4 max-w-7xl mx-auto">
+			<div class="grid grid-cols-1 lg:grid-cols-4 gap-16 mb-24">
+				<div>
+					<a href="#" class="text-3xl font-bold tracking-tighter uppercase mb-8 block">Lumina</a>
+					<p class="text-gray-500 text-sm leading-relaxed mb-8">Empowering local artisans to reach a global audience. Curated with soul, delivered with care.</p>
+					<div class="flex gap-4">
+						<a href="#" class="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center hover:bg-black hover:text-white transition-all"><i data-lucide="instagram" class="w-4 h-4"></i></a>
+						<a href="#" class="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center hover:bg-black hover:text-white transition-all"><i data-lucide="facebook" class="w-4 h-4"></i></a>
+						<a href="#" class="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center hover:bg-black hover:text-white transition-all"><i data-lucide="twitter" class="w-4 h-4"></i></a>
+					</div>
+				</div>
+				<div>
+					<h5 class="font-bold text-xs uppercase tracking-widest mb-8">Shop</h5>
+					<ul class="space-y-4 text-sm text-gray-500">
+						<li><a href="#" class="hover:text-black">New Arrivals</a></li>
+						<li><a href="#" class="hover:text-black">Best Sellers</a></li>
+						<li><a href="#" class="hover:text-black">Categories</a></li>
+						<li><a href="#" class="hover:text-black">Gift Cards</a></li>
+					</ul>
+				</div>
+				<div>
+					<h5 class="font-bold text-xs uppercase tracking-widest mb-8">Support</h5>
+					<ul class="space-y-4 text-sm text-gray-500">
+						<li><a href="#" class="hover:text-black">Contact Us</a></li>
+						<li><a href="#" class="hover:text-black">FAQs</a></li>
+						<li><a href="#" class="hover:text-black">Shipping</a></li>
+						<li><a href="#" class="hover:text-black">Returns</a></li>
+					</ul>
+				</div>
+				<div>
+					<h5 class="font-bold text-xs uppercase tracking-widest mb-8">Join the Collective</h5>
+					<p class="text-xs text-gray-400 mb-6">Marketplace updates and artisan spotlights.</p>
+					<div class="flex border-b border-black pb-2">
+						<input type="email" placeholder="Email address" class="w-full focus:outline-none text-sm">
+						<button><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+					</div>
+				</div>
+			</div>
+			<div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-400">
+				<p>&copy; 2024 LUMINA MARKETPLACE INC.</p>
+			</div>
+		</div>
+	</footer>
+
+	<script>
+		function resolveAuthState() {
+			const state = { isLoggedIn: false, fullName: '' };
+
+			try {
+				const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+				const isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+				if (rawUser) {
+					const parsed = JSON.parse(rawUser);
+					const name = String(parsed.fullName || parsed.name || '').trim();
+					state.isLoggedIn = Boolean(name) || isLoggedIn;
+					state.fullName = name;
+				} else {
+					state.isLoggedIn = isLoggedIn;
+				}
+			} catch (_) {
+				state.isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+			}
+
+			return state;
+		}
+
+		function renderAccountFlyout() {
+			const auth = resolveAuthState();
+			const content = document.getElementById('accountMenuContent');
+			const label = document.getElementById('accountMenuLabel');
+			if (!content || !label) return;
+
+			if (!auth.isLoggedIn) {
+				label.textContent = 'Account';
+				content.innerHTML = `
+					<div class="px-4 py-3 border-b border-gray-200 text-center">
+						<a href="login_register.html" class="signin-btn">Sign in</a>
+						<p class="text-[10px] text-gray-500 mt-1">New customer? <a href="login_register.html" class="text-blue-600 hover:underline">Start here.</a></p>
+					</div>
+					<div class="grid grid-cols-2 gap-0">
+						<div class="px-4 py-3 border-r border-gray-200">
+							<h4 class="account-col-title">Your Lists</h4>
+							<a href="wishlist.html" class="account-link">Create a List</a>
+							<a href="login_register.html" class="account-link">Find a List or Registry</a>
+						</div>
+						<div class="px-4 py-3">
+							<h4 class="account-col-title">Your Account</h4>
+							<a href="login_register.html" class="account-link">Customer Dashboard</a>
+							<a href="login_register.html" class="account-link">My Profile</a>
+							<a href="login_register.html" class="account-link">My Orders</a>
+							<a href="login_register.html" class="account-link">Cart</a>
+							<a href="login_register.html" class="account-link">My Addresses</a>
+							<a href="login_register.html" class="account-link">Messages</a>
+							<a href="login_register.html" class="account-link">Returns & Refunds</a>
+							<a href="login_register.html" class="account-link">Security Settings</a>
+							<a href="login_register.html" class="account-link">Help & Support</a>
+						</div>
+					</div>
+				`;
+			} else {
+				const firstName = auth.fullName ? auth.fullName.split(' ')[0] : 'Account';
+				label.textContent = firstName;
+				content.innerHTML = `
+					<div class="px-4 py-3 border-b border-gray-200 text-center">
+						<a href="Customer_Dashboard.html" class="signin-btn">Go to Dashboard</a>
+						<p class="text-[10px] text-gray-500 mt-1">Signed in as ${auth.fullName || 'Customer'}</p>
+					</div>
+					<div class="grid grid-cols-2 gap-0">
+						<div class="px-4 py-3 border-r border-gray-200">
+							<h4 class="account-col-title">Your Lists</h4>
+							<a href="wishlist.html" class="account-link">Wishlist</a>
+							<a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+							<a href="my_messages.html" class="account-link">Messages</a>
+						</div>
+						<div class="px-4 py-3">
+							<h4 class="account-col-title">Your Account</h4>
+							<a href="Customer_Dashboard.html" class="account-link">Customer Dashboard</a>
+							<a href="my_profile.html" class="account-link">My Profile</a>
+							<a href="my_orders.html" class="account-link">My Orders</a>
+							<a href="cart.html" class="account-link">Cart</a>
+							<a href="my_addresses.html" class="account-link">My Addresses</a>
+							<a href="my_messages.html" class="account-link">Messages</a>
+							<a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+							<a href="security_settings.html" class="account-link">Security Settings</a>
+							<a href="help_support.html" class="account-link">Help & Support</a>
+						</div>
+					</div>
+				`;
+			}
+		}
+
+		const accountMenuButton = document.getElementById('accountMenuButton');
+		const accountMenuDropdown = document.getElementById('accountMenuDropdown');
+		const accountMenuWrap = document.getElementById('accountMenuWrap');
+
+		if (accountMenuButton && accountMenuDropdown) {
+			accountMenuButton.addEventListener('click', () => {
+				accountMenuDropdown.classList.toggle('hidden');
+			});
+
+			document.addEventListener('click', (event) => {
+				if (accountMenuWrap && !accountMenuWrap.contains(event.target)) {
+					accountMenuDropdown.classList.add('hidden');
+				}
+			});
+		}
+
+		renderAccountFlyout();
+		lucide.createIcons();
+
+		const API_BASE_URL = localStorage.getItem('lumina.customer.apiBase') || 'http://localhost:5000';
+		const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+		let wishlistData = [];
+
+		let selectedItems = new Set();
+
+		function parseStoredUser(rawUser) {
+			try {
+				if (!rawUser) return '';
+				const parsed = JSON.parse(rawUser);
+				const id = parsed.userId || parsed.id || parsed.customerId || parsed.customer_id;
+				if (id !== undefined && id !== null && String(id).trim()) {
+					return String(id).trim();
+				}
+			} catch (_) {
+				return '';
+			}
+
+			return '';
+		}
+
+		async function resolveCurrentUserId() {
+			if (!IS_LIVE_HOST) {
+				return 'user_1';
+			}
+
+			const storedUserId = parseStoredUser(localStorage.getItem('lumina.auth.user')) || parseStoredUser(localStorage.getItem('lumina.customer.session'));
+			if (storedUserId) {
+				return storedUserId;
+			}
+
+			const authToken = localStorage.getItem('lumina.auth.token');
+			if (authToken) {
+				try {
+					const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+						headers: { Authorization: `Bearer ${authToken}` }
+					});
+
+					if (response.ok) {
+						const result = await response.json();
+						const userId = result?.data?.user?.id || result?.data?.session?.userId;
+						if (userId && String(userId).trim()) {
+							return String(userId).trim();
+						}
+					}
+				} catch (error) {
+					console.warn('Could not resolve user from auth token:', error.message);
+				}
+			}
+
+			return 'user_1';
+		}
+
+		function normalizeWishlistItem(item) {
+			const price = Number(item.price) || 0;
+			const originalPrice = Number(item.originalPrice) || price;
+			let discount = Number(item.discount);
+
+			if (!Number.isFinite(discount)) {
+				discount = originalPrice > 0 ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
+			}
+
+			return {
+				id: Number(item.id),
+				productId: Number(item.productId),
+				sellerId: Number(item.sellerId) || 0,
+				sellerName: item.sellerName || 'Store',
+				sellerRating: Number(item.sellerRating) || Number(item.rating) || 0,
+				productName: item.productName || 'Product',
+				price,
+				originalPrice,
+				image: item.image || 'https://via.placeholder.com/300',
+				stock: Number(item.stock) || 0,
+				category: item.category || 'General',
+				discount: Math.max(0, discount)
+			};
+		}
+
+		async function fetchWishlistData() {
+			if (!IS_LIVE_HOST) {
+				return [];
+			}
+
+			const userId = encodeURIComponent(await resolveCurrentUserId());
+			const response = await fetch(`${API_BASE_URL}/api/wishlist/${userId}?sortBy=dateAdded&order=desc`);
+
+			if (!response.ok) {
+				throw new Error(`Wishlist request failed with status ${response.status}`);
+			}
+
+			const result = await response.json();
+			const items = result?.data?.items;
+			return Array.isArray(items) ? items.map(normalizeWishlistItem) : [];
+		}
+
+		async function loadWishlistFromApi() {
+			try {
+				wishlistData = await fetchWishlistData();
+				selectedItems.clear();
+				updateWishlistDisplay();
+				updateWishlistBadge();
+				updateSelectedItems();
+			} catch (error) {
+				console.error('Failed to load wishlist from API:', error);
+				wishlistData = [];
+				selectedItems.clear();
+				updateWishlistDisplay();
+				updateWishlistBadge();
+				updateSelectedItems();
+			}
+		}
+
+		// Initialize Wishlist
+		async function initWishlist() {
+			if (!IS_LIVE_HOST) {
+				wishlistData = [];
+				selectedItems.clear();
+				updateWishlistDisplay();
+				updateWishlistBadge();
+				updateSelectedItems();
+				return;
+			}
+
+			await loadWishlistFromApi();
+		}
+
+		// Update Wishlist Display
+		function updateWishlistDisplay() {
+			const wishlistCount = wishlistData.length;
+			document.getElementById('wishlistCount').textContent = wishlistCount;
+			document.getElementById('wishlistBadgeStat').textContent = wishlistCount;
+
+			if (wishlistCount === 0) {
+				document.getElementById('emptyWishlist').classList.remove('hidden');
+				document.getElementById('wishlistContent').classList.add('hidden');
+			} else {
+				document.getElementById('emptyWishlist').classList.add('hidden');
+				document.getElementById('wishlistContent').classList.remove('hidden');
+				renderWishlistItems();
+			}
+		}
+
+		// Render Wishlist Items
+		function renderWishlistItems() {
+			const grid = document.getElementById('wishlistGrid');
+			grid.innerHTML = '';
+
+			const buildSellerProfileUrl = (item) => {
+				const sellerId = String(item.sellerId || item.seller_id || '').trim();
+				if (sellerId) return `sellerprofile.html?sellerId=${encodeURIComponent(sellerId)}`;
+				const sellerSlug = String(item.sellerSlug || item.storeSlug || '').trim();
+				if (sellerSlug) return `sellerprofile.html?slug=${encodeURIComponent(sellerSlug)}`;
+				const sellerName = String(item.sellerName || 'Store').trim();
+				return `sellerprofile.html?seller=${encodeURIComponent(sellerName)}`;
+			};
+
+			wishlistData.forEach(item => {
+				const isOutOfStock = item.stock === 0;
+				const isSelected = selectedItems.has(item.id);
+
+				const itemHTML = `
+					<div class="wishlist-item bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+						<!-- Image Container -->
+						<div class="relative">
+							<img src="${item.image}" alt="${item.productName}" class="w-full h-48 object-cover">
+							
+							<!-- Discount Badge -->
+							<div class="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+								-${item.discount}%
+							</div>
+							
+							<!-- Checkbox -->
+							<div class="absolute top-3 right-3 bg-white rounded-lg p-2 shadow-md">
+								<input type="checkbox" class="wishlist-checkbox w-5 h-5 accent-red-500" data-id="${item.id}" onchange="updateSelectedItems()">
+							</div>
+							
+							<!-- Out of Stock Overlay -->
+							${isOutOfStock ? `
+								<div class="absolute inset-0 bg-black/60 flex items-center justify-center">
+									<span class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold">Out of Stock</span>
+								</div>
+							` : ''}
+						</div>
+
+						<!-- Content -->
+						<div class="p-4">
+							<!-- Seller Info -->
+							<div class="flex items-center gap-2 mb-2">
+								<a href="${buildSellerProfileUrl(item)}" class="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold hover:scale-105 transition-transform">
+									${item.sellerName.charAt(0)}
+								</a>
+								<div class="text-xs">
+									<a href="${buildSellerProfileUrl(item)}" class="font-semibold text-gray-800 hover:underline">${item.sellerName}</a>
+									<div class="flex items-center gap-0.5">
+										<i data-lucide="star" class="w-3 h-3 fill-yellow-400 text-yellow-400"></i>
+										<span class="text-gray-600">${item.sellerRating}</span>
+									</div>
+								</div>
+							</div>
+
+							<!-- Product Name -->
+							<h3 class="font-bold text-sm line-clamp-2 mb-2 h-10">${item.productName}</h3>
+
+							<!-- Category -->
+							<p class="text-xs text-gray-500 mb-3">${item.category}</p>
+
+							<!-- Price -->
+							<div class="mb-4">
+								<div class="flex items-baseline gap-2">
+									<span class="text-lg font-bold text-[#b12704]">Rs. ${item.price.toFixed(2)}</span>
+									<span class="text-sm text-gray-400 line-through">Rs. ${item.originalPrice.toFixed(2)}</span>
+								</div>
+							</div>
+
+							<!-- Stock Status -->
+							<div class="mb-4">
+								${isOutOfStock ? 
+									`<p class="text-xs text-red-600 font-semibold">❌ Out of Stock</p>` :
+									`<p class="text-xs text-green-600 font-semibold">✓ ${item.stock} in stock</p>`
+								}
+							</div>
+
+							<!-- Buttons -->
+							<div class="flex gap-2">
+								<button onclick="removeFromWishlist(${item.id})" class="flex-1 border-2 border-red-500 text-red-500 py-2 rounded-lg font-semibold hover:bg-red-50 transition-all text-sm">
+									<i data-lucide="trash-2" class="w-4 h-4 inline-block mr-1"></i>
+									Remove
+								</button>
+								<button onclick="addToCart(${item.id})" ${isOutOfStock ? 'disabled' : ''} class="flex-1 bg-black text-white py-2 rounded-lg font-semibold hover:bg-gray-800 transition-all text-sm disabled:bg-gray-300 disabled:cursor-not-allowed">
+									<i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>
+									Add
+								</button>
+							</div>
+
+							<!-- View Details Link -->
+							<button onclick="viewProductDetails(${item.productId})" class="w-full mt-2 text-blue-600 text-xs font-semibold hover:underline">
+								View Details →
+							</button>
+						</div>
+					</div>
+				`;
+
+				grid.insertAdjacentHTML('beforeend', itemHTML);
+			});
+
+			lucide.createIcons();
+		}
+
+		// Remove from Wishlist
+		async function removeFromWishlist(itemId) {
+			if (!IS_LIVE_HOST) return;
+
+			if (confirm('Remove this item from your wishlist?')) {
+				try {
+					const userId = encodeURIComponent(await resolveCurrentUserId());
+					const response = await fetch(`${API_BASE_URL}/api/wishlist/${userId}/item/${itemId}`, {
+						method: 'DELETE'
+					});
+
+					if (!response.ok) {
+						throw new Error('Failed to remove wishlist item');
+					}
+
+					selectedItems.delete(itemId);
+					await loadWishlistFromApi();
+				} catch (error) {
+					console.error('Failed to remove from wishlist:', error);
+					alert('Unable to remove this item right now. Please try again.');
+				}
+			}
+		}
+
+		// Add to Cart
+		async function addToCart(itemId) {
+			if (!IS_LIVE_HOST) return;
+
+			const item = wishlistData.find(p => p.id === itemId);
+			if (!item) return;
+
+			try {
+				const userId = encodeURIComponent(await resolveCurrentUserId());
+				const response = await fetch(`${API_BASE_URL}/api/wishlist/${userId}/move-to-cart`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ itemIds: [itemId] })
+				});
+
+				if (!response.ok) {
+					throw new Error('Failed to move item to cart');
+				}
+
+				await loadWishlistFromApi();
+				alert(`✅ Added to cart!\n\n${item.productName}\nRs. ${item.price.toFixed(2)}`);
+			} catch (error) {
+				console.error('Failed to add to cart:', error);
+				alert('Unable to add this item to cart right now. Please try again.');
+			}
+		}
+
+		// View Product Details
+		function viewProductDetails(productId) {
+			window.location.href = `products_details.html?id=${productId}`;
+		}
+
+		// Update Selected Items
+		function updateSelectedItems() {
+			selectedItems.clear();
+			document.querySelectorAll('.wishlist-checkbox:checked').forEach(checkbox => {
+				selectedItems.add(parseInt(checkbox.dataset.id));
+			});
+
+			// Update action button state
+			document.getElementById('addToCartBtn').disabled = selectedItems.size === 0;
+
+			// Show/hide price summary
+			if (selectedItems.size > 0) {
+				document.getElementById('priceSummary').classList.remove('hidden');
+			} else {
+				document.getElementById('priceSummary').classList.add('hidden');
+			}
+
+			updatePriceSummary();
+		}
+
+		// Select All
+		function selectAllWishlist() {
+			const isChecked = document.getElementById('selectAllCheckbox').checked;
+			document.querySelectorAll('.wishlist-checkbox').forEach(checkbox => {
+				checkbox.checked = isChecked;
+			});
+			updateSelectedItems();
+		}
+
+		// Update Price Summary
+		function updatePriceSummary() {
+			let totalPrice = 0;
+			selectedItems.forEach(itemId => {
+				const item = wishlistData.find(p => p.id === itemId);
+				if (item) {
+					totalPrice += item.price;
+				}
+			});
+
+			document.getElementById('selectedCount').textContent = selectedItems.size;
+			document.getElementById('totalPrice').textContent = `Rs. ${totalPrice.toFixed(2)}`;
+			document.getElementById('selectedCountStat').textContent = selectedItems.size;
+			document.getElementById('priceStatValue').textContent = `Rs. ${totalPrice.toFixed(2)}`;
+		}
+
+		// Add Selected to Cart
+		async function addSelectedToCart() {
+			if (!IS_LIVE_HOST) return;
+
+			if (selectedItems.size === 0) {
+				alert('Please select at least one item.');
+				return;
+			}
+
+			const itemsCount = selectedItems.size;
+
+			try {
+				const userId = encodeURIComponent(await resolveCurrentUserId());
+				const response = await fetch(`${API_BASE_URL}/api/wishlist/${userId}/move-to-cart`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ itemIds: Array.from(selectedItems) })
+				});
+
+				if (!response.ok) {
+					throw new Error('Failed to move selected items to cart');
+				}
+
+				alert(`✅ Added ${itemsCount} item${itemsCount > 1 ? 's' : ''} to cart!\n\nTotal: Rs. ${document.getElementById('totalPrice').textContent.replace('Rs. ', '')}`);
+				document.getElementById('selectAllCheckbox').checked = false;
+				await loadWishlistFromApi();
+			} catch (error) {
+				console.error('Failed to add selected items to cart:', error);
+				alert('Unable to move selected items to cart right now. Please try again.');
+			}
+		}
+
+		// Clear Entire Wishlist
+		async function clearWishlist() {
+			if (!IS_LIVE_HOST) return;
+
+			if (confirm('Are you sure you want to clear your entire wishlist? This action cannot be undone.')) {
+				try {
+					const userId = encodeURIComponent(await resolveCurrentUserId());
+					const response = await fetch(`${API_BASE_URL}/api/wishlist/${userId}`, {
+						method: 'DELETE'
+					});
+
+					if (!response.ok) {
+						throw new Error('Failed to clear wishlist');
+					}
+
+					selectedItems.clear();
+					await loadWishlistFromApi();
+					alert('✅ Your wishlist has been cleared.');
+				} catch (error) {
+					console.error('Failed to clear wishlist:', error);
+					alert('Unable to clear wishlist right now. Please try again.');
+				}
+			}
+		}
+
+		// Update Wishlist Badge in Navbar
+		function updateWishlistBadge() {
+			document.getElementById('wishlistBadge').textContent = wishlistData.length;
+			document.getElementById('wishlistBadgeStat').textContent = wishlistData.length;
+		}
+
+		// Toggle Wishlist (Heart Icon)
+		async function toggleWishlistItem(productId) {
+			if (!IS_LIVE_HOST) return;
+
+			try {
+				const userId = encodeURIComponent(await resolveCurrentUserId());
+				const exists = wishlistData.some(item => item.productId === Number(productId));
+
+				if (exists) {
+					const removeResponse = await fetch(`${API_BASE_URL}/api/wishlist/${userId}/product/${productId}`, {
+						method: 'DELETE'
+					});
+					if (!removeResponse.ok) {
+						throw new Error('Failed to remove product from wishlist');
+					}
+				} else {
+					const addResponse = await fetch(`${API_BASE_URL}/api/wishlist/${userId}`, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ productId: Number(productId) })
+					});
+					if (!addResponse.ok) {
+						throw new Error('Failed to add product to wishlist');
+					}
+				}
+
+				await loadWishlistFromApi();
+			} catch (error) {
+				console.error('Failed to toggle wishlist item:', error);
+			}
+		}
+
+		// Initialize on page load
+		document.addEventListener('DOMContentLoaded', initWishlist);
+	</script>
+</body>
+</html>

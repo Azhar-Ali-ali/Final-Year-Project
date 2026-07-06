@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | Seller Details</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" />
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --panel: #ffffff;
+      --text: #232f3e;
+      --muted: #666666;
+      --border: #dddddd;
+      --primary: #232f3e;
+      --primary-600: #37475a;
+      --success: #28a745;
+      --warning: #ffc107;
+      --danger: #dc3545;
+      --info: #0066c0;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Inter", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .layout {
+      display: block;
+      min-height: 100vh;
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 20px;
+      margin-top: 64px;
+    }
+
+    @media (min-width: 768px) {
+      .content { margin-left: 256px; }
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .page-header .title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--text);
+    }
+
+    .page-header .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #f3f4f6;
+      color: #333;
+      border: 1px solid #e5e7eb;
+    }
+
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(35, 47, 62, 0.08); }
+    .btn.primary { background: var(--primary); color: white; }
+    .btn.primary:hover { background: var(--primary-600); }
+    .btn.secondary { background: #6b7280; color: white; }
+    .btn.secondary:hover { background: #4b5563; }
+    .btn.success { background: var(--success); color: white; }
+    .btn.success:hover { background: #218838; }
+    .btn.warning { background: var(--warning); color: #333; }
+    .btn.warning:hover { background: #f9b233; }
+    .btn.danger { background: var(--danger); color: white; }
+    .btn.danger:hover { background: #c82333; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #eef2ff;
+      color: #1e3a8a;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .panel {
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    .section-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-600) 100%);
+      color: white;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero .muted { color: rgba(255,255,255,0.76); }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .pill-active { background: #dcfce7; color: #166534; }
+    .pill-frozen { background: #d1fae5; color: #065f46; }
+    .pill-suspended { background: #fef3c7; color: #92400e; }
+    .pill-pending { background: #fef3c7; color: #92400e; }
+    .pill-approved { background: #dcfce7; color: #166534; }
+    .pill-rejected { background: #fee2e2; color: #991b1b; }
+    .pill-risk-low { background: #dcfce7; color: #166534; }
+    .pill-risk-medium { background: #fef3c7; color: #92400e; }
+    .pill-risk-high { background: #fee2e2; color: #991b1b; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .space-y-4 > * + * { margin-top: 16px; }
+
+    .avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.2);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+      font-size: 22px;
+    }
+
+    .detail-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .detail-value { font-size: 14px; font-weight: 600; color: #111827; }
+
+    .muted-text { color: var(--muted); font-size: 13px; }
+
+    .stat-box {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .alert {
+      display: none;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .alert.show { display: block; }
+    .alert.success { background: #dcfce7; color: #166534; }
+    .alert.error { background: #fee2e2; color: #991b1b; }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      padding: 10px 0;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #e5e7eb;
+      border-top: 2px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 1024px) {
+      .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .page-header { flex-direction: column; align-items: flex-start; }
+      .grid-4 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <nav class="fixed top-0 w-full z-[100] glass">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-16 flex items-center justify-between gap-6">
+      <div class="flex items-center gap-3 shrink-0">
+        <button id="sidebarToggle" class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <a href="admin_dashboard.html" class="text-xl font-bold tracking-tight uppercase hover:opacity-70 transition-opacity">
+          <span class="text-gray-900">Lumina</span>
+          <span class="text-gray-400 font-normal text-xs ml-2">Admin</span>
+        </a>
+      </div>
+      <div class="hidden lg:flex flex-grow relative max-w-sm mx-auto">
+        <input type="text" placeholder="Search users, sellers, orders..." class="w-full bg-gray-50 border border-gray-200 focus:border-gray-400 focus:bg-white rounded-full py-2 px-4 pl-10 text-xs outline-none transition-all">
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+      </div>
+      <div class="flex items-center gap-3 shrink-0">
+        <button class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
+          <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+        </button>
+        <div class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-full flex items-center justify-center text-white text-xs font-bold">A</div>
+          <span class="text-xs font-bold text-gray-700 hidden sm:block">Admin</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <aside id="sidebar" class="hidden md:block fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-100 z-50 overflow-y-auto">
+    <nav class="p-4 space-y-2">
+      <a href="admin_dashboard.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard</a>
+      <a href="user_management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="users" class="w-4 h-4"></i>User Management</a>
+      <a href="seller_management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg bg-gray-50 transition-all"><i data-lucide="store" class="w-4 h-4"></i>Seller Management</a>
+      <a href="Order_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="package" class="w-4 h-4"></i>Order Management</a>
+      <a href="Product_Catalog_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="box" class="w-4 h-4"></i>Product Catalog</a>
+      <a href="cms.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="file-text" class="w-4 h-4"></i>CMS</a>
+      <a href="Reviews_Ratings_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="star" class="w-4 h-4"></i>Reviews & Ratings</a>
+      <a href="Logistics_Courier_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="truck" class="w-4 h-4"></i>Logistics</a>
+      <a href="Payment_Payout_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="credit-card" class="w-4 h-4"></i>Payments</a>
+      <a href="Dispute_Support_System.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="shield-alert" class="w-4 h-4"></i>Dispute & Support</a>
+      <a href="Reports_Analytics.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="bar-chart-3" class="w-4 h-4"></i>Reports</a>
+      <div class="h-px bg-gray-100 my-4"></div>
+      <a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="settings" class="w-4 h-4"></i>Settings</a>
+    </nav>
+  </aside>
+
+  <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+
+  <div class="layout">
+    <main class="content">
+      <div class="page-header">
+        <div class="title">
+          <span class="material-symbols-rounded">store</span>
+          Seller Details
+          <span id="sellerBadge" class="badge">Loading</span>
+        </div>
+        <div class="actions">
+          <button id="backBtn" class="btn secondary">Back</button>
+          <button id="refreshBtn" class="btn secondary">Refresh</button>
+          <button id="verifyBtn" class="btn primary">Approve KYC</button>
+          <button id="rejectKycBtn" class="btn danger">Reject KYC</button>
+          <button id="freezeBtn" class="btn warning">Freeze</button>
+          <button id="strikeBtn" class="btn danger">Strike</button>
+          <button id="payoutBtn" class="btn success">Process Payout</button>
+        </div>
+      </div>
+
+      <div id="alertBox" class="alert"></div>
+
+      <div id="loadingState" class="panel">
+        <div class="loading">
+          <span class="spinner"></span>
+          Loading seller details...
+        </div>
+      </div>
+
+      <div id="content" class="hidden">
+        <section class="hero">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div class="flex items-center gap-4">
+              <div id="avatar" class="avatar">S</div>
+              <div>
+                <div id="businessName" class="text-2xl font-semibold"></div>
+                <div id="ownerMeta" class="mt-1 text-sm muted"></div>
+              </div>
+            </div>
+            <div id="statusBadges" class="flex flex-wrap gap-2"></div>
+          </div>
+          <div class="grid-4 mt-6">
+            <div class="stat-box bg-white/10 border-white/20 text-white">
+              <div class="detail-label text-white/70">Email</div>
+              <div id="email" class="detail-value text-white"></div>
+            </div>
+            <div class="stat-box bg-white/10 border-white/20 text-white">
+              <div class="detail-label text-white/70">Phone</div>
+              <div id="phone" class="detail-value text-white"></div>
+            </div>
+            <div class="stat-box bg-white/10 border-white/20 text-white">
+              <div class="detail-label text-white/70">Registered</div>
+              <div id="registeredDate" class="detail-value text-white"></div>
+            </div>
+            <div class="stat-box bg-white/10 border-white/20 text-white">
+              <div class="detail-label text-white/70">Address</div>
+              <div id="address" class="detail-value text-white"></div>
+            </div>
+          </div>
+        </section>
+
+        <div class="grid-2">
+          <div class="space-y-4">
+            <div class="section-card">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Business Information</h3>
+                <span class="badge">Store</span>
+              </div>
+              <div class="grid-2 gap-4">
+                <div><div class="detail-label">Support Email</div><div id="supportEmail" class="detail-value"></div></div>
+                <div><div class="detail-label">Support Phone</div><div id="supportPhone" class="detail-value"></div></div>
+                <div><div class="detail-label">Tax ID</div><div id="taxId" class="detail-value"></div></div>
+                <div><div class="detail-label">Vacation Mode</div><div id="vacationMode" class="detail-value"></div></div>
+                <div class="col-span-2"><div class="detail-label">Return Policy</div><div id="returnPolicy" class="detail-value"></div></div>
+                <div class="col-span-2"><div class="detail-label">Shipping Policy</div><div id="shippingPolicy" class="detail-value"></div></div>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Performance</h3>
+                <span id="performanceScore" class="badge"></span>
+              </div>
+              <div class="grid-4 gap-3">
+                <div class="stat-box"><div class="detail-label">Products</div><div id="products" class="detail-value"></div></div>
+                <div class="stat-box"><div class="detail-label">Stock</div><div id="stock" class="detail-value"></div></div>
+                <div class="stat-box"><div class="detail-label">Orders</div><div id="orders" class="detail-value"></div></div>
+                <div class="stat-box"><div class="detail-label">Revenue</div><div id="revenue" class="detail-value"></div></div>
+              </div>
+              <div class="grid-2 gap-3 mt-3">
+                <div class="stat-box"><div class="detail-label">Units Sold</div><div id="unitsSold" class="detail-value"></div></div>
+                <div class="stat-box"><div class="detail-label">Average Order Value</div><div id="averageOrderValue" class="detail-value"></div></div>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Financial Summary</h3>
+                <span id="payoutBadge" class="pill"></span>
+              </div>
+              <div class="grid-2 gap-3">
+                <div class="stat-box"><div class="detail-label">Pending Payout</div><div id="pendingPayout" class="detail-value"></div></div>
+                <div class="stat-box"><div class="detail-label">Total Paid</div><div id="totalPaid" class="detail-value"></div></div>
+              </div>
+              <div class="mt-4">
+                <div class="detail-label mb-2">Recent Payout History</div>
+                <div id="payoutHistory" class="space-y-2"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div class="section-card">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">KYC & Compliance</h3>
+                <span id="kycBadge" class="pill"></span>
+              </div>
+              <div class="space-y-3">
+                <div class="stat-box"><div class="detail-label">Risk Level</div><div id="riskLevel" class="detail-value"></div></div>
+                <div class="stat-box"><div class="detail-label">Strikes</div><div id="strikes" class="detail-value"></div></div>
+                <div class="stat-box"><div class="detail-label">Documents</div><div id="documents" class="space-y-2"></div></div>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Bank Account</h3>
+                <span id="bankVerificationBadge" class="badge">Pending</span>
+              </div>
+              <div id="bankAccountDetails" class="space-y-3"></div>
+              <div class="mt-4 flex flex-wrap gap-2">
+                <button id="verifyBankBtn" class="btn success">Verify Bank Account</button>
+                <button id="rejectBankBtn" class="btn danger">Reject</button>
+                <button id="reuploadBankBtn" class="btn warning">Request Re-upload</button>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <h3 class="text-lg font-semibold mb-3">Admin Notes</h3>
+              <textarea id="notesInput" class="input min-h-32" placeholder="Add admin notes…"></textarea>
+              <button id="saveNotesBtn" class="btn primary mt-3">Save Note</button>
+              <div id="notesHistory" class="mt-4 space-y-2"></div>
+            </div>
+
+            <div class="section-card">
+              <h3 class="text-lg font-semibold mb-3">Recent Activity</h3>
+              <div id="activityLog" class="space-y-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="bg-white border-t border-gray-100 mt-12 md:ml-64">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-8 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Lumina Admin</p>
+          <p class="text-sm text-gray-600 leading-relaxed">Centralized control for marketplace operations. Monitor users, sellers, and system health.</p>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Operations</p>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Moderation queue</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">System logs</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Audit trail</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Help</p>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Admin guide</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Contact devops</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Status page</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Policies</p>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Privacy</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Terms</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Admin code of conduct</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const sellerId = params.get('sellerId');
+    const requestedAction = params.get('action');
+    const API_BASE = `${window.location.origin}/api/admin/sellers`;
+
+    const state = { seller: null };
+    let requestedActionHandled = false;
+    const elements = {
+      alert: document.getElementById('alertBox'),
+      loading: document.getElementById('loadingState'),
+      content: document.getElementById('content'),
+      backBtn: document.getElementById('backBtn'),
+      refreshBtn: document.getElementById('refreshBtn'),
+      verifyBtn: document.getElementById('verifyBtn'),
+      rejectKycBtn: document.getElementById('rejectKycBtn'),
+      freezeBtn: document.getElementById('freezeBtn'),
+      strikeBtn: document.getElementById('strikeBtn'),
+      payoutBtn: document.getElementById('payoutBtn'),
+      saveNotesBtn: document.getElementById('saveNotesBtn'),
+      notesInput: document.getElementById('notesInput'),
+      verifyBankBtn: document.getElementById('verifyBankBtn'),
+      rejectBankBtn: document.getElementById('rejectBankBtn'),
+      reuploadBankBtn: document.getElementById('reuploadBankBtn')
+    };
+
+    function getAdminToken() {
+      return localStorage.getItem('lumina.admin.authToken') || localStorage.getItem('lumina.auth.token') || '';
+    }
+
+    function getAdminId() {
+      return localStorage.getItem('adminId') || localStorage.getItem('userId') || '';
+    }
+
+    function getAuthHeaders() {
+      const headers = {};
+      const token = getAdminToken();
+      const adminId = getAdminId();
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+        headers['x-session-token'] = token;
+      }
+      if (adminId) {
+        headers['x-admin-id'] = adminId;
+      }
+      return headers;
+    }
+
+    function setAlert(message, type = 'info') {
+      elements.alert.className = `alert ${type === 'error' ? 'error show' : type === 'success' ? 'success show' : 'show'}`;
+      elements.alert.textContent = message;
+      window.clearTimeout(setAlert.timeout);
+      setAlert.timeout = window.setTimeout(() => elements.alert.classList.remove('show'), 2400);
+    }
+
+    async function apiRequest(path, options = {}) {
+      const token = getAdminToken();
+      if (!token) {
+        window.location.href = 'admin_login.html';
+        throw new Error('Please sign in as admin');
+      }
+      const response = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+          ...(options.headers || {})
+        }
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.status === 401) {
+        window.location.href = 'admin_login.html';
+        throw new Error('Session expired. Please sign in again.');
+      }
+      if (!response.ok || payload.success === false) {
+        throw new Error(payload.message || 'Request failed');
+      }
+      return payload.data ?? payload;
+    }
+
+    function getDocumentLabel(type = '') {
+      const normalized = String(type || '').toLowerCase();
+      const labels = {
+        cnicfront: 'CNIC Front',
+        cnicback: 'CNIC Back',
+        selfie: 'Selfie',
+        bankstatement: 'Bank Statement'
+      };
+      return labels[normalized] || String(type || 'Document').replace(/([a-z])([A-Z])/g, '$1 $2');
+    }
+
+    function getDocumentStatusLabel(status = '') {
+      const normalized = String(status || '').toLowerCase();
+      if (['approved', 'verified', 'active'].includes(normalized)) return 'Approved';
+      if (['rejected', 'declined'].includes(normalized)) return 'Rejected';
+      return 'Pending';
+    }
+
+    function renderStatusBadges(seller) {
+      const badges = [];
+      badges.push(`<span class="pill ${seller.status === 'active' ? 'pill-active' : seller.status === 'frozen' ? 'pill-frozen' : 'pill-suspended'}">${seller.status || 'active'}</span>`);
+      badges.push(`<span class="pill ${seller.kycStatus === 'approved' || seller.kycStatus === 'verified' ? 'pill-approved' : seller.kycStatus === 'rejected' ? 'pill-rejected' : 'pill-pending'}">KYC ${seller.kycStatus || 'pending'}</span>`);
+      badges.push(`<span class="pill pill-risk-${seller.riskLevel || 'low'}">Risk ${seller.riskLevel || 'low'}</span>`);
+      badges.push(`<span class="pill ${seller.subscription === 'enterprise' ? 'bg-blue-100 text-blue-700' : seller.subscription === 'premium' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}">${(seller.subscription || 'basic').toUpperCase()}</span>`);
+      document.getElementById('statusBadges').innerHTML = badges.join('');
+      document.getElementById('sellerBadge').textContent = seller.businessName || 'Seller';
+    }
+
+    function renderProfile(seller) {
+      document.getElementById('avatar').textContent = (seller.businessName || 'S').slice(0, 1).toUpperCase();
+      document.getElementById('businessName').textContent = seller.businessName || 'Untitled Store';
+      document.getElementById('ownerMeta').textContent = `${seller.owner || 'Unknown owner'} • ${seller.email || 'No email'}`;
+      document.getElementById('email').textContent = seller.email || 'Not provided';
+      document.getElementById('phone').textContent = seller.phone || 'Not provided';
+      document.getElementById('registeredDate').textContent = seller.registeredDate || 'N/A';
+      document.getElementById('address').textContent = seller.profile?.businessAddress || 'Not provided';
+      document.getElementById('supportEmail').textContent = seller.businessInfo?.supportEmail || 'Not provided';
+      document.getElementById('supportPhone').textContent = seller.businessInfo?.supportPhone || 'Not provided';
+      document.getElementById('taxId').textContent = seller.profile?.taxId || 'Not provided';
+      document.getElementById('vacationMode').textContent = seller.businessInfo?.vacationMode ? 'Enabled' : 'Disabled';
+      document.getElementById('returnPolicy').textContent = seller.businessInfo?.returnPolicy || 'Not provided';
+      document.getElementById('shippingPolicy').textContent = seller.businessInfo?.shippingPolicy || 'Not provided';
+      document.getElementById('products').textContent = seller.performance?.products ?? 0;
+      document.getElementById('stock').textContent = seller.performance?.totalStock ?? 0;
+      document.getElementById('orders').textContent = seller.performance?.orders ?? 0;
+      document.getElementById('revenue').textContent = `$${Number(seller.performance?.revenue || 0).toLocaleString()}`;
+      document.getElementById('unitsSold').textContent = seller.performance?.unitsSold ?? 0;
+      document.getElementById('averageOrderValue').textContent = `$${Number(seller.performance?.averageOrderValue || 0).toLocaleString()}`;
+      document.getElementById('pendingPayout').textContent = `$${Number(seller.financial?.pendingPayout || 0).toLocaleString()}`;
+      document.getElementById('totalPaid').textContent = `$${Number(seller.financial?.totalPaid || 0).toLocaleString()}`;
+      document.getElementById('payoutBadge').textContent = seller.financial?.payoutStatus || 'completed';
+      document.getElementById('payoutBadge').className = `pill ${seller.financial?.payoutStatus === 'pending' ? 'pill-pending' : 'pill-approved'}`;
+      document.getElementById('performanceScore').textContent = `${seller.performanceScore || '0.0'} / 100`;
+      document.getElementById('kycBadge').textContent = seller.kyc?.status || 'pending';
+      document.getElementById('kycBadge').className = `pill ${seller.kyc?.status === 'approved' || seller.kyc?.status === 'verified' ? 'pill-approved' : seller.kyc?.status === 'rejected' ? 'pill-rejected' : 'pill-pending'}`;
+      document.getElementById('riskLevel').textContent = seller.kyc?.riskLevel || 'low';
+      document.getElementById('riskLevel').className = `detail-value ${seller.kyc?.riskLevel === 'high' ? 'text-rose-600' : seller.kyc?.riskLevel === 'medium' ? 'text-amber-600' : 'text-emerald-600'}`;
+      document.getElementById('strikes').textContent = `${seller.kyc?.strikes || 0}/3`;
+      document.getElementById('notesInput').value = seller.notes || '';
+      document.getElementById('documents').innerHTML = (seller.kyc?.documents || []).length
+        ? (seller.kyc.documents || []).map(doc => `<div class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"><div class="flex items-center justify-between gap-2"><div><div class="font-semibold text-gray-800">${getDocumentLabel(doc.type)}</div><div class="mt-1 text-xs text-gray-500">${doc.uploadedDate || 'Uploaded recently'}</div></div><div class="flex items-center gap-2"><span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">${getDocumentStatusLabel(doc.status)}</span>${doc.url ? `<a href="${doc.url}" target="_blank" rel="noreferrer" class="text-sm font-semibold text-blue-600 hover:underline">View</a>` : '<span class="text-xs text-gray-400">No file</span>'}</div></div></div>`).join('')
+        : '<div class="rounded-lg border border-dashed border-gray-200 p-3 text-sm text-gray-500">No documents uploaded yet.</div>';
+      
+      const bankAccount = (seller.bankAccounts || [])[0] || null;
+      const verificationStatus = String(bankAccount?.status || seller.bankVerificationStatus || 'pending').toLowerCase();
+      const badgeClass = verificationStatus === 'verified' ? 'pill-approved' : verificationStatus === 'rejected' ? 'pill-rejected' : 'pill-pending';
+      document.getElementById('bankVerificationBadge').textContent = verificationStatus === 'verified' ? 'Verified' : verificationStatus === 'rejected' ? 'Rejected' : 'Pending';
+      document.getElementById('bankVerificationBadge').className = `pill ${badgeClass}`;
+      
+      // Update button states based on verification status
+      const verifyBtn = elements.verifyBankBtn;
+      const rejectBtn = elements.rejectBankBtn;
+      const reuploadBtn = elements.reuploadBankBtn;
+      
+      const fallbackValues = {
+        bankName: bankAccount?.bankName || 'Pending',
+        accountHolderName: bankAccount?.accountHolderName || 'Pending',
+        accountNumberMasked: bankAccount?.accountNumberMasked || 'Pending',
+        iban: bankAccount?.iban || 'Pending',
+        branchName: bankAccount?.branchName || 'Pending',
+        branchCode: bankAccount?.branchCode || 'Pending',
+        accountType: bankAccount?.accountType || 'Pending',
+        mobileWallet: bankAccount?.mobileWallet || 'Pending',
+        statementName: bankAccount?.bankStatementName || 'No bank statement uploaded yet.',
+        statementUrl: bankAccount?.bankStatementUrl || '',
+        submittedAt: bankAccount?.submittedAt ? new Date(bankAccount.submittedAt).toLocaleString() : 'Pending',
+        updatedAt: bankAccount?.updatedAt ? new Date(bankAccount.updatedAt).toLocaleString() : 'Pending'
+      };
+
+      if (!bankAccount) {
+        verifyBtn.disabled = true;
+        rejectBtn.disabled = true;
+        reuploadBtn.disabled = true;
+      } else if (verificationStatus === 'pending') {
+        verifyBtn.disabled = false;
+        rejectBtn.disabled = false;
+        reuploadBtn.disabled = false;
+      } else if (verificationStatus === 'verified') {
+        verifyBtn.disabled = true;
+        rejectBtn.disabled = true;
+        reuploadBtn.disabled = false;
+      } else if (verificationStatus === 'rejected') {
+        verifyBtn.disabled = false;
+        rejectBtn.disabled = true;
+        reuploadBtn.disabled = false;
+      }
+      
+      document.getElementById('bankAccountDetails').innerHTML = `
+        <div class="grid gap-3 md:grid-cols-2">
+          <div class="stat-box"><div class="detail-label">Bank Name</div><div class="detail-value">${fallbackValues.bankName}</div></div>
+          <div class="stat-box"><div class="detail-label">Account Holder Name</div><div class="detail-value">${fallbackValues.accountHolderName}</div></div>
+          <div class="stat-box"><div class="detail-label">Masked Account Number</div><div class="detail-value">${fallbackValues.accountNumberMasked}</div></div>
+          <div class="stat-box"><div class="detail-label">IBAN</div><div class="detail-value">${fallbackValues.iban}</div></div>
+          <div class="stat-box"><div class="detail-label">Branch Name</div><div class="detail-value">${fallbackValues.branchName}</div></div>
+          <div class="stat-box"><div class="detail-label">Branch Code</div><div class="detail-value">${fallbackValues.branchCode}</div></div>
+          <div class="stat-box"><div class="detail-label">Account Type</div><div class="detail-value">${fallbackValues.accountType}</div></div>
+          <div class="stat-box"><div class="detail-label">Mobile Wallet</div><div class="detail-value">${fallbackValues.mobileWallet}</div></div>
+        </div>
+        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm">
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-semibold text-gray-800">Uploaded Bank Statement</span>
+            ${fallbackValues.statementUrl ? `<a href="${fallbackValues.statementUrl}" target="_blank" class="text-sm text-blue-600 hover:underline">View</a>` : '<button type="button" class="rounded border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-500" disabled>View</button>'}
+          </div>
+          <div class="mt-1 text-gray-600">${fallbackValues.statementName}</div>
+        </div>
+        <div class="grid gap-3 md:grid-cols-2">
+          <div class="stat-box"><div class="detail-label">Verification Status</div><div class="detail-value">${verificationStatus.charAt(0).toUpperCase() + verificationStatus.slice(1)}</div></div>
+          <div class="stat-box"><div class="detail-label">Submitted Date</div><div class="detail-value">${fallbackValues.submittedAt}</div></div>
+          <div class="stat-box"><div class="detail-label">Last Updated</div><div class="detail-value">${fallbackValues.updatedAt}</div></div>
+          ${verificationStatus === 'verified' && bankAccount?.verifiedAt ? `<div class="stat-box"><div class="detail-label">Verified Date</div><div class="detail-value">${new Date(bankAccount.verifiedAt).toLocaleString()}</div></div>` : ''}
+          ${verificationStatus === 'rejected' && bankAccount?.rejectionReason ? `<div class="stat-box"><div class="detail-label">Rejection Reason</div><div class="detail-value">${bankAccount.rejectionReason}</div></div>` : ''}
+        </div>
+      `;
+      document.getElementById('payoutHistory').innerHTML = (seller.financial?.payouts || []).length
+        ? (seller.financial.payouts || []).slice(0, 5).map(item => `<div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm"><div class="flex items-center justify-between"><span class="font-semibold text-gray-800">${item.date || 'N/A'}</span><span class="text-gray-700">$${Number(item.amount || 0).toLocaleString()}</span></div><div class="mt-1 text-xs text-gray-500">Status: ${item.status || 'unknown'}</div></div>`).join('')
+        : '<div class="rounded-lg border border-dashed border-gray-200 p-3 text-sm text-gray-500">No payout history yet.</div>';
+      document.getElementById('notesHistory').innerHTML = (seller.notesHistory || []).length
+        ? (seller.notesHistory || []).map(item => `<div class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm"><div class="flex items-center justify-between"><span class="font-semibold text-gray-800">${item.date || 'Recent'}</span><span class="text-xs text-gray-500">${item.actor || 'Admin'}</span></div><div class="mt-1 text-gray-600">${item.note || 'No notes'}</div></div>`).join('')
+        : '<div class="rounded-lg border border-dashed border-gray-200 p-3 text-sm text-gray-500">No note history yet.</div>';
+      document.getElementById('activityLog').innerHTML = (seller.activityLog || []).length
+        ? (seller.activityLog || []).map(item => `<div class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm"><div class="flex items-center justify-between"><span class="font-semibold text-gray-800">${item.action || 'Activity'}</span><span class="text-xs text-gray-500">${item.date || ''}</span></div>${item.details ? `<div class="mt-1 text-gray-600">${item.details}</div>` : ''}</div>`).join('')
+        : '<div class="rounded-lg border border-dashed border-gray-200 p-3 text-sm text-gray-500">No activity recorded yet.</div>';
+    }
+
+    async function loadSeller() {
+      if (!sellerId) {
+        setAlert('Seller ID is missing.', 'error');
+        return;
+      }
+      elements.loading.classList.remove('hidden');
+      elements.content.classList.add('hidden');
+      try {
+        const detail = await apiRequest(`/${sellerId}`);
+        state.seller = detail;
+        renderStatusBadges(detail);
+        renderProfile(detail);
+        elements.loading.classList.add('hidden');
+        elements.content.classList.remove('hidden');
+        if (requestedAction && state.seller && !requestedActionHandled) {
+          requestedActionHandled = true;
+          const action = requestedAction;
+          if (action === 'kyc' || action === 'kyc-approve') {
+            performAction(`/${sellerId}/kyc/approve`, 'KYC approved successfully.', { method: 'POST', body: JSON.stringify({ admin: getAdminId() }) });
+          } else if (action === 'kyc-reject') {
+            handleKycRejectAction();
+          } else if (action === 'freeze') {
+            performAction(`/${sellerId}/status`, 'Seller frozen successfully.', { method: 'POST', body: JSON.stringify({ status: 'frozen', admin: 'ADM-001' }) });
+          } else if (action === 'strike') {
+            performAction(`/${sellerId}/strikes/issue`, 'Strike recorded successfully.', { method: 'POST', body: JSON.stringify({ reason: 'Policy violation', admin: 'ADM-001' }) });
+          } else if (action === 'payout') {
+            performAction(`/${sellerId}/payout/process`, 'Payout processed successfully.', { method: 'POST', body: JSON.stringify({ amount: state.seller?.financial?.pendingPayout || 0, admin: 'ADM-001' }) });
+          }
+        }
+      } catch (error) {
+        elements.loading.classList.add('hidden');
+        setAlert(error.message, 'error');
+      }
+    }
+
+    async function performAction(path, successMessage, options = {}) {
+      try {
+        await apiRequest(path, options);
+        setAlert(successMessage, 'success');
+        await loadSeller();
+      } catch (error) {
+        setAlert(error.message, 'error');
+      }
+    }
+
+    async function handleKycRejectAction() {
+      const reason = window.prompt('Enter rejection reason', 'KYC documents are incomplete or unclear.');
+      if (!reason) {
+        setAlert('Rejection reason is required.', 'error');
+        return;
+      }
+      await performAction(`/${sellerId}/kyc/reject`, 'KYC rejected successfully.', { method: 'POST', body: JSON.stringify({ reason, admin: getAdminId() }) });
+    }
+
+    async function confirmBankAction(message) {
+      return window.confirm(message);
+    }
+
+    async function handleBankAction(path, successMessage) {
+      if (!state.seller?.bankAccounts?.length) {
+        setAlert('No bank account details are available for this seller.', 'error');
+        return;
+      }
+      try {
+        if (path.includes('reject')) {
+          const reason = window.prompt('Enter rejection reason', 'The uploaded bank statement is unreadable.');
+          if (!reason) {
+            setAlert('Rejection reason is required.', 'error');
+            return;
+          }
+          await apiRequest(path, { method: 'POST', body: JSON.stringify({ reason, admin: getAdminId() }) });
+        } else {
+          const confirmed = await confirmBankAction('Are you sure you want to perform this bank account action?');
+          if (!confirmed) return;
+          await apiRequest(path, { method: 'POST', body: JSON.stringify({ admin: getAdminId() }) });
+        }
+        setAlert(successMessage, 'success');
+        await loadSeller();
+      } catch (error) {
+        setAlert(error.message, 'error');
+      }
+    }
+
+    elements.backBtn.addEventListener('click', () => window.location.href = 'seller_management.html');
+    elements.refreshBtn.addEventListener('click', loadSeller);
+    elements.verifyBtn.addEventListener('click', () => performAction(`/${sellerId}/kyc/approve`, 'KYC approved successfully.', { method: 'POST', body: JSON.stringify({ admin: getAdminId() }) }));
+    elements.rejectKycBtn.addEventListener('click', handleKycRejectAction);
+    elements.freezeBtn.addEventListener('click', () => performAction(`/${sellerId}/status`, 'Seller frozen successfully.', { method: 'POST', body: JSON.stringify({ status: 'frozen', admin: 'ADM-001' }) }));
+    elements.strikeBtn.addEventListener('click', () => performAction(`/${sellerId}/strikes/issue`, 'Strike recorded successfully.', { method: 'POST', body: JSON.stringify({ reason: 'Policy violation', admin: 'ADM-001' }) }));
+    elements.payoutBtn.addEventListener('click', () => performAction(`/${sellerId}/payout/process`, 'Payout processed successfully.', { method: 'POST', body: JSON.stringify({ amount: state.seller?.financial?.pendingPayout || 0, admin: 'ADM-001' }) }));
+    elements.saveNotesBtn.addEventListener('click', () => performAction(`/${sellerId}/notes`, 'Note saved successfully.', { method: 'POST', body: JSON.stringify({ notes: elements.notesInput.value, admin: 'ADM-001' }) }));
+    elements.verifyBankBtn.addEventListener('click', () => handleBankAction(`/${sellerId}/bank-account/verify`, 'Bank account verified successfully.'));
+    elements.rejectBankBtn.addEventListener('click', () => handleBankAction(`/${sellerId}/bank-account/reject`, 'Bank account rejected successfully.'));
+    elements.reuploadBankBtn.addEventListener('click', () => handleBankAction(`/${sellerId}/bank-account/request-reupload`, 'Re-upload request sent successfully.'));
+
+    lucide.createIcons();
+    loadSeller();
+  </script>
+</body>
+</html>

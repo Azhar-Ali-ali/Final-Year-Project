@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Admin | User Management</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script src="https://unpkg.com/lucide@latest"></script>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" />
+	<style>
+		:root {
+			--bg: #f5f5f5;
+			--panel: #ffffff;
+			--text: #232f3e;
+			--muted: #666666;
+			--border: #dddddd;
+			--primary: #232f3e;
+			--primary-600: #37475a;
+			--success: #28a745;
+			--warning: #ffc107;
+			--danger: #dc3545;
+			--info: #0066c0;
+			--shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+			--radius: 10px;
+		}
+
+		* { box-sizing: border-box; margin: 0; padding: 0; }
+
+		body {
+			font-family: "Inter", Arial, sans-serif;
+			background: var(--bg);
+			color: var(--text);
+		}
+
+		body.dark {
+			--bg: #0f172a;
+			--panel: #111827;
+			--text: #e5e7eb;
+			--muted: #9ca3af;
+			--border: #1f2937;
+			--shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+		}
+
+		.layout {
+			display: block;
+			min-height: 100vh;
+		}
+
+		.content {
+			display: flex;
+			flex-direction: column;
+			gap: 18px;
+			padding: 20px;
+			margin-top: 64px;
+		}
+
+		@media (min-width: 768px) {
+			.content {
+				margin-left: 256px;
+			}
+		}
+
+		.glass {
+			background: rgba(255, 255, 255, 0.95);
+			backdrop-filter: blur(10px);
+			border-bottom: 1px solid #e5e7eb;
+		}
+
+		.page-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			flex-wrap: wrap;
+			margin-bottom: 10px;
+		}
+
+		.page-header .title {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			font-weight: 700;
+			font-size: 20px;
+			color: var(--text);
+		}
+
+		.page-header .actions {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.btn {
+			padding: 12px 25px;
+			border: none;
+			border-radius: 8px;
+			font-size: 14px;
+			cursor: pointer;
+			transition: all 0.3s ease;
+			font-weight: 600;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			background: #f3f4f6;
+			color: #333;
+		}
+
+		.btn.primary {
+			background: var(--primary);
+			color: white;
+		}
+
+		.btn.primary:hover {
+			background: var(--primary-600);
+		}
+
+		.badge {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			background: #eef2ff;
+			color: #1e3a8a;
+			padding: 4px 8px;
+			border-radius: 999px;
+			font-size: 11px;
+			font-weight: 600;
+		}
+
+		.panel {
+			background: var(--panel);
+			border-radius: var(--radius);
+			box-shadow: var(--shadow);
+			padding: 25px;
+		}
+
+		.toolbar {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			margin-bottom: 25px;
+			background: white;
+			padding: 10px;
+			border-radius: 10px;
+			box-shadow: var(--shadow);
+		}
+
+		.search {
+			position: relative;
+			min-width: 260px;
+		}
+
+		.search input {
+			width: 100%;
+			padding: 10px 15px 10px 40px;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			font-size: 13px;
+			background: white;
+			color: var(--text);
+		}
+
+		.search input:focus {
+			outline: none;
+			border-color: var(--primary);
+			box-shadow: 0 0 0 3px rgba(35, 47, 62, 0.1);
+		}
+
+		.search .material-symbols-rounded {
+			position: absolute;
+			left: 12px;
+			top: 50%;
+			transform: translateY(-50%);
+			font-size: 18px;
+			color: #666;
+			pointer-events: none;
+		}
+
+		.filters {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+
+		.select {
+			padding: 10px 15px;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			font-size: 13px;
+			background-color: white;
+			cursor: pointer;
+			min-width: 140px;
+		}
+
+		.select:focus {
+			outline: none;
+			border-color: var(--primary);
+		}
+
+		.tabs {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+
+		.tab {
+			padding: 10px 20px;
+			border: 2px solid transparent;
+			background-color: #f3f4f6;
+			color: #333;
+			border-radius: 6px;
+			cursor: pointer;
+			font-weight: 600;
+			transition: all 0.3s ease;
+			font-size: 12px;
+		}
+
+		.tab:hover {
+			background-color: #e5e7eb;
+		}
+
+		.tab.active {
+			background-color: var(--primary);
+			color: white;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			font-size: 13px;
+			min-width: 1200px;
+		}
+
+		thead th {
+			padding: 15px;
+			text-align: left;
+			font-weight: 600;
+			color: var(--text);
+			font-size: 13px;
+			text-transform: uppercase;
+			background-color: #f5f5f5;
+			border-bottom: 2px solid var(--border);
+			white-space: nowrap;
+		}
+
+		tbody td {
+			padding: 15px;
+			border-bottom: 1px solid var(--border);
+			vertical-align: middle;
+			white-space: nowrap;
+		}
+
+		tbody tr:hover { background: #f5f5f5; }
+
+		.user-cell { display: flex; align-items: center; gap: 10px; }
+		.avatar {
+			width: 36px;
+			height: 36px;
+			border-radius: 50%;
+			background: #e5e7eb;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: 700;
+			color: #111827;
+			font-size: 12px;
+		}
+
+		.seller-logo {
+			width: 40px;
+			height: 40px;
+			border-radius: 6px;
+			object-fit: cover;
+		}
+
+		.seller-info {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+		}
+
+		.seller-details h4 {
+			font-size: 14px;
+			font-weight: 600;
+			color: var(--text);
+			margin-bottom: 2px;
+		}
+
+		.seller-details p {
+			font-size: 12px;
+			color: var(--muted);
+		}
+
+		.status-pill {
+			padding: 4px 10px;
+			border-radius: 999px;
+			font-size: 12px;
+			font-weight: 600;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+		}
+
+		.pill-active { background: #dcfce7; color: #166534; }
+		.pill-suspended { background: #fef3c7; color: #92400e; }
+		.pill-banned { background: #fee2e2; color: #991b1b; }
+		.pill-kyc-pending { background: #fef9c3; color: #854d0e; }
+		.pill-kyc-approved { background: #dcfce7; color: #166534; }
+		.pill-kyc-rejected { background: #fee2e2; color: #991b1b; }
+		.pill-risk-low { background: #dcfce7; color: #166534; }
+		.pill-risk-medium { background: #fef3c7; color: #92400e; }
+		.pill-risk-high { background: #fee2e2; color: #991b1b; }
+
+		.pill-basic { background: #e2e3e5; color: #383d41; }
+		.pill-premium { background: #dcfce7; color: #166534; }
+		.pill-enterprise { background: #cce5ff; color: #004085; }
+
+		.pill-frozen { background: #d1ecf1; color: #0c5460; }
+		.pill-completed { background: #dcfce7; color: #166534; }
+
+		.rating {
+			display: flex;
+			align-items: center;
+			gap: 5px;
+		}
+
+		.rating .material-symbols-rounded {
+			color: #ffc107;
+			font-size: 16px;
+		}
+
+		.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+		.action-btn {
+			background: none;
+			border: none;
+			color: #0066c0;
+			cursor: pointer;
+			font-size: 13px;
+			font-weight: 600;
+			padding: 5px 10px;
+			transition: color 0.2s;
+		}
+
+		.action-btn:hover {
+			color: #232f3e;
+			text-decoration: underline;
+		}
+
+		.pagination {
+			display: flex;
+			justify-content: center;
+			gap: 8px;
+			margin-top: 20px;
+			flex-wrap: wrap;
+		}
+
+		.pager { display: flex; align-items: center; gap: 6px; }
+		.pager button {
+			padding: 8px 12px;
+			border: 1px solid var(--border);
+			background-color: white;
+			border-radius: 4px;
+			cursor: pointer;
+			font-size: 12px;
+			transition: all 0.2s;
+		}
+
+		.pager button:hover {
+			background-color: #f5f5f5;
+			border-color: var(--primary);
+		}
+
+		.alert {
+			display: none;
+			padding: 10px 12px;
+			border-radius: 10px;
+			font-size: 13px;
+			margin-bottom: 12px;
+		}
+
+		.alert.show { display: block; }
+		.alert.success { background: #dcfce7; color: #166534; }
+		.alert.error { background: #fee2e2; color: #991b1b; }
+
+		.loading {
+			display: none;
+			align-items: center;
+			gap: 8px;
+			font-size: 13px;
+			color: var(--muted);
+			padding: 10px 0;
+		}
+
+		.spinner {
+			width: 18px;
+			height: 18px;
+			border: 2px solid #e5e7eb;
+			border-top: 2px solid var(--primary);
+			border-radius: 50%;
+			animation: spin 0.8s linear infinite;
+		}
+
+		.skeleton {
+			background: linear-gradient(90deg, #e5e7eb, #f3f4f6, #e5e7eb);
+			background-size: 200% 100%;
+			animation: shimmer 1.2s infinite;
+			height: 12px;
+			border-radius: 6px;
+		}
+
+		@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+		@keyframes spin { to { transform: rotate(360deg); } }
+
+		.drawer {
+			position: fixed;
+			top: 0;
+			right: -100%;
+			width: min(540px, 100%);
+			height: 100dvh;
+			max-height: 100dvh;
+			background: var(--panel);
+			box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+			transition: right 0.3s ease;
+			z-index: 200;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.drawer.open { right: 0; }
+		.drawer-header {
+			padding: 18px;
+			border-bottom: 1px solid var(--border);
+			display:flex;
+			justify-content: space-between;
+			align-items: center;
+			background: var(--panel);
+			position: sticky;
+			top: 0;
+			z-index: 1;
+		}
+		.drawer-body {
+			padding: 18px;
+			overflow-y: auto;
+			display: grid;
+			gap: 12px;
+			flex: 1;
+			min-height: 0;
+		}
+
+		body.drawer-open {
+			overflow: hidden;
+		}
+
+		.card {
+			border: 1px solid var(--border);
+			border-radius: 12px;
+			padding: 14px;
+			background: var(--panel);
+		}
+
+		.card h4 {
+			font-size: 12px;
+			text-transform: uppercase;
+			letter-spacing: 0.04em;
+			color: var(--muted);
+			margin-bottom: 8px;
+		}
+
+		.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+		.note-area {
+			width: 100%;
+			min-height: 80px;
+			border: 1px solid var(--border);
+			border-radius: 10px;
+			padding: 10px;
+			font-size: 13px;
+			background: var(--panel);
+			color: var(--text);
+		}
+
+		.modal-backdrop {
+			position: fixed;
+			inset: 0;
+			background: rgba(15, 23, 42, 0.45);
+			display: none;
+			align-items: center;
+			justify-content: center;
+			z-index: 100;
+		}
+
+		.modal-backdrop.show { display: flex; }
+		.modal {
+			background: var(--panel);
+			border-radius: 14px;
+			padding: 20px;
+			width: min(520px, 92vw);
+			box-shadow: var(--shadow);
+		}
+
+		.modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:16px; }
+
+		.verified-seller {
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
+			margin-top: 4px;
+			padding: 2px 8px;
+			border-radius: 999px;
+			font-size: 11px;
+			font-weight: 700;
+			background: #dcfce7;
+			color: #166534;
+		}
+
+		.kyc-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 10px;
+		}
+
+		.kyc-doc-item {
+			border: 1px solid var(--border);
+			border-radius: 8px;
+			padding: 10px;
+		}
+
+		.kyc-doc-item strong {
+			display: block;
+			font-size: 12px;
+			margin-bottom: 6px;
+		}
+
+		.kyc-doc-item a {
+			font-size: 13px;
+			font-weight: 600;
+			color: #0066c0;
+			text-decoration: none;
+		}
+
+		.kyc-doc-item a:hover {
+			text-decoration: underline;
+		}
+
+		.kyc-doc-item span {
+			font-size: 13px;
+			color: var(--muted);
+		}
+
+		.form-group {
+			margin-bottom: 15px;
+		}
+
+		.form-group label {
+			display: block;
+			font-size: 13px;
+			font-weight: 600;
+			margin-bottom: 5px;
+			color: var(--text);
+		}
+
+		.form-group input,
+		.form-group textarea {
+			width: 100%;
+			padding: 10px 15px;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			font-size: 14px;
+			font-family: "Inter", Arial, sans-serif;
+		}
+
+		.form-group textarea {
+			resize: vertical;
+			min-height: 80px;
+		}
+
+		.document-viewer {
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			padding: 15px;
+			margin-bottom: 15px;
+		}
+
+		.document-item {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 10px;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			margin-bottom: 10px;
+		}
+
+		.document-info {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.strike-item {
+			padding: 15px;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			margin-bottom: 10px;
+		}
+
+		.strike-item h5 {
+			font-size: 14px;
+			font-weight: 600;
+			margin-bottom: 5px;
+		}
+
+		.strike-item p {
+			font-size: 13px;
+			color: var(--muted);
+		}
+
+		.revenue-cell {
+			font-weight: 600;
+			color: var(--success);
+		}
+
+		@media (max-width: 1024px) {
+			table { min-width: 900px; }
+		}
+
+		@media (max-width: 640px) {
+			.page-header { flex-direction: column; align-items: flex-start; }
+			.toolbar { flex-direction: column; align-items: flex-start; }
+			.grid-2 { grid-template-columns: 1fr; }
+			.kyc-grid { grid-template-columns: 1fr; }
+			.search { min-width: 100%; }
+			.drawer { width: 100%; max-width: 100%; }
+			.drawer-header { padding: 14px 16px; }
+			.drawer-body { padding: 14px 16px 24px; }
+		}
+	</style>
+</head>
+<body class="bg-[#f9fafb] text-[#1a1a1a] min-h-screen flex flex-col">
+  <nav class="fixed top-0 w-full z-[100] glass">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-16 flex items-center justify-between gap-6">
+      <div class="flex items-center gap-3 shrink-0">
+        <button id="sidebarToggle" class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <a href="admin_dashboard.html" class="text-xl font-bold tracking-tight uppercase hover:opacity-70 transition-opacity">
+          <span class="text-gray-900">Lumina</span>
+          <span class="text-gray-400 font-normal text-xs ml-2">Admin</span>
+        </a>
+      </div>
+
+      <div class="hidden lg:flex flex-grow relative max-w-sm mx-auto">
+        <input type="text" placeholder="Search users, sellers, orders..." class="w-full bg-gray-50 border border-gray-200 focus:border-gray-400 focus:bg-white rounded-full py-2 px-4 pl-10 text-xs outline-none transition-all">
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+      </div>
+
+      <div class="flex items-center gap-3 shrink-0">
+        <button class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors group">
+          <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
+          <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          <div class="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 p-0 dropdown-hidden z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
+            <div class="px-4 py-3 border-b border-gray-100">
+              <p class="text-xs font-bold uppercase tracking-widest text-gray-600">Admin alerts</p>
+            </div>
+            <div class="max-h-80 overflow-y-auto">
+              <div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
+                <p class="text-xs font-bold text-gray-900">New seller #S422</p>
+                <p class="text-xs text-gray-500 mt-1">Request pending verification</p>
+              </div>
+              <div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
+                <p class="text-xs font-bold text-gray-900">Order #2451 flagged</p>
+                <p class="text-xs text-gray-500 mt-1">Payment discrepancy</p>
+              </div>
+              <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer">
+                <p class="text-xs font-bold text-gray-900">System update</p>
+                <p class="text-xs text-gray-500 mt-1">Analytics ready</p>
+              </div>
+            </div>
+            <div class="px-4 py-2 border-t border-gray-100 text-center">
+              <a href="#" class="text-xs font-bold text-gray-600 hover:text-black uppercase tracking-widest">View All</a>
+            </div>
+          </div>
+        </button>
+
+        <div class="relative group">
+          <button class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-full flex items-center justify-center text-white text-xs font-bold">A</div>
+            <div class="flex items-center gap-1">
+              <span class="text-xs font-bold text-gray-700 hidden sm:block">Admin</span>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-gray-600"></i>
+            </div>
+          </button>
+          <div class="absolute top-full right-0 mt-1 w-56 bg-white rounded-xl shadow-lg border border-gray-100 p-0 dropdown-hidden z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
+            <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-xs font-bold text-gray-900">Super Admin</span>
+                <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
+                  <i data-lucide="shield" class="w-3 h-3"></i>
+                  root
+                </span>
+              </div>
+              <p class="text-xs text-gray-500">full access</p>
+            </div>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+              <i data-lucide="user-cog" class="w-4 h-4 text-gray-600"></i>
+              <span class="text-sm text-gray-700">Profile</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+              <i data-lucide="settings" class="w-4 h-4 text-gray-600"></i>
+              <span class="text-sm text-gray-700">System settings</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-red-600">
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+              <span class="text-sm font-bold">Logout</span>
+            </a>
+          </div>
+        </div>
+
+        <button class="hidden sm:flex items-center gap-2 px-4 py-2 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-gray-900 transition-colors">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span class="hidden lg:block">New</span>
+        </button>
+        <button class="sm:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <i data-lucide="plus" class="w-5 h-5 text-gray-700"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <aside id="sidebar" class="hidden md:block fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-100 z-50 overflow-y-auto">
+    <nav class="p-4 space-y-2">
+      <a href="admin_dashboard.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+        Dashboard
+      </a>
+      <a href="user_management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg bg-gray-50 transition-all">
+        <i data-lucide="users" class="w-4 h-4"></i>
+        User Management
+      </a>
+      <a href="seller_management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="store" class="w-4 h-4"></i>
+        Seller Management
+      </a>
+      <a href="Order_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="package" class="w-4 h-4"></i>
+        Order Management
+      </a>
+      <a href="Product_Catalog_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="box" class="w-4 h-4"></i>
+        Product Catalog
+      </a>
+      <a href="cms.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="file-text" class="w-4 h-4"></i>
+        CMS
+      </a>
+      <a href="Reviews_Ratings_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="star" class="w-4 h-4"></i>
+        Reviews & Ratings
+      </a>
+      <a href="Logistics_Courier_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="truck" class="w-4 h-4"></i>
+        Logistics
+      </a>
+      <a href="Payment_Payout_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="credit-card" class="w-4 h-4"></i>
+        Payments
+      </a>
+      <a href="Dispute_Support_System.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="shield-alert" class="w-4 h-4"></i>
+        Dispute & Support
+      </a>
+      <a href="Reports_Analytics.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+        Reports
+      </a>
+
+      <div class="h-px bg-gray-100 my-4"></div>
+
+      <a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="settings" class="w-4 h-4"></i>
+        Settings
+      </a>
+      <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="help-circle" class="w-4 h-4"></i>
+        Help
+      </a>
+    </nav>
+  </aside>
+
+  <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+
+	<div class="layout">
+		<main class="content">
+			<div class="page-header">
+				<div class="title">
+					<span class="material-symbols-rounded">group</span>
+					User Management
+					<span class="badge" id="totalCount">0 Users</span>
+				</div>
+				<div class="actions">
+					<button class="btn" id="exportCsv">Export CSV</button>
+					<button class="btn primary" id="addUserBtn">Add User</button>
+				</div>
+			</div>
+
+			<div class="panel">
+				<div id="alertBox" class="alert"></div>
+				<div class="toolbar">
+					<div class="search">
+						<span class="material-symbols-rounded">search</span>
+						<input type="text" id="searchInput" placeholder="Search by name, email, phone..." />
+					</div>
+					<div class="filters">
+						<select id="filterRole" class="select">
+							<option value="all">All Users</option>
+							<option value="customer">Customers</option>
+							<option value="seller">Sellers</option>
+						</select>
+						<select id="filterStatus" class="select">
+							<option value="all">All Status</option>
+							<option value="active">Active</option>
+							<option value="suspended">Suspended</option>
+							<option value="banned">Banned</option>
+						</select>
+						<select id="filterKyc" class="select">
+							<option value="all">All KYC</option>
+							<option value="pending">KYC Pending</option>
+							<option value="approved">KYC Approved</option>
+							<option value="rejected">KYC Rejected</option>
+						</select>
+					</div>
+					<div class="tabs" id="tabs">
+						<button class="tab active" data-tab="all">All Users</button>
+						<button class="tab" data-tab="customer">Customers</button>
+						<button class="tab" data-tab="seller">Sellers</button>
+						<button class="tab" data-tab="suspended">Suspended</button>
+						<button class="tab" data-tab="banned">Banned</button>
+						<button class="tab" data-tab="kycPending">KYC Pending</button>
+					</div>
+				</div>
+
+				<div class="loading" id="loadingIndicator">
+					<span class="spinner"></span>
+					Loading users...
+				</div>
+
+				<div style="overflow:auto;">
+					<table>
+						<thead>
+							<tr>
+								<th><input type="checkbox" id="selectAll" /></th>
+								<th data-sort="name">User</th>
+								<th data-sort="email">Email</th>
+								<th data-sort="phone">Phone</th>
+								<th data-sort="role">Role</th>
+								<th data-sort="status">Status</th>
+								<th data-sort="registered">Registered</th>
+								<th data-sort="lastLogin">Last Login</th>
+								<th data-sort="orders">Orders</th>
+								<th data-sort="value">Spend/Revenue</th>
+								<th data-sort="refunds">Refunds</th>
+								<th data-sort="risk">Risk</th>
+								<th data-sort="products">Products</th>
+								<th data-sort="sales">Sales</th>
+								<th data-sort="commission">Commission</th>
+								<th data-sort="kyc">KYC</th>
+								<th data-sort="payout">Payout</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody id="userTable"></tbody>
+					</table>
+				</div>
+
+				<div class="pagination">
+					<div class="actions">
+						<button class="btn" id="bulkActivate">Activate</button>
+						<button class="btn" id="bulkSuspend">Suspend</button>
+						<button class="btn" id="bulkBan">Ban</button>
+					</div>
+					<div class="pager">
+						<button id="prevPage">Prev</button>
+						<span class="badge" id="pageNumber">1</span>
+						<button id="nextPage">Next</button>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+
+	<aside class="drawer" id="userDrawer">
+		<div class="drawer-header">
+			<strong>User Details</strong>
+			<button class="btn" id="closeDrawer">Close</button>
+		</div>
+		<div class="drawer-body" id="drawerContent"></div>
+	</aside>
+
+	<div class="modal-backdrop" id="modalBackdrop">
+		<div class="modal" id="confirmModal">
+			<h3 id="modalTitle">Confirm Action</h3>
+			<p id="modalMessage">Are you sure?</p>
+			<div class="modal-actions">
+				<button class="btn" id="modalCancel">Cancel</button>
+				<button class="btn primary" id="modalConfirm">Confirm</button>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal-backdrop" id="kycBackdrop">
+		<div class="modal" id="kycModal">
+			<h3>Seller KYC Details</h3>
+			<div class="grid-2" style="margin-top:12px;">
+				<div>Full Name: <strong id="kycFullName">-</strong></div>
+				<div>CNIC: <strong id="kycCnic">-</strong></div>
+			</div>
+			<div class="kyc-grid" style="margin-top:14px;">
+				<div class="kyc-doc-item">
+					<strong>CNIC Front Image</strong>
+					<div id="kycFrontWrap"></div>
+				</div>
+				<div class="kyc-doc-item">
+					<strong>CNIC Back Image</strong>
+					<div id="kycBackWrap"></div>
+				</div>
+				<div class="kyc-doc-item" style="grid-column: 1 / -1;">
+					<strong>Selfie with CNIC</strong>
+					<div id="kycSelfieWrap"></div>
+				</div>
+			</div>
+			<div style="margin-top:14px;">Status: <span id="kycStatusBadge"></span></div>
+			<div class="modal-actions">
+				<button class="btn" id="kycCloseBtn">Close</button>
+				<button class="btn" id="kycRejectBtn">Reject</button>
+				<button class="btn primary" id="kycApproveBtn">Approve</button>
+			</div>
+		</div>
+	</div>
+
+	<script type="module">
+		const API_BASE = 'http://localhost:5000/api/admin/users';
+		const adminRole = 'super_admin';
+		const state = {
+			users: [],
+			filtered: [],
+			page: 1,
+			pageSize: 8,
+			sort: { key: 'registered', dir: 'desc' },
+			selected: new Set(),
+			activeTab: 'all',
+			drawerUserId: null,
+			activeKycUserId: null,
+			activeKycDocuments: {}
+		};
+
+		const el = {
+			table: document.getElementById('userTable'),
+			search: document.getElementById('searchInput'),
+			filterRole: document.getElementById('filterRole'),
+			filterStatus: document.getElementById('filterStatus'),
+			filterKyc: document.getElementById('filterKyc'),
+			selectAll: document.getElementById('selectAll'),
+			prev: document.getElementById('prevPage'),
+			next: document.getElementById('nextPage'),
+			pageNumber: document.getElementById('pageNumber'),
+			loading: document.getElementById('loadingIndicator'),
+			alert: document.getElementById('alertBox'),
+			totalCount: document.getElementById('totalCount'),
+			drawer: document.getElementById('userDrawer'),
+			drawerContent: document.getElementById('drawerContent'),
+			closeDrawer: document.getElementById('closeDrawer'),
+			modalBackdrop: document.getElementById('modalBackdrop'),
+			modalTitle: document.getElementById('modalTitle'),
+			modalMessage: document.getElementById('modalMessage'),
+			modalCancel: document.getElementById('modalCancel'),
+			modalConfirm: document.getElementById('modalConfirm'),
+			kycBackdrop: document.getElementById('kycBackdrop'),
+			kycFullName: document.getElementById('kycFullName'),
+			kycCnic: document.getElementById('kycCnic'),
+			kycFrontWrap: document.getElementById('kycFrontWrap'),
+			kycBackWrap: document.getElementById('kycBackWrap'),
+			kycSelfieWrap: document.getElementById('kycSelfieWrap'),
+			kycStatusBadge: document.getElementById('kycStatusBadge'),
+			kycCloseBtn: document.getElementById('kycCloseBtn'),
+			kycApproveBtn: document.getElementById('kycApproveBtn'),
+			kycRejectBtn: document.getElementById('kycRejectBtn'),
+			bulkActivate: document.getElementById('bulkActivate'),
+			bulkSuspend: document.getElementById('bulkSuspend'),
+			bulkBan: document.getElementById('bulkBan'),
+			exportCsv: document.getElementById('exportCsv'),
+			tabs: document.getElementById('tabs')
+		};
+
+		async function apiRequest(path, options = {}) {
+			const response = await fetch(`${API_BASE}${path}`, {
+				...options,
+				headers: {
+					'Content-Type': 'application/json',
+					...(options.headers || {})
+				}
+			});
+
+			const payload = await response.json().catch(() => ({}));
+			if (!response.ok || payload.success === false) {
+				throw new Error(payload.message || 'Request failed');
+			}
+
+			return payload.data ?? payload;
+		}
+
+		async function loadUsers() {
+			setLoading(true);
+			try {
+				const data = await apiRequest('/users?pageSize=1000');
+				state.users = Array.isArray(data.users) ? data.users : [];
+				state.selected.clear();
+				state.page = 1;
+				applyFilters();
+			} catch (error) {
+				state.users = [];
+				state.filtered = [];
+				renderTable();
+				setAlert('error', error.message);
+			} finally {
+				setLoading(false);
+			}
+		}
+
+		const setLoading = (value) => {
+			el.loading.style.display = value ? 'flex' : 'none';
+		};
+
+		const setAlert = (type, message) => {
+			el.alert.className = `alert ${type} show`;
+			el.alert.textContent = message;
+			setTimeout(() => el.alert.classList.remove('show'), 2200);
+		};
+
+		const badge = (text, cls) => `<span class="status-pill ${cls}">${text}</span>`;
+		const statusBadge = (status) => status === 'active' ? badge('Active','pill-active') : status === 'suspended' ? badge('Suspended','pill-suspended') : badge('Banned','pill-banned');
+		const isKycVerified = (kyc) => kyc === 'verified' || kyc === 'approved';
+		const kycBadge = (kyc) => isKycVerified(kyc) ? badge('Verified','pill-kyc-approved') : kyc === 'pending' ? badge('Pending','pill-kyc-pending') : badge('Rejected','pill-kyc-rejected');
+		const verifiedSellerBadge = (kyc) => isKycVerified(kyc) ? '<span class="verified-seller">&#10004; Verified Seller</span>' : '';
+		const riskBadge = (risk) => risk === 'low' ? badge('Low','pill-risk-low') : risk === 'medium' ? badge('Medium','pill-risk-medium') : badge('High','pill-risk-high');
+
+		const applyFilters = () => {
+			const term = el.search.value.toLowerCase();
+			const fRole = el.filterRole.value;
+			const fStatus = el.filterStatus.value;
+			const fKyc = el.filterKyc.value;
+
+			state.filtered = state.users.filter(u => {
+				const matchesTerm = [u.name, u.email, u.phone].some(v => v.toLowerCase().includes(term));
+				const matchesRole = fRole === 'all' || u.role === fRole;
+				const matchesStatus = fStatus === 'all' || u.status === fStatus;
+				const matchesKyc = fKyc === 'all'
+					|| (u.role === 'seller' && (
+						(fKyc === 'verified' && isKycVerified(u.kyc))
+						|| (fKyc !== 'verified' && u.kyc === fKyc)
+					));
+
+				if (state.activeTab === 'customer' && u.role !== 'customer') return false;
+				if (state.activeTab === 'seller' && u.role !== 'seller') return false;
+				if (state.activeTab === 'suspended' && u.status !== 'suspended') return false;
+				if (state.activeTab === 'banned' && u.status !== 'banned') return false;
+				if (state.activeTab === 'kycPending' && !(u.role === 'seller' && u.kyc === 'pending')) return false;
+
+				return matchesTerm && matchesRole && matchesStatus && matchesKyc;
+			});
+
+			sortData();
+			state.page = 1;
+			renderTable();
+		};
+
+		const sortData = () => {
+			const { key, dir } = state.sort;
+			state.filtered.sort((a, b) => {
+				const aVal = a[key] ?? '';
+				const bVal = b[key] ?? '';
+				if (aVal === bVal) return 0;
+				if (dir === 'asc') return aVal > bVal ? 1 : -1;
+				return aVal < bVal ? 1 : -1;
+			});
+		};
+
+		const paginate = () => {
+			const start = (state.page - 1) * state.pageSize;
+			return state.filtered.slice(start, start + state.pageSize);
+		};
+
+		const renderTable = () => {
+			const rows = paginate();
+			el.table.innerHTML = rows.map(u => `
+				<tr>
+					<td><input type="checkbox" data-id="${u.id}" ${state.selected.has(u.id) ? 'checked' : ''} /></td>
+					<td>
+						<div class="seller-info">
+							<img src="${u.logo}" alt="${u.name}" class="seller-logo">
+							<div class="seller-details">
+								<h4>${u.name}</h4>
+								<p>${u.role === 'seller' ? `Seller ${verifiedSellerBadge(u.kyc)}` : 'Customer'}</p>
+							</div>
+						</div>
+					</td>
+					<td>${u.email}</td>
+					<td>${u.phone}</td>
+					<td>${u.role}</td>
+					<td>${statusBadge(u.status)}</td>
+					<td>${u.registered}</td>
+					<td>${u.lastLogin}</td>
+					<td>${u.orders}</td>
+					<td>$${Number(u.value || 0).toLocaleString()}</td>
+					<td>${u.role === 'customer' ? u.refunds : '-'}</td>
+					<td>${u.role === 'customer' ? riskBadge(u.risk) : '-'}</td>
+					<td>${u.role === 'seller' ? u.products : '-'}</td>
+					<td>${u.role === 'seller' ? u.sales : '-'}</td>
+					<td>${u.role === 'seller' ? `$${Number(u.commission || 0).toLocaleString()}` : '-'}</td>
+					<td>${u.role === 'seller' ? kycBadge(u.kyc) : '-'}</td>
+					<td>${u.role === 'seller' ? u.payout : '-'}</td>
+					<td>
+						<div class="actions">
+							<button class="action-btn" data-action="view" data-id="${u.id}">View</button>
+							<button class="action-btn" data-action="edit" data-id="${u.id}">Edit</button>
+							<button class="action-btn" data-action="suspend" data-id="${u.id}">Suspend</button>
+							<button class="action-btn" data-action="ban" data-id="${u.id}">Ban</button>
+							<button class="action-btn" data-action="reset" data-id="${u.id}">Reset</button>
+						</div>
+					</td>
+				</tr>
+			`).join('');
+
+			const totalPages = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+			el.pageNumber.textContent = `${state.page} / ${totalPages}`;
+			el.totalCount.textContent = `${state.filtered.length} Users`;
+		};
+
+		const openDrawer = (user) => {
+			state.drawerUserId = user.id;
+			document.body.classList.add('drawer-open');
+			const sellerSection = user.role === 'seller' ? `
+				<div class="card">
+					<h4>Seller Details</h4>
+					<div class="grid-2">
+						<div>Products: <strong>${user.products}</strong></div>
+						<div>Sales: <strong>${user.sales}</strong></div>
+						<div>Commission: <strong>$${Number(user.commission || 0).toLocaleString()}</strong></div>
+						<div>KYC: ${kycBadge(user.kyc)}</div>
+					</div>
+					<div style="margin-top:10px;">
+						<button class="btn" data-action="kyc">View KYC</button>
+						<button class="btn" data-action="freeze">Freeze Payouts</button>
+						<button class="btn" data-action="products">View Products</button>
+					</div>
+				</div>
+			` : `
+				<div class="card">
+					<h4>Customer Details</h4>
+					<div class="grid-2">
+						<div>Orders: <strong>${user.orders}</strong></div>
+						<div>Refunds: <strong>${user.refunds}</strong></div>
+						<div>Lifetime Value: <strong>$${Number(user.value || 0).toLocaleString()}</strong></div>
+						<div>Risk: ${riskBadge(user.risk)}</div>
+					</div>
+					<div style="margin-top:10px;">
+						<button class="btn" data-action="orders">Order History</button>
+						<button class="btn" data-action="refunds">Refund History</button>
+						<button class="btn" data-action="fraud">Flag Fraud</button>
+					</div>
+				</div>
+			`;
+
+			el.drawerContent.innerHTML = `
+				<div class="card">
+					<h4>Profile</h4>
+					<div class="seller-info">
+						<img src="${user.logo}" alt="${user.name}" class="seller-logo">
+						<div>
+							<strong>${user.name}</strong>
+							${user.role === 'seller' ? verifiedSellerBadge(user.kyc) : ''}
+							<div class="muted">${user.email}</div>
+							<div class="muted">${user.phone}</div>
+						</div>
+					</div>
+					<div class="grid-2" style="margin-top:10px;">
+						<div>${statusBadge(user.status)}</div>
+						<div>${user.role === 'seller' ? kycBadge(user.kyc) : riskBadge(user.risk)}</div>
+					</div>
+				</div>
+				<div class="card">
+					<h4>Account</h4>
+					<div class="grid-2">
+						<div>Role: <strong>${user.role}</strong></div>
+						<div>Registered: <strong>${user.registered}</strong></div>
+						<div>Last Login: <strong>${user.lastLogin}</strong></div>
+						<div>IP History: <strong>${user.ipHistory.join(' • ')}</strong></div>
+					</div>
+				</div>
+				${sellerSection}
+				<div class="card">
+					<h4>Admin Notes</h4>
+					<textarea class="note-area" id="noteArea">${user.notes || ''}</textarea>
+					<button class="btn" id="saveNote">Save Note</button>
+				</div>
+			`;
+			el.drawer.classList.add('open');
+			document.getElementById('saveNote').addEventListener('click', () => {
+				user.notes = document.getElementById('noteArea').value;
+				setAlert('success', 'Note saved');
+			});
+		};
+
+		const renderDocLink = (url, docType) => {
+			if (!url) return '<span>Not uploaded</span>';
+			return `<button type="button" class="btn" data-doc-open="${docType}">View Image</button>`;
+		};
+
+		const openKycDocument = (docType) => {
+			const docs = state.activeKycDocuments || {};
+			const raw = docs[docType] || '';
+			if (!raw) {
+				setAlert('error', 'Document not found');
+				return;
+			}
+
+			if (!raw.startsWith('data:')) {
+				window.open(raw, '_blank', 'noopener,noreferrer');
+				return;
+			}
+
+			const match = /^data:([^;]+);base64,(.+)$/i.exec(raw);
+			if (!match) {
+				setAlert('error', 'Unsupported document format');
+				return;
+			}
+
+			try {
+				const mimeType = match[1] || 'application/octet-stream';
+				const binary = atob(match[2]);
+				const bytes = new Uint8Array(binary.length);
+				for (let i = 0; i < binary.length; i += 1) {
+					bytes[i] = binary.charCodeAt(i);
+				}
+				const blob = new Blob([bytes], { type: mimeType });
+				const blobUrl = URL.createObjectURL(blob);
+				window.open(blobUrl, '_blank', 'noopener,noreferrer');
+				setTimeout(() => URL.revokeObjectURL(blobUrl), 60 * 1000);
+			} catch (_) {
+				setAlert('error', 'Unable to open document');
+			}
+		};
+
+		const closeKycModal = () => {
+			el.kycBackdrop.classList.remove('show');
+			state.activeKycUserId = null;
+			state.activeKycDocuments = {};
+		};
+
+		const openKycModal = async (user) => {
+			if (user.role !== 'seller') return setAlert('error', 'KYC is available for sellers only');
+			try {
+				const details = await apiRequest(`/users/${user.id}/kyc`);
+				state.activeKycUserId = user.id;
+				state.activeKycDocuments = {
+					cnicFront: details.documents?.cnicFrontUrl || '',
+					cnicBack: details.documents?.cnicBackUrl || '',
+					selfie: details.documents?.selfieUrl || ''
+				};
+				el.kycFullName.textContent = details.fullName || user.name || '-';
+				el.kycCnic.textContent = details.cnic || 'Not provided';
+				el.kycFrontWrap.innerHTML = renderDocLink(details.documents?.cnicFrontUrl, 'cnicFront');
+				el.kycBackWrap.innerHTML = renderDocLink(details.documents?.cnicBackUrl, 'cnicBack');
+				el.kycSelfieWrap.innerHTML = renderDocLink(details.documents?.selfieUrl, 'selfie');
+				el.kycStatusBadge.innerHTML = kycBadge(details.status || user.kyc || 'pending');
+				el.kycBackdrop.classList.add('show');
+			} catch (error) {
+				setAlert('error', error.message);
+			}
+		};
+
+		const refreshAndReopenDrawer = async (userId) => {
+			await loadUsers();
+			const refreshed = state.users.find((entry) => entry.id === userId);
+			if (refreshed) openDrawer(refreshed);
+		};
+
+		const approveKycFromModal = () => {
+			if (!state.activeKycUserId) return;
+			apiRequest(`/users/${state.activeKycUserId}/kyc/approve`, {
+				method: 'POST',
+				body: JSON.stringify({ admin: 'ADM-001', notes: 'KYC approved from user management modal' })
+			})
+				.then(() => {
+					closeKycModal();
+					return refreshAndReopenDrawer(state.activeKycUserId);
+				})
+				.then(() => setAlert('success', 'Seller marked as verified'))
+				.catch((error) => setAlert('error', error.message));
+		};
+
+		const rejectKycFromModal = () => {
+			if (!state.activeKycUserId) return;
+			const reason = window.prompt('Enter rejection reason');
+			if (!reason || !reason.trim()) return setAlert('error', 'Rejection reason is required');
+			apiRequest(`/users/${state.activeKycUserId}/kyc/reject`, {
+				method: 'POST',
+				body: JSON.stringify({ reason: reason.trim(), admin: 'ADM-001', notes: 'KYC rejected from user management modal' })
+			})
+				.then(() => {
+					closeKycModal();
+					return refreshAndReopenDrawer(state.activeKycUserId);
+				})
+				.then(() => setAlert('success', 'KYC rejected'))
+				.catch((error) => setAlert('error', error.message));
+		};
+
+		const openModal = (title, message, onConfirm) => {
+			el.modalTitle.textContent = title;
+			el.modalMessage.textContent = message;
+			el.modalBackdrop.classList.add('show');
+			const handle = () => {
+				onConfirm();
+				el.modalBackdrop.classList.remove('show');
+				el.modalConfirm.removeEventListener('click', handle);
+			};
+			el.modalConfirm.addEventListener('click', handle);
+		};
+
+		const withRoleGuard = (action) => {
+			if (adminRole !== 'super_admin') {
+				setAlert('error', 'Insufficient permissions');
+				return;
+			}
+			action();
+		};
+
+		const updateStatus = (user, status) => {
+			apiRequest(`/users/${user.id}/status`, {
+				method: 'POST',
+				body: JSON.stringify({ status, admin: 'ADM-001' })
+			})
+				.then(() => loadUsers())
+				.then(() => setAlert('success', `User ${status}`))
+				.catch((error) => setAlert('error', error.message));
+		};
+
+		const handleAction = (action, id) => {
+			const user = state.users.find(u => u.id === id);
+			if (!user) return;
+			if (action === 'view') return openDrawer(user);
+			if (action === 'edit') return openModal('Edit User', 'Simulate edit user details?', () => setAlert('success', 'User updated'));
+			if (action === 'reset') return openModal('Reset Password', 'Send password reset to user?', () => {
+				apiRequest(`/users/${user.id}/reset-password`, { method: 'POST', body: JSON.stringify({ sendEmail: true, admin: 'ADM-001' }) })
+					.then(() => setAlert('success', 'Password reset sent'))
+					.catch((error) => setAlert('error', error.message));
+			});
+			if (action === 'suspend') return withRoleGuard(() => openModal('Suspend User', 'Suspend this account?', () => updateStatus(user, 'suspended')));
+			if (action === 'ban') return withRoleGuard(() => openModal('Ban User', 'Ban this account permanently?', () => updateStatus(user, 'banned')));
+			if (action === 'kyc') return withRoleGuard(() => openKycModal(user));
+			if (action === 'freeze') return setAlert('success', 'Payouts frozen');
+			if (action === 'products') return setAlert('success', 'Opening seller products...');
+			if (action === 'orders') return setAlert('success', 'Opening order history...');
+			if (action === 'refunds') return setAlert('success', 'Opening refund history...');
+			if (action === 'fraud') return setAlert('success', 'Fraud flag submitted');
+		};
+
+		const handleBulk = (type) => {
+			const ids = Array.from(state.selected);
+			if (!ids.length) return setAlert('error', 'Select users first');
+			const runBulk = (path, message) => apiRequest(path, {
+				method: 'POST',
+				body: JSON.stringify({ userIds: ids, admin: 'ADM-001' })
+			})
+				.then(() => {
+					state.selected.clear();
+					return loadUsers();
+				})
+				.then(() => setAlert('success', message))
+				.catch((error) => setAlert('error', error.message));
+
+			if (type === 'activate') return openModal('Activate Users', `Activate ${ids.length} users?`, () => runBulk('/users/bulk/activate', 'Users activated'));
+			if (type === 'suspend') return withRoleGuard(() => openModal('Suspend Users', `Suspend ${ids.length} users?`, () => runBulk('/users/bulk/suspend', 'Users suspended')));
+			if (type === 'ban') return withRoleGuard(() => openModal('Ban Users', `Ban ${ids.length} users?`, () => runBulk('/users/bulk/ban', 'Users banned')));
+		};
+
+		const exportCSV = () => {
+			const headers = ['id','name','email','phone','role','status','registered','lastLogin','orders','value','refunds','risk','products','sales','commission','kyc','payout'];
+			const rows = state.filtered.map(u => headers.map(h => u[h] ?? '').join(','));
+			const csv = [headers.join(','), ...rows].join('\n');
+			const blob = new Blob([csv], { type: 'text/csv' });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = 'users.csv';
+			a.click();
+			URL.revokeObjectURL(url);
+		};
+
+		const bindEvents = () => {
+			el.search.addEventListener('input', applyFilters);
+			el.filterRole.addEventListener('change', applyFilters);
+			el.filterStatus.addEventListener('change', applyFilters);
+			el.filterKyc.addEventListener('change', applyFilters);
+			el.prev.addEventListener('click', () => { if (state.page > 1) { state.page--; renderTable(); } });
+			el.next.addEventListener('click', () => {
+				const total = Math.ceil(state.filtered.length / state.pageSize);
+				if (state.page < total) { state.page++; renderTable(); }
+			});
+			el.closeDrawer.addEventListener('click', () => {
+				el.drawer.classList.remove('open');
+				document.body.classList.remove('drawer-open');
+			});
+			el.modalCancel.addEventListener('click', () => el.modalBackdrop.classList.remove('show'));
+			el.kycCloseBtn.addEventListener('click', closeKycModal);
+			el.kycBackdrop.addEventListener('click', (e) => { if (e.target === el.kycBackdrop) closeKycModal(); });
+			el.kycBackdrop.addEventListener('click', (e) => {
+				const btn = e.target.closest('button[data-doc-open]');
+				if (!btn) return;
+				openKycDocument(btn.dataset.docOpen);
+			});
+			el.kycApproveBtn.addEventListener('click', () => withRoleGuard(approveKycFromModal));
+			el.kycRejectBtn.addEventListener('click', () => withRoleGuard(rejectKycFromModal));
+			el.table.addEventListener('click', (e) => {
+				const btn = e.target.closest('button[data-action]');
+				if (btn) handleAction(btn.dataset.action, btn.dataset.id);
+			});
+			el.drawerContent.addEventListener('click', (e) => {
+				const btn = e.target.closest('button[data-action]');
+				if (!btn || !state.drawerUserId) return;
+				handleAction(btn.dataset.action, state.drawerUserId);
+			});
+			el.table.addEventListener('change', (e) => {
+				const cb = e.target.closest('input[type="checkbox"][data-id]');
+				if (cb) cb.checked ? state.selected.add(cb.dataset.id) : state.selected.delete(cb.dataset.id);
+			});
+			el.selectAll.addEventListener('change', (e) => {
+				const rows = paginate();
+				rows.forEach(u => e.target.checked ? state.selected.add(u.id) : state.selected.delete(u.id));
+				renderTable();
+			});
+			el.bulkActivate.addEventListener('click', () => handleBulk('activate'));
+			el.bulkSuspend.addEventListener('click', () => handleBulk('suspend'));
+			el.bulkBan.addEventListener('click', () => handleBulk('ban'));
+			el.exportCsv.addEventListener('click', exportCSV);
+			el.tabs.addEventListener('click', (e) => {
+				const tab = e.target.closest('.tab');
+				if (!tab) return;
+				document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+				tab.classList.add('active');
+				state.activeTab = tab.dataset.tab;
+				applyFilters();
+			});
+			document.querySelectorAll('thead th[data-sort]').forEach(th => {
+				th.addEventListener('click', () => {
+					const key = th.getAttribute('data-sort');
+					state.sort.dir = state.sort.key === key && state.sort.dir === 'asc' ? 'desc' : 'asc';
+					state.sort.key = key;
+					sortData();
+					renderTable();
+				});
+			});
+		};
+
+		const init = async () => {
+			const approvedOpt = el.filterKyc.querySelector('option[value="approved"]');
+			if (approvedOpt) {
+				approvedOpt.value = 'verified';
+				approvedOpt.textContent = 'KYC Verified';
+			}
+			await loadUsers();
+		};
+
+		bindEvents();
+		init();
+
+		// Sidebar toggle functionality
+		lucide.createIcons();
+		const sidebarToggle = document.getElementById('sidebarToggle');
+		const sidebar = document.getElementById('sidebar');
+		const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+		function openMobileSidebar() {
+			sidebar.classList.remove('hidden');
+			sidebarOverlay.classList.remove('hidden');
+			document.body.style.overflow = 'hidden';
+		}
+
+		function closeMobileSidebar() {
+			sidebar.classList.add('hidden');
+			sidebarOverlay.classList.add('hidden');
+			document.body.style.overflow = 'auto';
+		}
+
+		if (sidebarToggle) {
+			sidebarToggle.addEventListener('click', () => {
+				if (sidebar.classList.contains('hidden')) {
+					openMobileSidebar();
+				} else {
+					closeMobileSidebar();
+				}
+			});
+		}
+
+		if (sidebarOverlay) {
+			sidebarOverlay.addEventListener('click', closeMobileSidebar);
+		}
+
+		if (sidebar) {
+			const sidebarLinks = sidebar.querySelectorAll('a');
+			sidebarLinks.forEach(link => {
+				link.addEventListener('click', closeMobileSidebar);
+			});
+		}
+	</script>
+
+  <footer class="bg-white border-t border-gray-100 mt-12 md:ml-64">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-8 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Lumina Admin</p>
+          <p class="text-sm text-gray-600 leading-relaxed">Centralized control for marketplace operations. Monitor users, sellers, and system health.</p>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Operations</p>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Moderation queue</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">System logs</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Audit trail</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Feature flags</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Help</p>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Admin guide</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Contact devops</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Status page</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Policies</p>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Privacy</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Terms</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Admin code of conduct</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-100 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <p class="text-xs font-bold uppercase tracking-widest text-gray-500">&copy; 2026 LUMINA Marketplace. All rights reserved.</p>
+        <div class="flex gap-6">
+          <a href="#" class="text-gray-600 hover:text-gray-900 transition-colors"><i data-lucide="facebook" class="w-4 h-4"></i></a>
+          <a href="#" class="text-gray-600 hover:text-gray-900 transition-colors"><i data-lucide="instagram" class="w-4 h-4"></i></a>
+          <a href="#" class="text-gray-600 hover:text-gray-900 transition-colors"><i data-lucide="twitter" class="w-4 h-4"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages | LUMINA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #111827; }
+        .glass { background: rgba(255,255,255,0.94); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .account-flyout { width: 360px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
+        .signin-btn { display: inline-block; width: 130px; text-align: center; background: #facc15; border: 1px solid #f59e0b; color: #111827; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 7px; }
+        .signin-btn:hover { background: #fbbf24; }
+        .account-col-title { font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
+        .account-link { display: block; font-size: 12px; color: #374151; line-height: 1.55; }
+        .account-link:hover { color: #111827; text-decoration: underline; }
+        .panel-card { background: #fff; border: 1px solid #e8edf5; border-radius: 18px; box-shadow: 0 12px 28px rgba(15,23,42,0.06); }
+        .hero-panel { background: linear-gradient(140deg, #f8fbff 0%, #ffffff 50%, #fff8ec 100%); }
+        .seller-item { border: 1px solid #ecf1f6; border-radius: 12px; transition: all 0.2s ease; cursor: pointer; }
+        .seller-item:hover { border-color: #d5deea; background: #fbfdff; }
+        .seller-item.active { border-color: #111827; background: #f7fafc; box-shadow: 0 6px 18px rgba(15,23,42,0.06); }
+        .chat-history { height: 480px; overflow-y: auto; scroll-behavior: smooth; background: linear-gradient(180deg, #fcfdff 0%, #f8fbff 100%); }
+        .message-row { display: flex; margin-bottom: 14px; }
+        .message-row.sent { justify-content: flex-end; }
+        .message-row.received { justify-content: flex-start; }
+        .message-bubble { max-width: min(78%, 520px); border-radius: 16px; padding: 10px 12px; font-size: 13px; line-height: 1.5; }
+        .message-row.sent .message-bubble { background: #111827; color: #fff; border-bottom-right-radius: 6px; }
+        .message-row.received .message-bubble { background: #ffffff; color: #1f2937; border: 1px solid #e3e9f2; border-bottom-left-radius: 6px; }
+        .message-time { margin-top: 4px; font-size: 10px; opacity: 0.75; font-weight: 600; letter-spacing: 0.02em; }
+        .chat-input { border: 1px solid #d6dfeb; border-radius: 12px; padding: 12px 14px; font-size: 14px; outline: none; width: 100%; }
+        .chat-input:focus { border-color: #111827; box-shadow: 0 0 0 3px rgba(17,24,39,0.08); }
+        .badge-unread { min-width: 22px; height: 22px; border-radius: 999px; background: #dc2626; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; padding: 0 6px; }
+
+        @media (max-width: 1024px) {
+            .content-shell { margin-left: 0; }
+        }
+
+        @media (max-width: 900px) {
+            .chat-layout { grid-template-columns: 1fr; }
+            .chat-history { height: 380px; }
+        }
+    </style>
+	<script src="/customer-pages/auth.js"></script>
+	<script src="/customer-pages/page-access.js"></script>
+</head>
+<body>
+    <nav class="fixed top-0 w-full z-[100] glass">
+        <div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
+            <div class="flex items-center gap-2 shrink-0">
+                <button id="sidebarToggle" type="button" class="p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
+                <a href="homepage.html" class="text-2xl font-bold tracking-tighter uppercase shrink-0">Lumina</a>
+            </div>
+
+            <div class="hidden md:flex flex-grow relative max-w-2xl mx-auto">
+                <input type="text" placeholder="Search for unique products, clothing or artisans..." class="w-full bg-gray-100 border-transparent border focus:border-black focus:bg-white rounded-full py-2.5 px-6 pl-12 text-sm transition-all outline-none">
+                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+            </div>
+
+            <div class="flex items-center gap-2 lg:gap-6 shrink-0">
+                <div id="accountMenuWrap" class="relative group">
+                    <button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                        <span id="accountMenuLabel" class="hidden sm:block text-xs font-bold uppercase tracking-widest">Account</span>
+                    </button>
+                    <div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block">
+                        <div id="accountMenuContent" class="account-flyout"></div>
+                    </div>
+                </div>
+                <a href="cart.html" class="relative p-2">
+                    <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                    <span id="cartCountBadge" class="absolute top-0 right-0 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
+                </a>
+                <a href="wishlist.html" class="relative p-2"><i data-lucide="heart" class="w-5 h-5"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+
+    <main class="content-shell mt-20 p-4 lg:p-8 min-h-[calc(100vh-5rem)]">
+        <div class="max-w-7xl mx-auto space-y-6">
+            <section class="panel-card hero-panel p-5 lg:p-6">
+                <h1 class="text-3xl lg:text-4xl font-extrabold tracking-tight text-[#232f3e]">Messages</h1>
+                <p class="text-sm lg:text-base text-gray-600 mt-2">Chat with sellers to get updates or support.</p>
+            </section>
+
+            <section class="panel-card p-4 lg:p-5">
+                <div class="chat-layout grid grid-cols-[330px_1fr] gap-4">
+                    <aside class="border border-gray-100 rounded-2xl bg-white overflow-hidden">
+                        <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
+                            <h2 class="text-sm font-extrabold uppercase tracking-[0.16em] text-gray-700">Sellers</h2>
+                            <span id="totalUnreadBadge" class="text-xs font-bold text-red-600"></span>
+                        </div>
+                        <div id="sellerList" class="p-3 space-y-2 max-h-[560px] overflow-y-auto"></div>
+                    </aside>
+
+                    <article class="border border-gray-100 rounded-2xl bg-white overflow-hidden flex flex-col">
+                        <header class="px-4 py-3 border-b border-gray-100 flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <img id="activeSellerAvatar" src="" alt="Seller avatar" class="w-11 h-11 rounded-xl object-cover border border-gray-200">
+                                <div class="min-w-0">
+                                    <a id="activeSellerName" href="sellerprofile.html" class="text-base font-extrabold text-[#232f3e] truncate hover:underline inline-block"></a>
+                                    <p id="activeSellerContext" class="text-xs text-gray-500 truncate"></p>
+                                </div>
+                            </div>
+                            <a id="viewStoreBtn" href="sellerprofile.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-xs font-bold uppercase tracking-wider text-gray-700 hover:bg-gray-50">
+                                <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                                View Store
+                            </a>
+                        </header>
+
+                        <div id="chatHistory" class="chat-history p-4"></div>
+
+                        <footer class="p-3 lg:p-4 border-t border-gray-100">
+                            <form id="chatForm" class="flex items-center gap-2">
+                                <button id="attachButton" type="button" class="h-11 w-11 shrink-0 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 inline-flex items-center justify-center" title="Attach file">
+                                    <i data-lucide="paperclip" class="w-4 h-4"></i>
+                                </button>
+                                <input id="messageInput" class="chat-input" type="text" placeholder="Write a message to seller..." required>
+                                <button type="submit" class="h-11 px-4 shrink-0 rounded-xl bg-[#111827] text-white text-xs font-extrabold uppercase tracking-[0.14em] hover:bg-black inline-flex items-center gap-2">
+                                    <i data-lucide="send" class="w-4 h-4"></i>
+                                    Send
+                                </button>
+                            </form>
+                        </footer>
+                    </article>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+
+        function resolveCurrentUserId() {
+            try {
+                const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+                if (rawUser) {
+                    const parsed = JSON.parse(rawUser);
+                    return String(parsed.id || parsed.userId || parsed.customerId || '1').trim();
+                }
+            } catch (_) {}
+
+            return '1';
+        }
+
+        async function fetchJson(url, options = {}) {
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {})
+                }
+            });
+
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || payload.success === false) {
+                throw new Error(payload.message || 'Request failed');
+            }
+
+            return payload.data;
+        }
+
+        function resolveAuthState() {
+            const state = { isLoggedIn: false, fullName: '' };
+
+            try {
+                const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+                const isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+                if (rawUser) {
+                    const parsed = JSON.parse(rawUser);
+                    const name = String(parsed.fullName || parsed.name || '').trim();
+                    state.isLoggedIn = Boolean(name) || isLoggedIn;
+                    state.fullName = name;
+                } else {
+                    state.isLoggedIn = isLoggedIn;
+                }
+            } catch (_) {
+                state.isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+            }
+
+            return state;
+        }
+
+        function renderAccountFlyout() {
+            const auth = resolveAuthState();
+            const content = document.getElementById('accountMenuContent');
+            const label = document.getElementById('accountMenuLabel');
+            if (!content || !label) return;
+
+            if (!auth.isLoggedIn) {
+                label.textContent = 'Account';
+                content.innerHTML = `
+                    <div class="px-4 py-3 border-b border-gray-200 text-center">
+                        <a href="login_register.html" class="signin-btn">Sign in</a>
+                        <p class="text-[10px] text-gray-500 mt-1">New customer? <a href="login_register.html" class="text-blue-600 hover:underline">Start here.</a></p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-0">
+                        <div class="px-4 py-3 border-r border-gray-200">
+                            <h4 class="account-col-title">Your Lists</h4>
+                            <a href="wishlist.html" class="account-link">Create a List</a>
+                            <a href="login_register.html" class="account-link">Find a List or Registry</a>
+                        </div>
+                        <div class="px-4 py-3">
+                            <h4 class="account-col-title">Your Account</h4>
+                            <a href="login_register.html" class="account-link">Customer Dashboard</a>
+                            <a href="login_register.html" class="account-link">My Profile</a>
+                            <a href="login_register.html" class="account-link">My Orders</a>
+                            <a href="login_register.html" class="account-link">Cart</a>
+                            <a href="login_register.html" class="account-link">My Addresses</a>
+                            <a href="login_register.html" class="account-link">Messages</a>
+                            <a href="login_register.html" class="account-link">Returns & Refunds</a>
+                            <a href="login_register.html" class="account-link">Security Settings</a>
+                            <a href="login_register.html" class="account-link">Help & Support</a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const firstName = auth.fullName ? auth.fullName.split(' ')[0] : 'Account';
+                label.textContent = firstName;
+                content.innerHTML = `
+                    <div class="px-4 py-3 border-b border-gray-200 text-center">
+                        <a href="Customer_Dashboard.html" class="signin-btn">Go to Dashboard</a>
+                        <p class="text-[10px] text-gray-500 mt-1">Signed in as ${auth.fullName || 'Customer'}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-0">
+                        <div class="px-4 py-3 border-r border-gray-200">
+                            <h4 class="account-col-title">Your Lists</h4>
+                            <a href="wishlist.html" class="account-link">Wishlist</a>
+                            <a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+                            <a href="my_messages.html" class="account-link">Messages</a>
+                        </div>
+                        <div class="px-4 py-3">
+                            <h4 class="account-col-title">Your Account</h4>
+                            <a href="Customer_Dashboard.html" class="account-link">Customer Dashboard</a>
+                            <a href="my_profile.html" class="account-link">My Profile</a>
+                            <a href="my_orders.html" class="account-link">My Orders</a>
+                            <a href="cart.html" class="account-link">Cart</a>
+                            <a href="my_addresses.html" class="account-link">My Addresses</a>
+                            <a href="my_messages.html" class="account-link">Messages</a>
+                            <a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+                            <a href="security_settings.html" class="account-link">Security Settings</a>
+                            <a href="help_support.html" class="account-link">Help & Support</a>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        const accountMenuButton = document.getElementById('accountMenuButton');
+        const accountMenuDropdown = document.getElementById('accountMenuDropdown');
+        const accountMenuWrap = document.getElementById('accountMenuWrap');
+
+        if (accountMenuButton && accountMenuDropdown) {
+            accountMenuButton.addEventListener('click', () => {
+                accountMenuDropdown.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (event) => {
+                if (accountMenuWrap && !accountMenuWrap.contains(event.target)) {
+                    accountMenuDropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        renderAccountFlyout();
+
+        let sellers = [];
+
+        let activeSellerId = sellers[0]?.id || null;
+
+        const sellerList = document.getElementById('sellerList');
+        const chatHistory = document.getElementById('chatHistory');
+        const activeSellerAvatar = document.getElementById('activeSellerAvatar');
+        const activeSellerName = document.getElementById('activeSellerName');
+        const activeSellerContext = document.getElementById('activeSellerContext');
+        const viewStoreBtn = document.getElementById('viewStoreBtn');
+        const totalUnreadBadge = document.getElementById('totalUnreadBadge');
+        const messageInput = document.getElementById('messageInput');
+
+        function buildSellerProfileUrl(seller) {
+            const sellerId = String(seller?.sellerId || seller?.seller_id || seller?.id || '').trim();
+            if (sellerId) return `sellerprofile.html?sellerId=${encodeURIComponent(sellerId)}`;
+            const sellerSlug = String(seller?.sellerSlug || seller?.storeSlug || '').trim();
+            if (sellerSlug) return `sellerprofile.html?slug=${encodeURIComponent(sellerSlug)}`;
+            const sellerName = String(seller?.name || 'Seller').trim();
+            return `sellerprofile.html?seller=${encodeURIComponent(sellerName)}`;
+        }
+
+        async function loadCartCount() {
+            if (!IS_LIVE_HOST) {
+                const badge = document.getElementById('cartCountBadge');
+                if (badge) badge.textContent = '0';
+                return;
+            }
+            try {
+                const userId = resolveCurrentUserId();
+                const data = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+                const badge = document.getElementById('cartCountBadge');
+                if (badge) badge.textContent = String(Number(data?.totalItems) || 0);
+            } catch (_) {
+                const badge = document.getElementById('cartCountBadge');
+                if (badge) badge.textContent = '0';
+            }
+        }
+
+        function getActiveSeller() {
+            return sellers.find((seller) => seller.id === activeSellerId) || null;
+        }
+
+        function updateUnreadSummary() {
+            const total = sellers.reduce((sum, seller) => sum + seller.unreadCount, 0);
+            totalUnreadBadge.textContent = total > 0 ? `${total} unread` : 'All caught up';
+        }
+
+        function renderSellerList() {
+            if (!sellers.length) {
+                sellerList.innerHTML = '<div class="p-4 text-sm text-gray-500">No conversations yet.</div>';
+                totalUnreadBadge.textContent = 'All caught up';
+                return;
+            }
+
+            sellerList.innerHTML = sellers.map((seller) => {
+                const last = seller.messages[seller.messages.length - 1];
+                const isActive = seller.id === activeSellerId;
+                return `
+                    <button class="seller-item ${isActive ? 'active' : ''} w-full text-left p-3" onclick="openSeller('${seller.id}')">
+                        <div class="flex items-start gap-3">
+                            <img src="${seller.avatar}" alt="${seller.name}" class="w-11 h-11 rounded-xl object-cover border border-gray-200">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p class="text-sm font-bold text-[#232f3e] truncate">${seller.name}</p>
+                                    ${seller.unreadCount > 0 ? `<span class="badge-unread">${seller.unreadCount}</span>` : ''}
+                                </div>
+                                <p class="text-xs text-gray-500 truncate mt-1">${last?.text || 'No messages yet'}</p>
+                            </div>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+
+            updateUnreadSummary();
+                activeSellerName.textContent = seller.name;
+                activeSellerName.href = buildSellerProfileUrl(seller);
+                viewStoreBtn.href = buildSellerProfileUrl(seller);
+        }
+
+        function renderChat() {
+            const seller = getActiveSeller();
+            if (!seller) {
+                activeSellerAvatar.src = '';
+                activeSellerName.textContent = 'No conversation selected';
+                activeSellerContext.textContent = '';
+                chatHistory.innerHTML = '<div class="text-sm text-gray-500 p-4">Select a seller conversation to view messages.</div>';
+                return;
+            }
+
+            activeSellerAvatar.src = seller.avatar;
+            activeSellerName.textContent = seller.name;
+            activeSellerContext.textContent = seller.context;
+
+            chatHistory.innerHTML = seller.messages.map((message) => `
+                <div class="message-row ${message.sender === 'customer' ? 'sent' : 'received'}">
+                    <div class="message-bubble">
+                        <div>${message.text}</div>
+                        <div class="message-time">${message.time}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        window.openSeller = function (sellerId) {
+            activeSellerId = sellerId;
+            const seller = getActiveSeller();
+            if (seller) seller.unreadCount = 0;
+            renderSellerList();
+
+			(async () => {
+				await loadMessagesForActiveSeller();
+			})();
+        };
+
+        async function sendMessage(event) {
+            if (!IS_LIVE_HOST) return;
+            event.preventDefault();
+            const text = messageInput.value.trim();
+            if (!text) return;
+
+            const seller = getActiveSeller();
+            if (!seller) return;
+
+            try {
+                const userId = resolveCurrentUserId();
+                await fetchJson(`${API_BASE_URL}/customer/messages/threads/${encodeURIComponent(seller.id)}/messages?userId=${encodeURIComponent(userId)}`, {
+                    method: 'POST',
+                    body: JSON.stringify({ message: text })
+                });
+
+                messageInput.value = '';
+                await loadMessagesForActiveSeller();
+                await loadThreads();
+            } catch (error) {
+                alert(error.message || 'Failed to send message.');
+            }
+        }
+
+        function mapThreadToSeller(thread) {
+            return {
+                id: String(thread.id),
+                name: thread.storeName || thread.sellerName || 'Seller',
+                avatar: thread.sellerAvatar || 'https://via.placeholder.com/80',
+                sellerId: thread.sellerId || thread.seller_id || thread.userId || thread.user_id || null,
+                sellerSlug: thread.storeSlug || thread.sellerSlug || null,
+                context: thread.subject || (thread.orderId ? `Order #${thread.orderId}` : 'Conversation'),
+                unreadCount: Number(thread.unreadCount) || 0,
+                messages: []
+            };
+        }
+
+        function formatMessageTime(value) {
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        async function loadMessagesForActiveSeller() {
+            if (!IS_LIVE_HOST) {
+                renderChat();
+                return;
+            }
+            const seller = getActiveSeller();
+            if (!seller) {
+                renderChat();
+                return;
+            }
+
+            try {
+                const userId = resolveCurrentUserId();
+                const rows = await fetchJson(`${API_BASE_URL}/customer/messages/threads/${encodeURIComponent(seller.id)}/messages?userId=${encodeURIComponent(userId)}&limit=200`);
+                seller.messages = Array.isArray(rows) ? rows.map((row) => ({
+                    sender: row.sender === 'customer' ? 'customer' : 'seller',
+                    text: row.message || '',
+                    time: formatMessageTime(row.createdAt)
+                })) : [];
+            } catch (_) {
+                seller.messages = [];
+            }
+
+            renderSellerList();
+            renderChat();
+        }
+
+        async function loadThreads() {
+            if (!IS_LIVE_HOST) {
+                sellers = [];
+                activeSellerId = null;
+                renderSellerList();
+                renderChat();
+                return;
+            }
+            try {
+                const userId = resolveCurrentUserId();
+                const rows = await fetchJson(`${API_BASE_URL}/customer/messages/threads?userId=${encodeURIComponent(userId)}&limit=100`);
+                sellers = Array.isArray(rows) ? rows.map(mapThreadToSeller) : [];
+
+                if (!sellers.length) {
+                    activeSellerId = null;
+                    renderSellerList();
+                    renderChat();
+                    return;
+                }
+
+                if (!activeSellerId || !sellers.some((seller) => seller.id === activeSellerId)) {
+                    activeSellerId = sellers[0].id;
+                }
+
+                await loadMessagesForActiveSeller();
+            } catch (error) {
+                sellers = [];
+                activeSellerId = null;
+                renderSellerList();
+                renderChat();
+                alert(error.message || 'Failed to load conversations.');
+            }
+        }
+
+        document.getElementById('chatForm').addEventListener('submit', sendMessage);
+        document.getElementById('attachButton').addEventListener('click', () => {
+            alert('Attachment upload can be connected to backend storage in the next step.');
+        });
+
+        if (IS_LIVE_HOST) {
+            loadThreads();
+            loadCartCount();
+        } else {
+            sellers = [];
+            activeSellerId = null;
+            renderSellerList();
+            renderChat();
+            const badge = document.getElementById('cartCountBadge');
+            if (badge) badge.textContent = '0';
+        }
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Return Request Details | LUMINA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #111827; }
+        .glass { background: rgba(255,255,255,0.94); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .account-flyout { width: 360px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
+        .signin-btn { display: inline-block; width: 130px; text-align: center; background: #facc15; border: 1px solid #f59e0b; color: #111827; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 7px; }
+        .signin-btn:hover { background: #fbbf24; }
+        .account-col-title { font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
+        .account-link { display: block; font-size: 12px; color: #374151; line-height: 1.55; }
+        .account-link:hover { color: #111827; text-decoration: underline; }
+        .panel-card { background: #fff; border: 1px solid #e8edf5; border-radius: 18px; box-shadow: 0 12px 28px rgba(15,23,42,0.06); }
+        .hero-panel { background: linear-gradient(140deg, #f8fbff 0%, #ffffff 45%, #fff8ec 100%); }
+        .info-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; }
+        .info-value { font-size: 14px; color: #0f172a; margin-top: 6px; line-height: 1.55; }
+        .status-pill { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 5px 10px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid transparent; }
+        .status-pending { color: #92400e; background: #fff7ed; border-color: #fed7aa; }
+        .status-approved { color: #065f46; background: #ecfdf5; border-color: #a7f3d0; }
+        .status-rejected { color: #991b1b; background: #fef2f2; border-color: #fecaca; }
+        .status-refunded { color: #1e3a8a; background: #eff6ff; border-color: #bfdbfe; }
+        .thumb { width: 90px; height: 90px; border-radius: 12px; object-fit: cover; border: 1px solid #e6ecf4; }
+        .evidence-img { width: 100%; height: 120px; object-fit: cover; border-radius: 12px; border: 1px solid #e8edf5; }
+        .action-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 10px; padding: 10px 14px; border: 1px solid #d8e1ec; background: #fff; color: #1f2937; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.2s; }
+        .action-btn:hover { background: #f8fafc; }
+        .action-btn.primary { background: #111827; border-color: #111827; color: #fff; }
+        .action-btn.primary:hover { background: #000; }
+        .action-btn.danger { background: #fff5f5; border-color: #fecaca; color: #b91c1c; }
+
+        .timeline-dot-amber { background: #f59e0b; }
+        .timeline-dot-blue { background: #3b82f6; }
+        .timeline-dot-green { background: #22c55e; }
+        .timeline-dot-purple { background: #8b5cf6; }
+
+        .timeline-entry {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 14px 0;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .timeline-entry:last-child {
+            border-bottom: none;
+        }
+
+        .timeline-marker {
+            width: 12px;
+            height: 12px;
+            margin-top: 5px;
+            border-radius: 999px;
+            flex: 0 0 auto;
+        }
+
+        .timeline-copy {
+            min-width: 0;
+        }
+
+        .timeline-meta {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 800;
+        }
+
+        .timeline-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 4px;
+        }
+
+        .timeline-note {
+            font-size: 12px;
+            color: #475569;
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+
+        .refund-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        @media (max-width: 640px) {
+            .refund-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .content-shell { margin-left: 0; }
+        }
+    </style>
+	<script src="/customer-pages/auth.js"></script>
+	<script src="/customer-pages/page-access.js"></script>
+</head>
+<body>
+    <nav class="fixed top-0 w-full z-[100] glass">
+        <div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
+            <div class="flex items-center gap-2 shrink-0">
+                <button id="sidebarToggle" type="button" class="p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
+                <a href="homepage.html" class="text-2xl font-bold tracking-tighter uppercase shrink-0">Lumina</a>
+            </div>
+            <div class="hidden md:flex flex-grow relative max-w-2xl mx-auto">
+                <input type="text" placeholder="Search for unique products, clothing or artisans..." class="w-full bg-gray-100 border-transparent border focus:border-black focus:bg-white rounded-full py-2.5 px-6 pl-12 text-sm transition-all outline-none">
+                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+            </div>
+            <div class="flex items-center gap-2 lg:gap-6 shrink-0">
+                <div id="accountMenuWrap" class="relative group">
+                    <button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                        <span id="accountMenuLabel" class="hidden sm:block text-xs font-bold uppercase tracking-widest">Account</span>
+                    </button>
+                    <div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block">
+                        <div id="accountMenuContent" class="account-flyout"></div>
+                    </div>
+                </div>
+                <a href="cart.html" class="relative p-2">
+                    <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                    <span id="cartCountBadge" class="absolute top-0 right-0 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
+                </a>
+                <a href="wishlist.html" class="relative p-2"><i data-lucide="heart" class="w-5 h-5"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+
+    <main class="content-shell mt-20 p-4 lg:p-8 min-h-[calc(100vh-5rem)]">
+        <div class="max-w-7xl mx-auto space-y-6">
+            <section class="panel-card hero-panel p-5 lg:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h1 class="text-3xl lg:text-4xl font-extrabold tracking-tight text-[#232f3e]">Return Request Details</h1>
+                        <p class="text-sm lg:text-base text-gray-600 mt-2">View complete information about your return request.</p>
+                    </div>
+                    <a href="my_returns_refunds.html" class="action-btn"><i data-lucide="arrow-left" class="w-4 h-4"></i>Back to Returns</a>
+                </div>
+            </section>
+
+            <section class="panel-card p-5 lg:p-6">
+                <h2 class="text-lg font-extrabold text-[#232f3e] mb-4">Return Timeline</h2>
+                <div id="timelineList" class="space-y-0"></div>
+            </section>
+
+            <section class="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-5">
+                <article class="panel-card p-5 lg:p-6">
+                    <h2 class="text-lg font-extrabold text-[#232f3e] mb-4">Return Information</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div><p class="info-label">Return Request ID</p><p id="returnRequestId" class="info-value"></p></div>
+                        <div><p class="info-label">Order ID</p><p id="orderIdValue" class="info-value"></p></div>
+                        <div><p class="info-label">Request Date</p><p id="requestDate" class="info-value"></p></div>
+                        <div><p class="info-label">Return Status</p><p id="returnStatus" class="info-value"></p></div>
+                    </div>
+                </article>
+
+                <article class="panel-card p-5 lg:p-6">
+                    <h2 class="text-lg font-extrabold text-[#232f3e] mb-4">Product Information</h2>
+                    <div class="flex items-start gap-4">
+                        <img id="productImage" src="" alt="Returned product" class="thumb">
+                        <div class="space-y-2 text-sm text-gray-700">
+                            <p><span class="font-semibold text-gray-500">Product:</span> <span id="productName" class="font-semibold text-[#232f3e]"></span></p>
+                            <p><span class="font-semibold text-gray-500">Seller:</span> <span id="sellerName"></span></p>
+                            <p><span class="font-semibold text-gray-500">Quantity:</span> <span id="quantity"></span></p>
+                            <p><span class="font-semibold text-gray-500">Price:</span> <span id="productPrice"></span></p>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                <article class="panel-card p-5 lg:p-6">
+                    <h2 class="text-lg font-extrabold text-[#232f3e] mb-4">Return Reason</h2>
+                    <p class="info-label">Selected Reason</p>
+                    <p id="selectedReason" class="info-value"></p>
+                    <p class="info-label mt-4">Customer Description</p>
+                    <p id="customerDescription" class="info-value"></p>
+                </article>
+
+                <article class="panel-card p-5 lg:p-6">
+                    <h2 class="text-lg font-extrabold text-[#232f3e] mb-4">Seller Response</h2>
+                    <p class="info-label">Message</p>
+                    <p id="sellerMessage" class="info-value"></p>
+                    <p class="info-label mt-4">Decision Reason</p>
+                    <p id="sellerDecision" class="info-value"></p>
+                </article>
+            </section>
+
+            <section id="approvedInfoSection" class="panel-card p-5 lg:p-6 hidden">
+                <h2 class="text-lg font-extrabold text-[#232f3e] mb-4">Approved Return Instructions</h2>
+                <p id="approvedMessage" class="info-value"></p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    <div><p class="info-label">Courier Name</p><p id="courierName" class="info-value"></p></div>
+                    <div><p class="info-label">Pickup Schedule</p><p id="pickupSchedule" class="info-value"></p></div>
+                    <div><p class="info-label">Return Address</p><p id="returnAddress" class="info-value"></p></div>
+                </div>
+            </section>
+
+            <section id="refundInfoSection" class="panel-card p-5 lg:p-6 hidden">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <h2 class="text-lg font-extrabold text-[#232f3e]">Refund Details</h2>
+                    <span id="refundStatusPill" class="status-pill status-refunded">Refunded</span>
+                </div>
+                <div class="refund-grid">
+                    <div><p class="info-label">Refund Amount</p><p id="refundAmount" class="info-value"></p></div>
+                    <div><p class="info-label">Refund Method</p><p id="refundMethod" class="info-value"></p></div>
+                    <div><p class="info-label">Voucher Code</p><p id="voucherCode" class="info-value"></p></div>
+                    <div><p class="info-label">Voucher Expiry</p><p id="voucherExpiry" class="info-value"></p></div>
+                    <div><p class="info-label">Refund Processed On</p><p id="refundDate" class="info-value"></p></div>
+                    <div><p class="info-label">Refund Note</p><p id="refundNote" class="info-value"></p></div>
+                </div>
+                <div class="flex flex-wrap gap-3 mt-4">
+                    <button class="action-btn primary hidden" id="downloadVoucherBtn" type="button"><i data-lucide="download" class="w-4 h-4"></i>Download Voucher</button>
+                    <button class="action-btn hidden" id="copyVoucherBtn" type="button"><i data-lucide="copy" class="w-4 h-4"></i>Copy Voucher Code</button>
+                </div>
+            </section>
+
+            <section class="panel-card p-5 lg:p-6">
+                <h2 class="text-lg font-extrabold text-[#232f3e] mb-4">Uploaded Evidence</h2>
+                <div id="evidenceGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+            </section>
+
+            <section class="panel-card p-5 lg:p-6">
+                <div class="flex flex-wrap gap-3">
+                    <button class="action-btn primary" id="contactSellerBtn"><i data-lucide="message-circle" class="w-4 h-4"></i>Contact Seller</button>
+                    <button class="action-btn danger hidden" id="cancelRequestBtn"><i data-lucide="x-circle" class="w-4 h-4"></i>Cancel Request</button>
+                </div>
+            </section>
+        </div>
+    </main>
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+
+        function resolveCurrentUserId() {
+            try {
+                const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+                if (rawUser) {
+                    const parsed = JSON.parse(rawUser);
+                    return String(parsed.id || parsed.userId || parsed.customerId || '1').trim();
+                }
+            } catch (_) {}
+            return '1';
+        }
+
+        async function fetchJson(url, options = {}) {
+            if (!IS_LIVE_HOST) {
+                throw new Error('Open this page on localhost to load database-backed return request details.');
+            }
+
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {})
+                }
+            });
+
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || payload.success === false) {
+                throw new Error(payload.message || 'Request failed');
+            }
+
+            return payload.data !== undefined ? payload.data : payload;
+        }
+
+        function resolveAuthState() {
+            const state = { isLoggedIn: false, fullName: '' };
+
+            try {
+                const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+                const isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+                if (rawUser) {
+                    const parsed = JSON.parse(rawUser);
+                    const name = String(parsed.fullName || parsed.name || '').trim();
+                    state.isLoggedIn = Boolean(name) || isLoggedIn;
+                    state.fullName = name;
+                } else {
+                    state.isLoggedIn = isLoggedIn;
+                }
+            } catch (_) {
+                state.isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+            }
+
+            return state;
+        }
+
+        function renderAccountFlyout() {
+            const auth = resolveAuthState();
+            const content = document.getElementById('accountMenuContent');
+            const label = document.getElementById('accountMenuLabel');
+            if (!content || !label) return;
+
+            if (!auth.isLoggedIn) {
+                label.textContent = 'Account';
+                content.innerHTML = `
+                    <div class="px-4 py-3 border-b border-gray-200 text-center">
+                        <a href="login_register.html" class="signin-btn">Sign in</a>
+                        <p class="text-[10px] text-gray-500 mt-1">New customer? <a href="login_register.html" class="text-blue-600 hover:underline">Start here.</a></p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-0">
+                        <div class="px-4 py-3 border-r border-gray-200">
+                            <h4 class="account-col-title">Your Lists</h4>
+                            <a href="wishlist.html" class="account-link">Create a List</a>
+                            <a href="login_register.html" class="account-link">Find a List or Registry</a>
+                        </div>
+                        <div class="px-4 py-3">
+                            <h4 class="account-col-title">Your Account</h4>
+                            <a href="login_register.html" class="account-link">Customer Dashboard</a>
+                            <a href="login_register.html" class="account-link">My Profile</a>
+                            <a href="login_register.html" class="account-link">My Orders</a>
+                            <a href="login_register.html" class="account-link">Cart</a>
+                            <a href="login_register.html" class="account-link">My Addresses</a>
+                            <a href="login_register.html" class="account-link">Messages</a>
+                            <a href="login_register.html" class="account-link">Returns & Refunds</a>
+                            <a href="login_register.html" class="account-link">Security Settings</a>
+                            <a href="login_register.html" class="account-link">Help & Support</a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const firstName = auth.fullName ? auth.fullName.split(' ')[0] : 'Account';
+                label.textContent = firstName;
+                content.innerHTML = `
+                    <div class="px-4 py-3 border-b border-gray-200 text-center">
+                        <a href="Customer_Dashboard.html" class="signin-btn">Go to Dashboard</a>
+                        <p class="text-[10px] text-gray-500 mt-1">Signed in as ${auth.fullName || 'Customer'}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-0">
+                        <div class="px-4 py-3 border-r border-gray-200">
+                            <h4 class="account-col-title">Your Lists</h4>
+                            <a href="wishlist.html" class="account-link">Wishlist</a>
+                            <a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+                            <a href="my_messages.html" class="account-link">Messages</a>
+                        </div>
+                        <div class="px-4 py-3">
+                            <h4 class="account-col-title">Your Account</h4>
+                            <a href="Customer_Dashboard.html" class="account-link">Customer Dashboard</a>
+                            <a href="my_profile.html" class="account-link">My Profile</a>
+                            <a href="my_orders.html" class="account-link">My Orders</a>
+                            <a href="cart.html" class="account-link">Cart</a>
+                            <a href="my_addresses.html" class="account-link">My Addresses</a>
+                            <a href="my_messages.html" class="account-link">Messages</a>
+                            <a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+                            <a href="security_settings.html" class="account-link">Security Settings</a>
+                            <a href="help_support.html" class="account-link">Help & Support</a>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        const accountMenuButton = document.getElementById('accountMenuButton');
+        const accountMenuDropdown = document.getElementById('accountMenuDropdown');
+        const accountMenuWrap = document.getElementById('accountMenuWrap');
+
+        if (accountMenuButton && accountMenuDropdown) {
+            accountMenuButton.addEventListener('click', () => {
+                accountMenuDropdown.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (event) => {
+                if (accountMenuWrap && !accountMenuWrap.contains(event.target)) {
+                    accountMenuDropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        renderAccountFlyout();
+
+        const statusLabel = {
+            pending: 'Pending',
+            approved: 'Approved',
+            rejected: 'Rejected',
+            refunded: 'Refunded'
+        };
+
+        function statusBadge(status) {
+            return `<span class="status-pill status-${status}">${statusLabel[status] || status}</span>`;
+        }
+
+        function getQueryParam(key) {
+            return new URLSearchParams(window.location.search).get(key);
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '-';
+            const d = new Date(value);
+            if (Number.isNaN(d.getTime())) return '-';
+            return d.toLocaleString('en-US', {
+                month: 'short',
+                day: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function mapTimelineForDisplay(request, timelineData) {
+            const items = [];
+            const timeline = Array.isArray(timelineData?.timeline) ? timelineData.timeline : [];
+
+            timeline.forEach((entry) => {
+                if (!entry.completed && !entry.occurredAt) return;
+                let tone = 'timeline-dot-blue';
+                if (entry.code === 'request_created') tone = 'timeline-dot-blue';
+                if (entry.code === 'seller_review') tone = request.status === 'rejected' ? 'timeline-dot-purple' : 'timeline-dot-amber';
+                if (entry.code === 'refund_complete') tone = 'timeline-dot-green';
+
+                items.push({
+                    by: 'System',
+                    action: entry.label || 'Status Update',
+                    date: entry.occurredAt,
+                    note: '',
+                    tone
+                });
+            });
+
+            if (!items.length) {
+                items.push({
+                    by: 'Customer',
+                    action: 'Request Submitted',
+                    date: request.requestDate,
+                    note: 'Customer created the return request.',
+                    tone: 'timeline-dot-blue'
+                });
+            }
+
+            return items;
+        }
+
+        async function loadCartCount() {
+            if (!IS_LIVE_HOST) {
+                const badge = document.getElementById('cartCountBadge');
+                if (badge) badge.textContent = '0';
+                return;
+            }
+            try {
+                const userId = resolveCurrentUserId();
+                const data = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+                const badge = document.getElementById('cartCountBadge');
+                if (badge) badge.textContent = String(Number(data?.totalItems || data?.totals?.itemCount || 0));
+            } catch (_) {
+                const badge = document.getElementById('cartCountBadge');
+                if (badge) badge.textContent = '0';
+            }
+        }
+
+        function renderPage(data, timeline) {
+            const requestId = getQueryParam('requestId');
+
+            document.getElementById('returnRequestId').textContent = data.returnRequestId;
+            document.getElementById('orderIdValue').textContent = data.orderId;
+            document.getElementById('requestDate').textContent = formatDateTime(data.requestDate);
+            document.getElementById('returnStatus').innerHTML = statusBadge(data.status);
+            document.getElementById('productImage').src = data.productImage || 'https://via.placeholder.com/180x180?text=Product';
+            document.getElementById('productName').textContent = data.productName;
+            document.getElementById('sellerName').textContent = data.sellerName;
+            document.getElementById('quantity').textContent = String(data.quantity);
+            document.getElementById('productPrice').textContent = `Rs. ${Number(data.productPrice || 0).toLocaleString()}`;
+            document.getElementById('selectedReason').textContent = data.selectedReason;
+            document.getElementById('customerDescription').textContent = data.customerDescription || 'No additional message provided.';
+            document.getElementById('sellerMessage').textContent = data.sellerMessage || 'No seller response yet.';
+            document.getElementById('sellerDecision').textContent = data.sellerDecision || 'No decision reason available yet.';
+
+            const renderTimeline = mapTimelineForDisplay(data, timeline).map((entry) => {
+                const dateText = formatDateTime(entry.date);
+                return `
+                    <div class="timeline-entry">
+                        <div class="timeline-marker ${entry.tone || 'timeline-dot-blue'}"></div>
+                        <div class="timeline-copy">
+                            <div class="timeline-meta">${entry.by || 'System'} • ${dateText}</div>
+                            <div class="timeline-title">${entry.action}</div>
+                            <div class="timeline-note">${entry.note || ''}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('timelineList').innerHTML = renderTimeline;
+
+            const evidenceGrid = document.getElementById('evidenceGrid');
+            const evidence = Array.isArray(data.evidence) ? data.evidence : [];
+            if (!evidence.length) {
+                evidenceGrid.innerHTML = '<p class="text-sm text-gray-500">No evidence images uploaded.</p>';
+            } else {
+                evidenceGrid.innerHTML = evidence.map((imageUrl) => `<img src="${imageUrl}" alt="Evidence image" class="evidence-img">`).join('');
+            }
+
+            const cancelBtn = document.getElementById('cancelRequestBtn');
+            if (data.status === 'pending' && data.canCancel) {
+                cancelBtn.classList.remove('hidden');
+            } else {
+                cancelBtn.classList.add('hidden');
+            }
+
+            const approvedSection = document.getElementById('approvedInfoSection');
+            if (data.status === 'approved' || data.status === 'refunded') {
+                approvedSection.classList.remove('hidden');
+                document.getElementById('approvedMessage').textContent = 'Your return request has been approved. Please send the product back.';
+                document.getElementById('courierName').textContent = data.courierName || 'Not assigned yet';
+                document.getElementById('pickupSchedule').textContent = data.pickupSchedule || 'Awaiting pickup assignment';
+                document.getElementById('returnAddress').textContent = data.returnAddress || 'Address will be shared by seller';
+            } else {
+                approvedSection.classList.add('hidden');
+            }
+
+            const refundSection = document.getElementById('refundInfoSection');
+            if (data.status === 'refunded') {
+                refundSection.classList.remove('hidden');
+                const refundAmount = Number(data.refundAmount || 0);
+                document.getElementById('refundAmount').textContent = `Rs. ${refundAmount.toLocaleString()}`;
+                document.getElementById('refundMethod').textContent = data.refundMethod || 'Original Payment Method';
+                document.getElementById('voucherCode').textContent = '-';
+                document.getElementById('voucherExpiry').textContent = '-';
+                document.getElementById('refundDate').textContent = formatDateTime(data.completedAt);
+                document.getElementById('refundNote').textContent = 'Refund was processed successfully.';
+
+                const downloadVoucherBtn = document.getElementById('downloadVoucherBtn');
+                const copyVoucherBtn = document.getElementById('copyVoucherBtn');
+                const useVoucher = false;
+
+                downloadVoucherBtn.classList.toggle('hidden', !useVoucher);
+                copyVoucherBtn.classList.toggle('hidden', !useVoucher);
+
+                if (useVoucher) {
+                    downloadVoucherBtn.onclick = () => {
+                        alert('Voucher download is not connected to a PDF generator yet.');
+                    };
+                    copyVoucherBtn.onclick = async () => {
+                        try {
+                            await navigator.clipboard.writeText(data.voucherCode || '');
+                            alert('Voucher code copied to clipboard.');
+                        } catch (_) {
+                            alert('Unable to copy voucher code.');
+                        }
+                    };
+                }
+            } else {
+                refundSection.classList.add('hidden');
+            }
+
+            document.getElementById('contactSellerBtn').addEventListener('click', () => {
+                window.location.href = `my_messages.html?seller=${encodeURIComponent(data.sellerName)}`;
+            });
+
+            cancelBtn.addEventListener('click', async () => {
+                if (!confirm('Cancel this return request?')) return;
+                try {
+                    const userId = resolveCurrentUserId();
+                    await fetchJson(`${API_BASE_URL}/customer/returns/requests/${encodeURIComponent(data.returnRequestId)}/cancel?userId=${encodeURIComponent(userId)}`, {
+                        method: 'PATCH'
+                    });
+                } catch (error) {
+                    alert(error.message || 'Unable to cancel request.');
+                    return;
+                }
+                alert('Return request canceled successfully.');
+                window.location.href = 'my_returns_refunds.html';
+            });
+        }
+
+        async function initPage() {
+            if (!IS_LIVE_HOST) {
+                document.getElementById('timelineList').innerHTML = '<p class="text-sm text-gray-500">Open on localhost to load live return request details.</p>';
+                const badge = document.getElementById('cartCountBadge');
+                if (badge) badge.textContent = '0';
+                lucide.createIcons();
+                return;
+            }
+
+            const orderId = String(getQueryParam('orderId') || '').trim();
+            const requestId = String(getQueryParam('requestId') || '').trim();
+
+            if (!orderId && !requestId) {
+                window.location.href = 'my_returns_refunds.html';
+                return;
+            }
+
+            try {
+                const userId = resolveCurrentUserId();
+                const request = requestId
+                    ? await fetchJson(`${API_BASE_URL}/customer/returns/requests/${encodeURIComponent(requestId)}?userId=${encodeURIComponent(userId)}`)
+                    : await fetchJson(`${API_BASE_URL}/customer/returns/requests/by-order/${encodeURIComponent(orderId)}?userId=${encodeURIComponent(userId)}`);
+
+                const timeline = await fetchJson(`${API_BASE_URL}/customer/returns/requests/${encodeURIComponent(request.returnRequestId)}/timeline?userId=${encodeURIComponent(userId)}`);
+
+                renderPage(request, timeline);
+            } catch (_) {
+                window.location.href = 'my_returns_refunds.html';
+            }
+
+            loadCartCount();
+            lucide.createIcons();
+        }
+
+        initPage();
+    </script>
+</body>
+</html>

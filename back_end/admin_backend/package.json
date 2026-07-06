@@ -1,0 +1,22 @@
+{
+  "name": "lumina-admin-backend",
+  "version": "1.0.0",
+  "description": "Backend APIs for Lumina Admin Dashboard",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/unifiedServer.js",
+    "dev": "node --watch src/unifiedServer.js",
+    "start:admin-only": "node src/server.js",
+    "dev:admin-only": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "@stripe/stripe-js": "^9.9.0",
+    "axios": "^1.11.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "morgan": "^1.10.0",
+    "pg": "^8.20.0",
+    "stripe": "^22.3.0"
+  }
+}

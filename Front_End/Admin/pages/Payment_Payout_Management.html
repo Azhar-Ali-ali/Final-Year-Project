@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Admin | Payment & Payout Management</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script src="https://unpkg.com/lucide@latest"></script>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" />
+	<style>
+		:root {
+			--bg: #f5f5f5;
+			--panel: #ffffff;
+			--text: #232f3e;
+			--muted: #666666;
+			--border: #dddddd;
+			--primary: #232f3e;
+			--primary-600: #37475a;
+			--success: #28a745;
+			--warning: #ffc107;
+			--danger: #dc3545;
+			--info: #0066c0;
+			--purple: #7c3aed;
+			--orange: #f97316;
+			--gray: #6b7280;
+			--shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+			--radius: 10px;
+		}
+
+		* { box-sizing: border-box; margin: 0; padding: 0; }
+
+		body {
+			font-family: "Inter", Arial, sans-serif;
+			background: var(--bg);
+			color: var(--text);
+		}
+
+		.layout {
+			display: block;
+			min-height: 100vh;
+		}
+
+		.content {
+			display: flex;
+			flex-direction: column;
+			gap: 18px;
+			padding: 20px;
+		}
+
+		.page-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			flex-wrap: wrap;
+			margin-bottom: 10px;
+		}
+
+		.page-header .title {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			font-weight: 700;
+			font-size: 20px;
+			color: var(--text);
+		}
+
+		.page-header .title .material-symbols-rounded {
+			font-size: 26px;
+			color: var(--primary);
+		}
+
+		.page-header .actions {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+
+		.btn {
+			padding: 12px 18px;
+			border: none;
+			border-radius: 8px;
+			font-size: 13px;
+			cursor: pointer;
+			transition: all 0.3s ease;
+			font-weight: 600;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			background: #f3f4f6;
+			color: #333;
+		}
+
+		.btn.primary { background: var(--primary); color: white; }
+		.btn.primary:hover { background: var(--primary-600); }
+		.btn.success { background: var(--success); color: white; }
+		.btn.success:hover { background: #218838; }
+		.btn.danger { background: var(--danger); color: white; }
+		.btn.danger:hover { background: #c82333; }
+		.btn.warning { background: var(--warning); color: #333; }
+		.btn.warning:hover { background: #f9b233; }
+		.btn.secondary { background: #6b7280; color: white; }
+		.btn.secondary:hover { background: #4b5563; }
+		.btn.ghost { background: transparent; border: 1px solid var(--border); }
+		.btn.sm { padding: 8px 12px; font-size: 12px; }
+
+		.panel {
+			background: var(--panel);
+			border-radius: var(--radius);
+			box-shadow: var(--shadow);
+			padding: 20px;
+		}
+
+		.toolbar {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			background: white;
+			padding: 12px;
+			border-radius: 10px;
+			box-shadow: var(--shadow);
+			margin-bottom: 12px;
+		}
+
+		.search {
+			position: relative;
+			min-width: 260px;
+		}
+
+		.search input {
+			width: 100%;
+			padding: 10px 15px 10px 40px;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			font-size: 13px;
+			background: white;
+			color: var(--text);
+		}
+
+		.search input:focus {
+			outline: none;
+			border-color: var(--primary);
+			box-shadow: 0 0 0 3px rgba(35, 47, 62, 0.1);
+		}
+
+		.search .material-symbols-rounded {
+			position: absolute;
+			left: 12px;
+			top: 50%;
+			transform: translateY(-50%);
+			font-size: 18px;
+			color: #666;
+			pointer-events: none;
+		}
+
+		.filters {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+
+		.select, .input {
+			padding: 10px 12px;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			font-size: 13px;
+			background-color: white;
+			cursor: pointer;
+			min-width: 140px;
+		}
+
+		.input { cursor: text; }
+
+		.select:focus, .input:focus {
+			outline: none;
+			border-color: var(--primary);
+		}
+
+		/* KPI Stats */
+		.stats-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+			gap: 16px;
+			margin-bottom: 20px;
+		}
+
+		.stat-card {
+			background: white;
+			border-radius: 10px;
+			padding: 16px;
+			box-shadow: var(--shadow);
+			border-left: 4px solid var(--primary);
+		}
+
+		.stat-card.warning { border-left-color: var(--warning); }
+		.stat-card.danger { border-left-color: var(--danger); }
+		.stat-card.success { border-left-color: var(--success); }
+
+		.stat-value {
+			font-weight: 700;
+			font-size: 24px;
+			color: var(--text);
+		}
+
+		.stat-label {
+			font-size: 12px;
+			color: var(--muted);
+			margin-top: 4px;
+			font-weight: 500;
+		}
+
+		/* Tables */
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			font-size: 13px;
+			min-width: 1200px;
+		}
+
+		thead th {
+			padding: 15px;
+			text-align: left;
+			font-weight: 600;
+			color: var(--text);
+			font-size: 13px;
+			text-transform: uppercase;
+			background-color: #f5f5f5;
+			border-bottom: 2px solid var(--border);
+			white-space: nowrap;
+		}
+
+		tbody td {
+			padding: 15px;
+			border-bottom: 1px solid var(--border);
+			vertical-align: middle;
+			white-space: nowrap;
+			font-size: 13px;
+		}
+
+		tbody tr:hover { background: #f5f5f5; }
+
+		/* Badges & Pills */
+		.pill {
+			padding: 4px 10px;
+			border-radius: 999px;
+			font-size: 11px;
+			font-weight: 600;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+		}
+
+		.pill-success { background: #dcfce7; color: #166534; }
+		.pill-pending { background: #fef3c7; color: #92400e; }
+		.pill-danger { background: #fee2e2; color: #991b1b; }
+		.pill-info { background: #dbeafe; color: #1e3a8a; }
+		.pill-warning { background: #fed7aa; color: #92400e; }
+		.pill-gray { background: #f3f4f6; color: #4b5563; }
+		.pill-purple { background: #f3e8ff; color: #6b21a8; }
+
+		.badge {
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
+			padding: 6px 12px;
+			border-radius: 6px;
+			font-size: 11px;
+			font-weight: 600;
+		}
+
+		.badge-success { background: #dcfce7; color: #166534; }
+		.badge-danger { background: #fee2e2; color: #991b1b; }
+		.badge-warning { background: #fef3c7; color: #92400e; }
+		.badge-info { background: #dbeafe; color: #1e3a8a; }
+
+		.action-btn {
+			background: none;
+			border: none;
+			color: #0066c0;
+			cursor: pointer;
+			font-size: 13px;
+			font-weight: 600;
+			padding: 5px 10px;
+			transition: color 0.2s;
+		}
+
+		.action-btn:hover { color: #232f3e; text-decoration: underline; }
+		.action-btn[disabled] { color: #9ca3af; cursor: not-allowed; text-decoration: none; }
+
+		.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+		/* Tabs */
+		.tabs {
+			display: flex;
+			gap: 10px;
+			margin-bottom: 20px;
+			background: white;
+			padding: 10px;
+			border-radius: 10px;
+			box-shadow: var(--shadow);
+			flex-wrap: wrap;
+		}
+
+		.tab {
+			padding: 10px 20px;
+			cursor: pointer;
+			border: 2px solid transparent;
+			background-color: #f3f4f6;
+			color: #333;
+			border-radius: 6px;
+			font-size: 13px;
+			font-weight: 600;
+			transition: all 0.3s ease;
+		}
+
+		.tab.active {
+			background-color: var(--primary);
+			color: white;
+		}
+
+		.tab:hover {
+			background-color: #e5e7eb;
+		}
+
+		.tab-content {
+			display: none;
+		}
+
+		.tab-content.active {
+			display: block;
+		}
+
+		/* Modal */
+		.modal {
+			position: fixed;
+			inset: 0;
+			background: rgba(0, 0, 0, 0.4);
+			display: none;
+			align-items: center;
+			justify-content: center;
+			z-index: 100;
+			padding: 20px;
+		}
+
+		.modal.active { display: flex; }
+
+		.modal-card {
+			background: white;
+			border-radius: 12px;
+			padding: 20px;
+			max-width: 700px;
+			width: 100%;
+			box-shadow: var(--shadow);
+			max-height: 90vh;
+			overflow-y: auto;
+		}
+
+		.modal-card.large { max-width: 900px; }
+
+		.modal-card h3 { font-size: 16px; margin-bottom: 10px; }
+		.modal-card p { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+
+		.modal-actions {
+			display: flex;
+			align-items: center;
+			justify-content: flex-end;
+			gap: 8px;
+			margin-top: 12px;
+		}
+
+		.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+		/* Info Grid */
+		.info-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+			gap: 12px;
+			margin: 12px 0;
+		}
+
+		.info-item {
+			padding: 12px;
+			background: #f9fafb;
+			border-radius: 6px;
+			font-size: 12px;
+		}
+
+		.info-item .label {
+			color: var(--muted);
+			font-weight: 600;
+		}
+
+		.info-item .value {
+			color: var(--text);
+			font-weight: 700;
+			margin-top: 4px;
+		}
+
+		/* Courier/Payment Card */
+		.courier-card {
+			background: white;
+			border-radius: 10px;
+			padding: 16px;
+			box-shadow: var(--shadow);
+			border: 1px solid var(--border);
+			transition: all 0.3s;
+		}
+
+		.courier-card:hover {
+			box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+			transform: translateY(-2px);
+		}
+
+		.courier-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+			margin-bottom: 12px;
+		}
+
+		.courier-name {
+			font-weight: 600;
+			font-size: 14px;
+			color: var(--text);
+		}
+
+		.courier-status {
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
+			padding: 4px 8px;
+			border-radius: 6px;
+			font-size: 11px;
+			font-weight: 600;
+		}
+
+		.status-active { background: #dcfce7; color: #166534; }
+		.status-inactive { background: #f3f4f6; color: #4b5563; }
+		.status-suspended { background: #fee2e2; color: #991b1b; }
+
+		.badge-assigned { background: #dbeafe; color: #1e3a8a; }
+		.badge-in-transit { background: #fef3c7; color: #92400e; }
+		.badge-delivered { background: #dcfce7; color: #166534; }
+		.badge-rto { background: #fee2e2; color: #991b1b; }
+		.badge-cod-pending { background: #f3e8ff; color: #6b21a8; }
+		.badge-blacklisted { background: #e5e7eb; color: #374151; }
+
+		/* Timeline */
+		.timeline {
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+		}
+
+		.timeline-item {
+			display: grid;
+			grid-template-columns: 22px 1fr;
+			gap: 12px;
+		}
+
+		.dot {
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
+			background: var(--primary);
+			margin-top: 6px;
+		}
+
+		.timeline-content {
+			background: #f9fafb;
+			border: 1px solid var(--border);
+			padding: 10px;
+			border-radius: 8px;
+			font-size: 12px;
+		}
+
+		.timeline-content .time { color: var(--muted); font-size: 11px; }
+
+		/* Alerts */
+		.alert {
+			padding: 12px 16px;
+			border-radius: 8px;
+			font-size: 13px;
+			margin-bottom: 12px;
+		}
+
+		.alert-warning {
+			background: #fff7ed;
+			color: #92400e;
+			border: 1px solid #fed7aa;
+		}
+
+		.alert-danger {
+			background: #fee2e2;
+			color: #991b1b;
+			border: 1px solid #fca5a5;
+		}
+
+		.alert-success {
+			background: #dcfce7;
+			color: #166534;
+			border: 1px solid #bbf7d0;
+		}
+
+		.alert-info {
+			background: #dbeafe;
+			color: #1e3a8a;
+			border: 1px solid #bfdbfe;
+		}
+
+		/* Toast */
+		.toast {
+			position: fixed;
+			right: 20px;
+			bottom: 20px;
+			background: #111827;
+			color: white;
+			padding: 10px 14px;
+			border-radius: 10px;
+			font-size: 12px;
+			box-shadow: var(--shadow);
+			opacity: 0;
+			transform: translateY(10px);
+			transition: all 0.3s ease;
+			pointer-events: none;
+			z-index: 99;
+		}
+
+		.toast.show {
+			opacity: 1;
+			transform: translateY(0);
+		}
+
+		.hidden { display: none; }
+
+		.subtle { color: var(--muted); font-size: 12px; }
+
+		.overflow-x-auto { overflow-x: auto; }
+
+		.payment-card {
+			background: white;
+			border-radius: 10px;
+			padding: 16px;
+			box-shadow: var(--shadow);
+			border: 1px solid var(--border);
+			transition: all 0.3s;
+		}
+
+		@media (max-width: 1100px) {
+			table { min-width: 900px; }
+		}
+
+		@media (max-width: 768px) {
+			.toolbar { flex-direction: column; align-items: stretch; }
+			.filters { width: 100%; }
+			.search { width: 100%; }
+			.page-header { flex-direction: column; align-items: flex-start; }
+			.modal-card { max-width: 95vw; }
+			.stats-grid { grid-template-columns: 1fr; }
+		}
+
+		.glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+		.dropdown-hidden { display: none; }
+		.group:hover .dropdown-hidden { display: block; }
+		.no-scrollbar::-webkit-scrollbar { display: none; }
+		.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+		.main-content {
+			padding: 20px;
+			margin-top: 80px;
+			margin-left: 0;
+			transition: margin-left 0.2s;
+		}
+
+		@media (min-width: 768px) {
+			.main-content { margin-left: 256px; }
+		}
+
+		.sidebar-mobile { transition: transform 0.3s ease; }
+	</style>
+</head>
+<body class="bg-[#f9fafb] text-[#1a1a1a] min-h-screen flex flex-col">
+	<nav class="fixed top-0 w-full z-[100] glass">
+		<div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-16 flex items-center justify-between gap-6">
+			<div class="flex items-center gap-3 shrink-0">
+				<button id="sidebarToggle" class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
+					<i data-lucide="menu" class="w-5 h-5"></i>
+				</button>
+				<a href="admin_dashboard.html" class="text-xl font-bold tracking-tight uppercase hover:opacity-70 transition-opacity">
+					<span class="text-gray-900">Lumina</span>
+					<span class="text-gray-400 font-normal text-xs ml-2">Admin</span>
+				</a>
+			</div>
+
+			<div class="hidden lg:flex flex-grow relative max-w-sm mx-auto">
+				<input type="text" placeholder="Search users, sellers, orders..." class="w-full bg-gray-50 border border-gray-200 focus:border-gray-400 focus:bg-white rounded-full py-2 px-4 pl-10 text-xs outline-none transition-all">
+				<i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+			</div>
+
+			<div class="flex items-center gap-3 shrink-0">
+				<button class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors group">
+					<i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
+					<span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+					<div class="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 p-0 dropdown-hidden z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
+						<div class="px-4 py-3 border-b border-gray-100">
+							<p class="text-xs font-bold uppercase tracking-widest text-gray-600">Admin alerts</p>
+						</div>
+						<div class="max-h-80 overflow-y-auto">
+							<div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
+								<p class="text-xs font-bold text-gray-900">New seller #S422</p>
+								<p class="text-xs text-gray-500 mt-1">Request pending verification</p>
+							</div>
+							<div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
+								<p class="text-xs font-bold text-gray-900">Order #2451 flagged</p>
+								<p class="text-xs text-gray-500 mt-1">Payment discrepancy</p>
+							</div>
+							<div class="px-4 py-3 hover:bg-gray-50 cursor-pointer">
+								<p class="text-xs font-bold text-gray-900">System update</p>
+								<p class="text-xs text-gray-500 mt-1">Analytics ready</p>
+							</div>
+						</div>
+						<div class="px-4 py-2 border-t border-gray-100 text-center">
+							<a href="#" class="text-xs font-bold text-gray-600 hover:text-black uppercase tracking-widest">View All</a>
+						</div>
+					</div>
+				</button>
+
+				<div class="relative group">
+					<button class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors">
+						<div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-full flex items-center justify-center text-white text-xs font-bold">A</div>
+						<div class="flex items-center gap-1">
+							<span class="text-xs font-bold text-gray-700 hidden sm:block">Admin</span>
+							<i data-lucide="chevron-down" class="w-4 h-4 text-gray-600"></i>
+						</div>
+					</button>
+					<div class="absolute top-full right-0 mt-1 w-56 bg-white rounded-xl shadow-lg border border-gray-100 p-0 dropdown-hidden z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
+						<div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+							<div class="flex items-center gap-2 mb-1">
+								<span class="text-xs font-bold text-gray-900">Super Admin</span>
+								<span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
+									<i data-lucide="shield" class="w-3 h-3"></i>
+									root
+								</span>
+							</div>
+							<p class="text-xs text-gray-500">full access</p>
+						</div>
+						<a href="#" class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+							<i data-lucide="user-cog" class="w-4 h-4 text-gray-600"></i>
+							<span class="text-sm text-gray-700">Profile</span>
+						</a>
+						<a href="#" class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+							<i data-lucide="settings" class="w-4 h-4 text-gray-600"></i>
+							<span class="text-sm text-gray-700">System settings</span>
+						</a>
+						<a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-red-600">
+							<i data-lucide="log-out" class="w-4 h-4"></i>
+							<span class="text-sm font-bold">Logout</span>
+						</a>
+					</div>
+				</div>
+
+				<button class="hidden sm:flex items-center gap-2 px-4 py-2 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-gray-900 transition-colors">
+					<i data-lucide="plus" class="w-4 h-4"></i>
+					<span class="hidden lg:block">New</span>
+				</button>
+				<button class="sm:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
+					<i data-lucide="plus" class="w-5 h-5 text-gray-700"></i>
+				</button>
+			</div>
+		</div>
+	</nav>
+
+	<aside id="sidebar" class="hidden md:block fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-100 z-50 overflow-y-auto">
+		<nav class="p-4 space-y-2">
+			<a href="admin_dashboard.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+				<i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+				Dashboard
+			</a>
+			<a href="user_management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+				<i data-lucide="users" class="w-4 h-4"></i>
+				User Management
+			</a>
+			<a href="seller_management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+				<i data-lucide="store" class="w-4 h-4"></i>
+				Seller Management
+			</a>
+			<a href="Order_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+				<i data-lucide="package" class="w-4 h-4"></i>
+				Order Management
+			</a>
+			<a href="Product_Catalog_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+				<i data-lucide="box" class="w-4 h-4"></i>
+				Product Catalog
+			</a>
+			<a href="cms.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+				<i data-lucide="file-text" class="w-4 h-4"></i>
+				CMS
+			</a>
+			<a href="Reviews_Ratings_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+				<i data-lucide="star" class="w-4 h-4"></i>
+				Reviews & Ratings
+			</a>
+			<a href="Logistics_Courier_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+				<i data-lucide="truck" class="w-4 h-4"></i>
+				Logistics
+			</a>
+			<a href="Payment_Payout_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+				<i data-lucide="credit-card" class="w-4 h-4"></i>
+				Payments
+			</a>
+			<a href="Dispute_Support_System.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+				<i data-lucide="shield-alert" class="w-4 h-4"></i>
+				Dispute & Support
+			</a>
+			<a href="Reports_Analytics.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+				<i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+				Reports
+			</a>
+
+			<div class="h-px bg-gray-100 my-4"></div>
+
+			<a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+				<i data-lucide="settings" class="w-4 h-4"></i>
+				Settings
+			</a>
+			<a href="#" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+				<i data-lucide="help-circle" class="w-4 h-4"></i>
+				Help
+			</a>
+		</nav>
+	</aside>
+
+	<div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+
+	<main class="main-content flex-1">
+		<div class="max-w-[1440px] mx-auto">
+			<div class="content">
+			<!-- Page Header -->
+			<div class="page-header">
+				<div class="title">
+					<span class="material-symbols-rounded">payments</span>
+					Payment & Payout Management
+				</div>
+				<div class="actions">
+					<button class="btn primary" id="btn-reconcile-cod">
+						<span class="material-symbols-rounded">done_all</span>
+						COD Reconciliation
+					</button>
+					<button class="btn secondary" id="btn-audit-log">
+						<span class="material-symbols-rounded">history</span>
+						Audit Log
+					</button>
+					<button class="btn primary" id="btn-generate-report">
+						<span class="material-symbols-rounded">download</span>
+						Download Report
+					</button>
+				</div>
+			</div>
+
+			<!-- KPI Stats -->
+			<div class="stats-grid" id="kpi-stats"></div>
+
+			<!-- Tabs for Different Sections -->
+			<div class="tabs" id="payment-tabs">
+				<button class="tab active" data-tab="online-payments">
+					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">credit_card</span>
+					Online Payments
+				</button>
+				<button class="tab" data-tab="cod-tracking">
+					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">local_shipping</span>
+					COD Tracking
+				</button>
+				<button class="tab" data-tab="payout-queue">
+					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">account_balance</span>
+					Payout Queue
+				</button>
+				<button class="tab" data-tab="failed-payments">
+					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">error</span>
+					Failed Payments
+				</button>
+			</div>
+
+			<!-- Online Payments Tab -->
+			<div class="tab-content active" id="online-payments">
+				<section class="panel">
+					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+						<span class="material-symbols-rounded">credit_card</span>
+						Online Payment Collection
+					</div>
+
+					<div class="toolbar">
+						<div class="search">
+							<span class="material-symbols-rounded">search</span>
+							<input type="text" placeholder="Search by Order ID, Customer, Seller..." id="search-online">
+						</div>
+						<div class="filters">
+							<select class="select" id="filter-payment-status">
+								<option value="">All Payment Status</option>
+								<option value="success">Success</option>
+								<option value="failed">Failed</option>
+								<option value="refunded">Refunded</option>
+							</select>
+							<select class="select" id="filter-escrow-status">
+								<option value="">All Escrow Status</option>
+								<option value="held">Held</option>
+								<option value="released">Released</option>
+								<option value="refunded">Refunded</option>
+								<option value="dispute">Dispute</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="overflow-x-auto">
+						<table>
+							<thead>
+								<tr>
+									<th>Order ID</th>
+									<th>Customer</th>
+									<th>Seller</th>
+									<th>Amount</th>
+									<th>Gateway</th>
+									<th>Payment Status</th>
+									<th>Escrow Status</th>
+									<th>Return Window</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody id="online-payments-tbody"></tbody>
+						</table>
+					</div>
+				</section>
+			</div>
+
+			<!-- COD Tracking Tab -->
+			<div class="tab-content" id="cod-tracking">
+				<section class="panel">
+					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+						<span class="material-symbols-rounded">local_shipping</span>
+						Cash on Delivery (COD) Tracking
+					</div>
+
+					<div class="toolbar">
+						<div class="search">
+							<span class="material-symbols-rounded">search</span>
+							<input type="text" placeholder="Search by Order ID, Seller, Courier..." id="search-cod">
+						</div>
+						<div class="filters">
+							<select class="select" id="filter-delivery-status">
+								<option value="">All Delivery Status</option>
+								<option value="pending">Pending</option>
+								<option value="in-transit">In Transit</option>
+								<option value="delivered">Delivered</option>
+								<option value="failed">Failed Delivery</option>
+							</select>
+							<select class="select" id="filter-cod-deposit">
+								<option value="">All Deposit Status</option>
+								<option value="pending">Pending</option>
+								<option value="deposited">Deposited</option>
+								<option value="mismatch">Mismatch</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="overflow-x-auto">
+						<table>
+							<thead>
+								<tr>
+									<th>Order ID</th>
+									<th>Seller</th>
+									<th>Courier</th>
+									<th>COD Amount</th>
+									<th>Delivery Status</th>
+									<th>Courier Deposit</th>
+									<th>Deposit Variance</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody id="cod-tracking-tbody"></tbody>
+						</table>
+					</div>
+				</section>
+			</div>
+
+			<!-- Payout Queue Tab -->
+			<div class="tab-content" id="payout-queue">
+				<section class="panel">
+					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+						<span class="material-symbols-rounded">account_balance</span>
+						Payout Queue & Seller Balances
+					</div>
+
+					<div class="toolbar">
+						<div class="search">
+							<span class="material-symbols-rounded">search</span>
+							<input type="text" placeholder="Search by Seller name..." id="search-payout">
+						</div>
+						<div class="filters">
+							<select class="select" id="filter-kyc-status">
+								<option value="">All KYC Status</option>
+								<option value="verified">Verified</option>
+								<option value="pending">Pending</option>
+								<option value="rejected">Rejected</option>
+							</select>
+							<select class="select" id="filter-bank-status">
+								<option value="">All Bank Status</option>
+								<option value="verified">Verified</option>
+								<option value="pending">Pending</option>
+								<option value="rejected">Rejected</option>
+							</select>
+							<select class="select" id="filter-risk-status">
+								<option value="">All Risk Status</option>
+								<option value="clear">Clear</option>
+								<option value="medium">Medium</option>
+								<option value="high">High</option>
+								<option value="frozen">Frozen</option>
+							</select>
+						</div>
+						<button class="btn success" id="btn-batch-approve">
+							<span class="material-symbols-rounded">done_all</span>
+							Batch Approve
+						</button>
+					</div>
+
+					<div class="overflow-x-auto">
+						<table>
+							<thead>
+								<tr>
+									<th><input type="checkbox" id="select-all-payout" /></th>
+									<th>Seller</th>
+									<th>Withdrawable Balance</th>
+									<th>KYC Status</th>
+									<th>Bank Status</th>
+									<th>Risk Level</th>
+									<th>Eligible Orders</th>
+									<th>Total Withdrawal</th>
+								</tr>
+							</thead>
+							<tbody id="payout-queue-tbody"></tbody>
+						</table>
+					</div>
+				</section>
+			</div>
+
+			<!-- Failed Payments Tab -->
+			<div class="tab-content" id="failed-payments">
+				<section class="panel">
+					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+						<span class="material-symbols-rounded">error</span>
+						Failed Payments & Disputes
+					</div>
+
+					<div class="toolbar">
+						<div class="search">
+							<span class="material-symbols-rounded">search</span>
+							<input type="text" placeholder="Search by Order ID, Customer..." id="search-failed">
+						</div>
+						<div class="filters">
+							<select class="select" id="filter-failure-type">
+								<option value="">All Failure Type</option>
+								<option value="gateway-failure">Gateway Failure</option>
+								<option value="chargeback">Chargeback</option>
+								<option value="dispute">Dispute</option>
+								<option value="timeout">Timeout</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="overflow-x-auto">
+						<table>
+							<thead>
+								<tr>
+									<th>Order ID</th>
+									<th>Customer</th>
+									<th>Amount</th>
+									<th>Failure Type</th>
+									<th>Gateway Error</th>
+									<th>Date</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody id="failed-payments-tbody"></tbody>
+						</table>
+					</div>
+				</section>
+			</div>
+			</div>
+		</div>
+	</main>
+
+	<footer class="bg-white border-t border-gray-100 mt-12 md:ml-64">
+		<div class="max-w-[1440px] mx-auto px-4 lg:px-8 py-8">
+			<div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+				<div>
+					<p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Lumina Admin</p>
+					<p class="text-sm text-gray-600 leading-relaxed">Centralized control for marketplace operations. Monitor users, sellers, and system health.</p>
+				</div>
+				<div>
+					<p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Operations</p>
+					<ul class="space-y-2">
+						<li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Moderation queue</a></li>
+						<li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">System logs</a></li>
+						<li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Audit trail</a></li>
+						<li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Feature flags</a></li>
+					</ul>
+				</div>
+				<div>
+					<p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Help</p>
+					<ul class="space-y-2">
+						<li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Admin guide</a></li>
+						<li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Contact devops</a></li>
+						<li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Status page</a></li>
+					</ul>
+				</div>
+				<div>
+					<p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Policies</p>
+					<ul class="space-y-2">
+						<li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Privacy</a></li>
+						<li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Terms</a></li>
+						<li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Admin code of conduct</a></li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="border-t border-gray-100 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+				<p class="text-xs font-bold uppercase tracking-widest text-gray-500">&copy; 2026 LUMINA Marketplace. All rights reserved.</p>
+				<div class="flex gap-6">
+					<a href="#" class="text-gray-600 hover:text-gray-900 transition-colors"><i data-lucide="facebook" class="w-4 h-4"></i></a>
+					<a href="#" class="text-gray-600 hover:text-gray-900 transition-colors"><i data-lucide="instagram" class="w-4 h-4"></i></a>
+					<a href="#" class="text-gray-600 hover:text-gray-900 transition-colors"><i data-lucide="twitter" class="w-4 h-4"></i></a>
+				</div>
+			</div>
+		</div>
+	</footer>
+
+	<!-- Modals -->
+
+	<!-- View Payment Details Modal -->
+	<div class="modal" id="payment-details-modal">
+		<div class="modal-card">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+				<h3>Payment Details</h3>
+				<button class="action-btn" onclick="closeModal('payment-details-modal')">
+					<span class="material-symbols-rounded">close</span>
+				</button>
+			</div>
+			<div id="payment-details-body"></div>
+			<div class="modal-actions">
+				<button class="btn ghost" onclick="closeModal('payment-details-modal')">Close</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Refund Payment Modal -->
+	<div class="modal" id="refund-modal">
+		<div class="modal-card">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+				<h3>Refund Payment</h3>
+				<button class="action-btn" onclick="closeModal('refund-modal')">
+					<span class="material-symbols-rounded">close</span>
+				</button>
+			</div>
+			<div class="subtle" style="margin-bottom: 12px;">Process refunds with reason tracking and automated seller balance adjustments.</div>
+			<div class="info-grid" id="refund-info"></div>
+			<div style="margin-top: 12px;">
+				<label class="subtle" style="font-weight: 600; display: block; margin-bottom: 6px;">Reason for Refund</label>
+				<select class="select" id="refund-reason">
+					<option value="">Select reason</option>
+					<option value="customer-request">Customer Request</option>
+					<option value="product-issue">Product Issue</option>
+					<option value="payment-error">Payment Error</option>
+					<option value="order-cancelled">Order Cancelled</option>
+					<option value="other">Other</option>
+				</select>
+			</div>
+			<div style="margin-top: 12px;">
+				<label class="subtle" style="font-weight: 600; display: block; margin-bottom: 6px;">Additional Notes</label>
+				<textarea id="refund-notes" placeholder="Enter additional notes..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; min-height: 80px;"></textarea>
+			</div>
+			<div class="modal-actions">
+				<button class="btn ghost" onclick="closeModal('refund-modal')">Cancel</button>
+				<button class="btn danger" id="btn-confirm-refund">Confirm Refund</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Dispute Modal -->
+	<div class="modal" id="dispute-modal">
+		<div class="modal-card">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+				<h3>Mark Payment Dispute</h3>
+				<button class="action-btn" onclick="closeModal('dispute-modal')">
+					<span class="material-symbols-rounded">close</span>
+				</button>
+			</div>
+			<div class="subtle" style="margin-bottom: 12px;">Flag payment disputes which freeze seller payouts until resolution.</div>
+			<div class="info-grid" id="dispute-info"></div>
+			<div style="margin-top: 12px;">
+				<label class="subtle" style="font-weight: 600; display: block; margin-bottom: 6px;">Dispute Type</label>
+				<select class="select" id="dispute-type">
+					<option value="">Select type</option>
+					<option value="customer-complaint">Customer Complaint</option>
+					<option value="chargeback">Chargeback</option>
+					<option value="fraud">Fraud Suspicion</option>
+					<option value="quality-issue">Quality Issue</option>
+					<option value="non-delivery">Non Delivery</option>
+				</select>
+			</div>
+			<div style="margin-top: 12px;">
+				<label class="subtle" style="font-weight: 600; display: block; margin-bottom: 6px;">Dispute Details</label>
+				<textarea id="dispute-details" placeholder="Describe the dispute..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; min-height: 80px;"></textarea>
+			</div>
+			<div class="modal-actions">
+				<button class="btn ghost" onclick="closeModal('dispute-modal')">Cancel</button>
+				<button class="btn warning" id="btn-confirm-dispute">Mark Dispute</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Bank Verification Modal -->
+	<div class="modal" id="bank-verification-modal">
+		<div class="modal-card">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+				<h3>Bank Account Verification</h3>
+				<button class="action-btn" onclick="closeModal('bank-verification-modal')">
+					<span class="material-symbols-rounded">close</span>
+				</button>
+			</div>
+			<div id="bank-verification-body"></div>
+			<div class="modal-actions">
+				<button class="btn ghost" onclick="closeModal('bank-verification-modal')">Close</button>
+				<button class="btn success" id="btn-approve-bank">Approve Bank</button>
+				<button class="btn danger" id="btn-reject-bank">Reject Bank</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- KYC Verification Modal -->
+	<div class="modal" id="kyc-modal">
+		<div class="modal-card">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+				<h3>KYC Verification</h3>
+				<button class="action-btn" onclick="closeModal('kyc-modal')">
+					<span class="material-symbols-rounded">close</span>
+				</button>
+			</div>
+			<div id="kyc-body"></div>
+			<div class="modal-actions">
+				<button class="btn ghost" onclick="closeModal('kyc-modal')">Close</button>
+				<button class="btn warning" id="btn-request-kyc">Request Resubmission</button>
+				<button class="btn danger" id="btn-reject-kyc">Reject KYC</button>
+				<button class="btn success" id="btn-approve-kyc">Approve KYC</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Payout Breakdown Modal -->
+	<div class="modal" id="payout-breakdown-modal">
+		<div class="modal-card">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+				<h3>Payout Breakdown - <span id="seller-name-break"></span></h3>
+				<button class="action-btn" onclick="closeModal('payout-breakdown-modal')">
+					<span class="material-symbols-rounded">close</span>
+				</button>
+			</div>
+			<div id="payout-breakdown-body"></div>
+			<div class="modal-actions">
+				<button class="btn ghost" onclick="closeModal('payout-breakdown-modal')">Close</button>
+				<button class="btn warning" id="btn-adjust-balance">Adjust Balance</button>
+				<button class="btn success" id="btn-approve-payout">Approve Payout</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Approve Payout Modal -->
+	<div class="modal" id="approve-payout-modal">
+		<div class="modal-card">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+				<h3>Approve Payout</h3>
+				<button class="action-btn" onclick="closeModal('approve-payout-modal')">
+					<span class="material-symbols-rounded">close</span>
+				</button>
+			</div>
+			<div id="approve-payout-body"></div>
+			<div class="modal-actions">
+				<button class="btn ghost" onclick="closeModal('approve-payout-modal')">Cancel</button>
+				<button class="btn danger" id="btn-reject-payout">Reject & Lock</button>
+				<button class="btn success" id="btn-confirm-payout">Confirm Payout</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- COD Reconciliation Modal -->
+	<div class="modal" id="cod-reconciliation-modal">
+		<div class="modal-card">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+				<h3>COD Reconciliation</h3>
+				<button class="action-btn" onclick="closeModal('cod-reconciliation-modal')">
+					<span class="material-symbols-rounded">close</span>
+				</button>
+			</div>
+			<div id="cod-reconciliation-body"></div>
+			<div class="modal-actions">
+				<button class="btn ghost" onclick="closeModal('cod-reconciliation-modal')">Close</button>
+				<button class="btn warning" id="btn-flag-mismatch">Flag Mismatch</button>
+				<button class="btn success" id="btn-confirm-deposit">Confirm Deposit</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Audit Log Modal -->
+	<div class="modal" id="audit-log-modal">
+		<div class="modal-card">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+				<h3>Audit Log</h3>
+				<button class="action-btn" onclick="closeModal('audit-log-modal')">
+					<span class="material-symbols-rounded">close</span>
+				</button>
+			</div>
+			<div class="toolbar">
+				<div class="search">
+					<span class="material-symbols-rounded">search</span>
+					<input type="text" placeholder="Search audit logs..." id="search-audit">
+				</div>
+				<select class="select" id="filter-audit-action" style="min-width: 160px;">
+					<option value="">All Actions</option>
+					<option value="payout-approved">Payout Approved</option>
+					<option value="bank-verified">Bank Verified</option>
+					<option value="kyc-approved">KYC Approved</option>
+					<option value="refund-issued">Refund Issued</option>
+					<option value="dispute-marked">Dispute Marked</option>
+				</select>
+			</div>
+			<div class="timeline" id="audit-timeline"></div>
+			<div class="modal-actions">
+				<button class="btn ghost" onclick="closeModal('audit-log-modal')">Close</button>
+				<button class="btn primary" id="btn-export-audit">Export CSV</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Confirmation Modal -->
+	<div class="modal" id="confirm-modal">
+		<div class="modal-card" style="max-width: 400px;">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+				<h3 id="confirm-title">Confirm Action</h3>
+				<button class="action-btn" onclick="closeModal('confirm-modal')">
+					<span class="material-symbols-rounded">close</span>
+				</button>
+			</div>
+			<p id="confirm-message" style="font-size: 13px; color: var(--text); margin-bottom: 12px;">Are you sure?</p>
+			<div class="modal-actions">
+				<button class="btn ghost" onclick="closeModal('confirm-modal')">Cancel</button>
+				<button class="btn primary" id="btn-confirm-action">Confirm</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Toast Notification -->
+	<div class="toast" id="toast"></div>
+
+	<!-- Scripts -->
+	<script src="../js/Payment-Payout-Management.js"></script>
+	<script>
+		lucide.createIcons();
+
+		const sidebarToggle = document.getElementById('sidebarToggle');
+		const sidebar = document.getElementById('sidebar');
+		const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+		function openMobileSidebar() {
+			sidebar.classList.remove('hidden');
+			sidebarOverlay.classList.remove('hidden');
+			document.body.style.overflow = 'hidden';
+		}
+
+		function closeMobileSidebar() {
+			sidebar.classList.add('hidden');
+			sidebarOverlay.classList.add('hidden');
+			document.body.style.overflow = 'auto';
+		}
+
+		if (sidebarToggle) {
+			sidebarToggle.addEventListener('click', () => {
+				if (sidebar.classList.contains('hidden')) {
+					openMobileSidebar();
+				} else {
+					closeMobileSidebar();
+				}
+			});
+		}
+
+		if (sidebarOverlay) {
+			sidebarOverlay.addEventListener('click', closeMobileSidebar);
+		}
+
+		if (sidebar) {
+			const sidebarLinks = sidebar.querySelectorAll('a');
+			sidebarLinks.forEach(link => {
+				link.addEventListener('click', closeMobileSidebar);
+			});
+		}
+	</script>
+</body>
+</html>

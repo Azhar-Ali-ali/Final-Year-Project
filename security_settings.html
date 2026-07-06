@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Settings | LUMINA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #111827; }
+        .glass { background: rgba(255,255,255,0.94); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .account-flyout { width: 360px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
+        .signin-btn { display: inline-block; width: 130px; text-align: center; background: #facc15; border: 1px solid #f59e0b; color: #111827; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 7px; }
+        .signin-btn:hover { background: #fbbf24; }
+        .account-col-title { font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
+        .account-link { display: block; font-size: 12px; color: #374151; line-height: 1.55; }
+        .account-link:hover { color: #111827; text-decoration: underline; }
+        .panel-card   { background: #fff; border: 1px solid #e8edf5; border-radius: 18px; box-shadow: 0 12px 28px rgba(15,23,42,0.06); }
+        .hero-panel   { background: linear-gradient(140deg, #eef2ff 0%, #ffffff 40%, #f0fdf4 100%); }
+
+        /* ── Section headings ───────────────────────────── */
+        .section-tag  { font-size: 10px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: #6366f1; margin-bottom: 4px; }
+        .section-title{ font-size: 18px; font-weight: 800; color: #1e293b; }
+        .section-desc { font-size: 13px; color: #64748b; margin-top: 4px; }
+
+        /* ── Form elements ──────────────────────────────── */
+        .form-label   { display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: #374151; margin-bottom: 6px; }
+        .form-input   { width: 100%; border: 1.5px solid #dde3ed; border-radius: 10px; padding: 11px 44px 11px 14px; font-size: 13px; font-family: inherit; color: #1f2937; background: #fafbfd; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+        .form-input:focus { border-color: #6366f1; background: #fff; box-shadow: 0 0 0 3px rgba(99,102,241,0.08); }
+        .form-input.err { border-color: #ef4444 !important; background: #fff5f5; }
+        .input-wrap   { position: relative; }
+        .eye-btn      { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #9ca3af; padding: 4px; line-height: 0; }
+        .eye-btn:hover { color: #4b5563; }
+
+        /* ── Password Strength ──────────────────────────── */
+        .strength-track { display: flex; gap: 4px; margin-top: 8px; }
+        .strength-seg   { flex: 1; height: 4px; border-radius: 99px; background: #e5e7eb; transition: background 0.3s; }
+        .strength-seg.fill-weak   { background: #ef4444; }
+        .strength-seg.fill-fair   { background: #f97316; }
+        .strength-seg.fill-good   { background: #eab308; }
+        .strength-seg.fill-strong { background: #22c55e; }
+        .strength-label { font-size: 11px; font-weight: 700; margin-top: 5px; }
+
+        /* ── Buttons ────────────────────────────────────── */
+        .btn  { display: inline-flex; align-items: center; gap: 7px; border-radius: 10px; padding: 11px 22px; font-size: 13px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; border: 1.5px solid transparent; transition: all 0.2s; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn-primary { background: #232f3e; color: #fff; border-color: #232f3e; }
+        .btn-primary:hover { background: #1a2530; }
+        .btn-indigo  { background: #6366f1; color: #fff; border-color: #6366f1; }
+        .btn-indigo:hover { background: #4f46e5; }
+        .btn-danger  { background: #fff; color: #dc2626; border-color: #fca5a5; }
+        .btn-danger:hover { background: #fef2f2; }
+        .btn-ghost   { background: #f1f5f9; color: #374151; border-color: #e2e8f0; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-sm      { padding: 8px 16px; font-size: 11px; }
+
+        /* ── 2FA Toggle ─────────────────────────────────── */
+        .toggle-track  { position: relative; display: inline-block; width: 52px; height: 28px; flex-shrink: 0; }
+        .toggle-track input { opacity: 0; width: 0; height: 0; }
+        .toggle-knob   { position: absolute; inset: 0; cursor: pointer; background: #d1d5db; border-radius: 99px; transition: background 0.25s; }
+        .toggle-knob::before { content: ''; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; background: #fff; border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,0.18); transition: transform 0.25s; }
+        .toggle-track input:checked + .toggle-knob { background: #6366f1; }
+        .toggle-track input:checked + .toggle-knob::before { transform: translateX(24px); }
+        .toggle-track input:focus-visible + .toggle-knob { outline: 2px solid #6366f1; outline-offset: 2px; }
+
+        /* ── 2FA method radio ───────────────────────────── */
+        .method-card { border: 2px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+        .method-card:has(input:checked) { border-color: #6366f1; background: #f5f3ff; }
+        .method-card input[type="radio"] { accent-color: #6366f1; margin-top: 2px; flex-shrink: 0; }
+
+        /* ── Login Activity Table ───────────────────────── */
+        .activity-wrap  { overflow-x: auto; }
+        .activity-table { width: 100%; min-width: 820px; border-collapse: collapse; }
+        .activity-table th { text-align: left; padding: 12px 14px; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; background: #f8fafc; border-bottom: 2px solid #e7edf5; font-weight: 700; }
+        .activity-table td { padding: 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: middle; color: #374151; }
+        .activity-table tbody tr:last-child td { border-bottom: none; }
+        .activity-table tbody tr:hover td { background: #fafbfd; }
+
+        /* ── Status Badges ──────────────────────────────── */
+        .badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 4px 10px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid transparent; white-space: nowrap; }
+        .badge-success { color: #065f46; background: #ecfdf5; border-color: #a7f3d0; }
+        .badge-failed  { color: #991b1b; background: #fef2f2; border-color: #fecaca; }
+        .badge-current { color: #1e40af; background: #eff6ff; border-color: #bfdbfe; }
+
+        /* ── Alert / Toast ──────────────────────────────── */
+        .alert { border-radius: 10px; padding: 12px 16px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .alert-success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+        .alert-error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+        /* ── Mobile hide ────────────────────────────────── */
+        .mobile-activity { display: none; }
+        @media (max-width: 1024px) { .content-shell { margin-left: 0; } }
+        @media (max-width: 840px) {
+            .activity-wrap    { display: none; }
+            .mobile-activity  { display: grid; gap: 10px; }
+        }
+    </style>
+	<script src="/customer-pages/auth.js"></script>
+	<script src="/customer-pages/page-access.js"></script>
+</head>
+<body>
+
+<!-- ════════════════  NAVBAR  ════════════════ -->
+<nav class="fixed top-0 w-full z-[100] glass">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
+        <div class="flex items-center gap-2 shrink-0">
+            <button id="sidebarToggle" type="button" class="p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
+            <a href="homepage.html" class="text-2xl font-bold tracking-tighter uppercase shrink-0">Lumina</a>
+        </div>
+        <div class="hidden md:flex flex-grow relative max-w-2xl mx-auto">
+            <input type="text" placeholder="Search for unique products, clothing or artisans..." class="w-full bg-gray-100 border-transparent border focus:border-black focus:bg-white rounded-full py-2.5 px-6 pl-12 text-sm transition-all outline-none">
+            <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+        </div>
+        <div class="flex items-center gap-2 lg:gap-6 shrink-0">
+            <div id="accountMenuWrap" class="relative group">
+                <button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
+                    <i data-lucide="user" class="w-5 h-5"></i>
+                    <span id="accountMenuLabel" class="hidden sm:block text-xs font-bold uppercase tracking-widest">Account</span>
+                </button>
+                <div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block">
+                    <div id="accountMenuContent" class="account-flyout"></div>
+                </div>
+            </div>
+            <a href="cart.html" class="relative p-2">
+                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                <span id="cartCountBadge" class="absolute top-0 right-0 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
+            </a>
+            <a href="wishlist.html" class="relative p-2"><i data-lucide="heart" class="w-5 h-5"></i></a>
+        </div>
+    </div>
+</nav>
+
+<div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+
+<!-- ════════════════  MAIN  ════════════════ -->
+<main class="content-shell mt-20 p-4 lg:p-8 min-h-[calc(100vh-5rem)]">
+    <div class="max-w-4xl mx-auto space-y-6">
+
+        <!-- ── Hero Header ─────────────────────────────────── -->
+        <section class="panel-card hero-panel p-5 lg:p-7">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div class="w-14 h-14 bg-white border border-indigo-100 rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0">
+                    <i data-lucide="shield-check" class="w-7 h-7 text-indigo-600"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl lg:text-4xl font-extrabold tracking-tight text-[#1e293b]">Security Settings</h1>
+                    <p class="text-sm lg:text-base text-gray-600 mt-1">Manage your account security and protect your account.</p>
+                </div>
+            </div>
+            <!-- Security health bar -->
+            <div class="mt-5 pt-5 border-t border-gray-100 flex flex-wrap items-center gap-6">
+                <div>
+                    <p class="text-xs text-gray-500 font-semibold mb-1">Security Health</p>
+                    <div class="flex items-center gap-2">
+                        <div class="w-40 h-2 rounded-full bg-gray-200 overflow-hidden">
+                            <div id="healthBar" class="h-full rounded-full bg-emerald-500 transition-all duration-700" style="width:40%"></div>
+                        </div>
+                        <span id="healthLabel" class="text-sm font-extrabold text-emerald-600">Fair</span>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-4 text-xs text-gray-600">
+                    <span id="hintPassword" class="flex items-center gap-1.5">
+                        <i data-lucide="x-circle" class="w-3.5 h-3.5 text-red-400"></i> Password updated
+                    </span>
+                    <span id="hint2fa" class="flex items-center gap-1.5">
+                        <i data-lucide="x-circle" class="w-3.5 h-3.5 text-red-400"></i> 2FA enabled
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-500"></i> Email verified
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── 1. Change Password ───────────────────────────── -->
+        <section class="panel-card p-5 lg:p-7">
+            <div class="flex items-start gap-4 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="lock-keyhole" class="w-5 h-5 text-amber-600"></i>
+                </div>
+                <div>
+                    <p class="section-tag">Account Security</p>
+                    <h2 class="section-title">Change Password</h2>
+                    <p class="section-desc">Choose a strong password you haven&rsquo;t used before.</p>
+                </div>
+            </div>
+
+            <!-- Alert area -->
+            <div id="pwAlert" class="mb-5 hidden"></div>
+
+            <form id="passwordForm" novalidate class="space-y-5">
+                <!-- Current Password -->
+                <div>
+                    <label class="form-label" for="currentPw">Current Password <span class="text-red-500">*</span></label>
+                    <div class="input-wrap">
+                        <input id="currentPw" type="password" class="form-input" placeholder="Enter your current password" autocomplete="current-password">
+                        <button type="button" class="eye-btn" onclick="toggleEye('currentPw', this)" aria-label="Toggle password visibility">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <p id="currentPwErr" class="text-xs text-red-500 mt-1.5 hidden">Please enter your current password.</p>
+                </div>
+
+                <div class="h-px bg-gray-100"></div>
+
+                <!-- New Password -->
+                <div>
+                    <label class="form-label" for="newPw">New Password <span class="text-red-500">*</span></label>
+                    <div class="input-wrap">
+                        <input id="newPw" type="password" class="form-input" placeholder="Minimum 8 characters" autocomplete="new-password" oninput="checkStrength(this.value)">
+                        <button type="button" class="eye-btn" onclick="toggleEye('newPw', this)" aria-label="Toggle password visibility">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <!-- Strength meter -->
+                    <div class="strength-track" id="strengthTrack">
+                        <div class="strength-seg" id="seg1"></div>
+                        <div class="strength-seg" id="seg2"></div>
+                        <div class="strength-seg" id="seg3"></div>
+                        <div class="strength-seg" id="seg4"></div>
+                    </div>
+                    <p id="strengthLabel" class="strength-label text-gray-400"></p>
+                    <p id="newPwErr" class="text-xs text-red-500 mt-1.5 hidden">Password must be at least 8 characters.</p>
+                </div>
+
+                <!-- Confirm New Password -->
+                <div>
+                    <label class="form-label" for="confirmPw">Confirm New Password <span class="text-red-500">*</span></label>
+                    <div class="input-wrap">
+                        <input id="confirmPw" type="password" class="form-input" placeholder="Re-enter your new password" autocomplete="new-password">
+                        <button type="button" class="eye-btn" onclick="toggleEye('confirmPw', this)" aria-label="Toggle password visibility">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <p id="confirmPwErr" class="text-xs text-red-500 mt-1.5 hidden">Passwords do not match.</p>
+                </div>
+
+                <!-- Password tips -->
+                <div class="bg-gray-50 border border-gray-100 rounded-xl p-4">
+                    <p class="text-xs font-bold text-gray-600 mb-2 uppercase tracking-wider">Password tips</p>
+                    <ul class="space-y-1">
+                        <li id="tip-length"  class="flex items-center gap-2 text-xs text-gray-500"><i data-lucide="circle"          class="w-3 h-3 flex-shrink-0"></i>At least 8 characters</li>
+                        <li id="tip-upper"   class="flex items-center gap-2 text-xs text-gray-500"><i data-lucide="circle"          class="w-3 h-3 flex-shrink-0"></i>At least one uppercase letter (A–Z)</li>
+                        <li id="tip-number"  class="flex items-center gap-2 text-xs text-gray-500"><i data-lucide="circle"          class="w-3 h-3 flex-shrink-0"></i>At least one number (0–9)</li>
+                        <li id="tip-special" class="flex items-center gap-2 text-xs text-gray-500"><i data-lucide="circle"          class="w-3 h-3 flex-shrink-0"></i>At least one special character (!@#$…)</li>
+                    </ul>
+                </div>
+
+                <div class="flex justify-end pt-1">
+                    <button type="submit" class="btn btn-primary">
+                        <i data-lucide="lock-keyhole" class="w-4 h-4"></i>
+                        Update Password
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ── 2. Two-Factor Authentication ────────────────── -->
+        <section class="panel-card p-5 lg:p-7">
+            <div class="flex items-start gap-4 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="smartphone" class="w-5 h-5 text-indigo-600"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="section-tag">Extra Protection</p>
+                    <h2 class="section-title">Two-Factor Authentication</h2>
+                    <p class="section-desc">Each login will require a one-time verification code in addition to your password.</p>
+                </div>
+            </div>
+
+            <!-- 2FA Alert area -->
+            <div id="tfaAlert" class="mb-5 hidden"></div>
+
+            <!-- Toggle row -->
+            <div class="flex items-center justify-between gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50 mb-5 flex-wrap">
+                <div class="flex items-center gap-3 min-w-0">
+                    <i data-lucide="shield-alert" class="w-5 h-5 text-gray-500 flex-shrink-0"></i>
+                    <div>
+                        <p class="text-sm font-extrabold text-[#1e293b]">Enable Two-Factor Authentication</p>
+                        <p id="tfaStatusText" class="text-xs text-gray-500 mt-0.5">Currently disabled</p>
+                    </div>
+                </div>
+                <label class="toggle-track" aria-label="Enable Two-Factor Authentication">
+                    <input type="checkbox" id="tfaToggle">
+                    <span class="toggle-knob"></span>
+                </label>
+            </div>
+
+            <!-- Method options (shown when 2FA enabled) -->
+            <div id="tfaOptions" class="space-y-4 hidden">
+                <p class="text-xs font-bold uppercase tracking-widest text-gray-500">Choose Verification Method</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                    <label class="method-card">
+                        <input type="radio" name="tfaMethod" value="email" checked>
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <i data-lucide="mail" class="w-4 h-4 text-indigo-500"></i>
+                                <span class="text-sm font-extrabold text-[#1e293b]">Email Verification Code</span>
+                            </div>
+                            <p class="text-xs text-gray-500">A one-time code will be sent to your registered email address each time you log in.</p>
+                        </div>
+                    </label>
+
+                    <label class="method-card">
+                        <input type="radio" name="tfaMethod" value="sms">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <i data-lucide="message-square" class="w-4 h-4 text-indigo-500"></i>
+                                <span class="text-sm font-extrabold text-[#1e293b]">SMS Verification Code</span>
+                            </div>
+                            <p class="text-xs text-gray-500">A one-time code will be sent via SMS to your registered mobile number each time you log in.</p>
+                        </div>
+                    </label>
+
+                </div>
+
+                <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-start gap-3">
+                    <i data-lucide="info" class="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5"></i>
+                    <p class="text-xs text-indigo-700">Once enabled, you will be asked for a verification code on every login. Make sure your email or phone number is up to date in <a href="my_profile.html" class="font-bold underline">My Profile</a>.</p>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="button" class="btn btn-indigo" onclick="save2FA()">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i>
+                        Enable 2FA
+                    </button>
+                </div>
+            </div>
+
+            <!-- When 2FA is active and saved -->
+            <div id="tfaActive" class="hidden">
+                <div class="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl border border-emerald-200 bg-emerald-50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-extrabold text-emerald-800">2FA is Active</p>
+                            <p id="tfaMethodLabel" class="text-xs text-emerald-700 mt-0.5"></p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="disable2FA()">
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                        Disable 2FA
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── 3. Login Activity ────────────────────────────── -->
+        <section class="panel-card p-5 lg:p-7">
+            <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center flex-shrink-0">
+                        <i data-lucide="activity" class="w-5 h-5 text-rose-600"></i>
+                    </div>
+                    <div>
+                        <p class="section-tag">Session Monitoring</p>
+                        <h2 class="section-title">Login Activity</h2>
+                        <p class="section-desc">Recent sign-in history across all your devices.</p>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm" onclick="logoutAllDevices()">
+                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                    Logout From All Devices
+                </button>
+            </div>
+
+            <!-- Desktop table -->
+            <div class="activity-wrap">
+                <table class="activity-table">
+                    <thead>
+                        <tr>
+                            <th>Date &amp; Time</th>
+                            <th>Device / Browser</th>
+                            <th>Location</th>
+                            <th>IP Address</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activityTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Mobile cards -->
+            <div id="activityMobileCards" class="mobile-activity"></div>
+        </section>
+
+    </div>
+</main>
+
+<!-- ════════════════  LOGOUT CONFIRM MODAL  ════════════════ -->
+<div id="logoutModal" class="hidden fixed inset-0 bg-black/55 z-[200] flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+                <i data-lucide="log-out" class="w-5 h-5 text-red-500"></i>
+            </div>
+            <h3 class="text-base font-extrabold text-[#1e293b]">Logout All Devices?</h3>
+        </div>
+        <p class="text-sm text-gray-600 mb-5 leading-relaxed">This will end all active sessions across every device. You will need to log in again on each device.</p>
+        <div class="flex gap-3 justify-end">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="closeLogoutModal()">Cancel</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="confirmLogout()">
+                <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                Logout All
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════  TOAST  ════════════════ -->
+<div id="toast" class="fixed bottom-6 right-6 z-[300] hidden">
+    <div class="flex items-center gap-3 bg-[#1e293b] text-white px-5 py-3.5 rounded-xl shadow-xl text-sm font-semibold">
+        <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+        <span id="toastMsg"></span>
+    </div>
+</div>
+
+<script>
+const API_BASE_URL = 'http://localhost:5000/api';
+const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+
+function resolveCurrentUserId() {
+    try {
+        const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+        if (rawUser) {
+            const parsed = JSON.parse(rawUser);
+            return String(parsed.id || parsed.userId || parsed.customerId || '1').trim();
+        }
+    } catch (_) {}
+    return '1';
+}
+
+async function fetchJson(url, options = {}) {
+    if (!IS_LIVE_HOST) {
+        throw new Error('Open this page on localhost to load database-backed security settings.');
+    }
+
+    const response = await fetch(url, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+        }
+    });
+
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload.success === false) {
+        throw new Error(payload.message || 'Request failed');
+    }
+
+    return payload.data !== undefined ? payload.data : payload;
+}
+
+function resolveAuthState() {
+    const state = { isLoggedIn: false, fullName: '' };
+
+    try {
+        const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+        const isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+        if (rawUser) {
+            const parsed = JSON.parse(rawUser);
+            const name = String(parsed.fullName || parsed.name || '').trim();
+            state.isLoggedIn = Boolean(name) || isLoggedIn;
+            state.fullName = name;
+        } else {
+            state.isLoggedIn = isLoggedIn;
+        }
+    } catch (_) {
+        state.isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+    }
+
+    return state;
+}
+
+function renderAccountFlyout() {
+    const auth = resolveAuthState();
+    const content = document.getElementById('accountMenuContent');
+    const label = document.getElementById('accountMenuLabel');
+    if (!content || !label) return;
+
+    if (!auth.isLoggedIn) {
+        label.textContent = 'Account';
+        content.innerHTML = `
+            <div class="px-4 py-3 border-b border-gray-200 text-center">
+                <a href="login_register.html" class="signin-btn">Sign in</a>
+                <p class="text-[10px] text-gray-500 mt-1">New customer? <a href="login_register.html" class="text-blue-600 hover:underline">Start here.</a></p>
+            </div>
+            <div class="grid grid-cols-2 gap-0">
+                <div class="px-4 py-3 border-r border-gray-200">
+                    <h4 class="account-col-title">Your Lists</h4>
+                    <a href="wishlist.html" class="account-link">Create a List</a>
+                    <a href="login_register.html" class="account-link">Find a List or Registry</a>
+                </div>
+                <div class="px-4 py-3">
+                    <h4 class="account-col-title">Your Account</h4>
+                    <a href="login_register.html" class="account-link">Customer Dashboard</a>
+                    <a href="login_register.html" class="account-link">My Profile</a>
+                    <a href="login_register.html" class="account-link">My Orders</a>
+                    <a href="login_register.html" class="account-link">Cart</a>
+                    <a href="login_register.html" class="account-link">My Addresses</a>
+                    <a href="login_register.html" class="account-link">Messages</a>
+                    <a href="login_register.html" class="account-link">Returns & Refunds</a>
+                    <a href="login_register.html" class="account-link">Security Settings</a>
+                    <a href="login_register.html" class="account-link">Help & Support</a>
+                </div>
+            </div>
+        `;
+    } else {
+        const firstName = auth.fullName ? auth.fullName.split(' ')[0] : 'Account';
+        label.textContent = firstName;
+        content.innerHTML = `
+            <div class="px-4 py-3 border-b border-gray-200 text-center">
+                <a href="Customer_Dashboard.html" class="signin-btn">Go to Dashboard</a>
+                <p class="text-[10px] text-gray-500 mt-1">Signed in as ${auth.fullName || 'Customer'}</p>
+            </div>
+            <div class="grid grid-cols-2 gap-0">
+                <div class="px-4 py-3 border-r border-gray-200">
+                    <h4 class="account-col-title">Your Lists</h4>
+                    <a href="wishlist.html" class="account-link">Wishlist</a>
+                    <a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+                    <a href="my_messages.html" class="account-link">Messages</a>
+                </div>
+                <div class="px-4 py-3">
+                    <h4 class="account-col-title">Your Account</h4>
+                    <a href="Customer_Dashboard.html" class="account-link">Customer Dashboard</a>
+                    <a href="my_profile.html" class="account-link">My Profile</a>
+                    <a href="my_orders.html" class="account-link">My Orders</a>
+                    <a href="cart.html" class="account-link">Cart</a>
+                    <a href="my_addresses.html" class="account-link">My Addresses</a>
+                    <a href="my_messages.html" class="account-link">Messages</a>
+                    <a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+                    <a href="security_settings.html" class="account-link">Security Settings</a>
+                    <a href="help_support.html" class="account-link">Help & Support</a>
+                </div>
+            </div>
+        `;
+    }
+}
+
+const accountMenuButton = document.getElementById('accountMenuButton');
+const accountMenuDropdown = document.getElementById('accountMenuDropdown');
+const accountMenuWrap = document.getElementById('accountMenuWrap');
+
+if (accountMenuButton && accountMenuDropdown) {
+    accountMenuButton.addEventListener('click', () => {
+        accountMenuDropdown.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', (event) => {
+        if (accountMenuWrap && !accountMenuWrap.contains(event.target)) {
+            accountMenuDropdown.classList.add('hidden');
+        }
+    });
+}
+
+renderAccountFlyout();
+
+let loginSessions = [];
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  RENDER LOGIN TABLE
+// ══════════════════════════════════════════════════════════════════════════════
+function deviceIcon(device) {
+    const d = device.toLowerCase();
+    if (d.includes('iphone') || d.includes('android') || d.includes('mobile')) return 'smartphone';
+    if (d.includes('ipad') || d.includes('tablet'))  return 'tablet';
+    return 'monitor';
+}
+
+function renderActivityTable(sessions) {
+    const body = document.getElementById('activityTableBody');
+    body.innerHTML = sessions.map(s => {
+        const badgeHtml = s.isCurrent
+            ? `<span class="badge badge-current"><i data-lucide="radio" class="w-2.5 h-2.5"></i>Current</span>`
+            : s.status === 'successful'
+                ? `<span class="badge badge-success"><i data-lucide="check" class="w-2.5 h-2.5"></i>Successful</span>`
+                : `<span class="badge badge-failed"><i data-lucide="x" class="w-2.5 h-2.5"></i>Failed</span>`;
+        return `
+            <tr>
+                <td class="whitespace-nowrap font-semibold text-[#1e293b]">${s.datetime}</td>
+                <td>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="${deviceIcon(s.device)}" class="w-4 h-4 text-gray-400 flex-shrink-0"></i>
+                        <span>${s.device}</span>
+                    </div>
+                </td>
+                <td>${s.location}</td>
+                <td class="font-mono text-xs text-gray-500">${s.ip}</td>
+                <td>${badgeHtml}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function renderActivityCards(sessions) {
+    const cards = document.getElementById('activityMobileCards');
+    cards.innerHTML = sessions.map(s => {
+        const badgeHtml = s.isCurrent
+            ? `<span class="badge badge-current"><i data-lucide="radio" class="w-2.5 h-2.5"></i>Current</span>`
+            : s.status === 'successful'
+                ? `<span class="badge badge-success"><i data-lucide="check" class="w-2.5 h-2.5"></i>Successful</span>`
+                : `<span class="badge badge-failed"><i data-lucide="x" class="w-2.5 h-2.5"></i>Failed</span>`;
+        return `
+            <article class="panel-card p-4">
+                <div class="flex items-start justify-between gap-2 mb-2">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="${deviceIcon(s.device)}" class="w-4 h-4 text-gray-400 flex-shrink-0"></i>
+                        <span class="text-sm font-bold text-[#1e293b]">${s.device}</span>
+                    </div>
+                    ${badgeHtml}
+                </div>
+                <div class="space-y-1.5 text-xs text-gray-500">
+                    <p class="flex items-center gap-1.5"><i data-lucide="clock" class="w-3 h-3"></i>${s.datetime}</p>
+                    <p class="flex items-center gap-1.5"><i data-lucide="map-pin" class="w-3 h-3"></i>${s.location}</p>
+                    <p class="flex items-center gap-1.5"><i data-lucide="wifi" class="w-3 h-3"></i><span class="font-mono">${s.ip}</span></p>
+                </div>
+            </article>
+        `;
+    }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════════════════════════════
+function showAlert(containerId, type, msg) {
+    const el = document.getElementById(containerId);
+    el.innerHTML = `<div class="alert alert-${type}"><i data-lucide="${type === 'success' ? 'check-circle-2' : 'alert-circle'}" class="w-4 h-4 flex-shrink-0"></i>${msg}</div>`;
+    el.classList.remove('hidden');
+    lucide.createIcons();
+    if (type === 'success') setTimeout(() => el.classList.add('hidden'), 6000);
+}
+
+function showToast(msg) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 4000);
+}
+
+function formatDateTime(value) {
+    if (!value) return '-';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '-';
+    return d.toLocaleString('en-US', {
+        month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+}
+
+function mapActivityRow(row) {
+    return {
+        datetime: formatDateTime(row.eventTime),
+        device: row.deviceBrowser || 'Unknown device',
+        location: row.location || 'Unknown',
+        ip: row.ipAddress || '-',
+        status: row.status === 'failed' ? 'failed' : 'successful',
+        isCurrent: Boolean(row.isCurrentSession)
+    };
+}
+
+function setErr(id, show, msg) {
+    const el = document.getElementById(id);
+    if (msg) el.textContent = msg;
+    el.classList.toggle('hidden', !show);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  PASSWORD VISIBILITY TOGGLE
+// ══════════════════════════════════════════════════════════════════════════════
+window.toggleEye = function(inputId, btn) {
+    const inp = document.getElementById(inputId);
+    const isHidden = inp.type === 'password';
+    inp.type = isHidden ? 'text' : 'password';
+    btn.innerHTML = isHidden
+        ? `<i data-lucide="eye-off" class="w-4 h-4"></i>`
+        : `<i data-lucide="eye"     class="w-4 h-4"></i>`;
+    lucide.createIcons();
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  PASSWORD STRENGTH METER
+// ══════════════════════════════════════════════════════════════════════════════
+function getStrength(pw) {
+    let score = 0;
+    if (pw.length >= 8)  score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    return score;
+}
+
+const STRENGTH_CONFIGS = [
+    null,
+    { fill: 'fill-weak',   label: 'Weak',      colour: '#ef4444', segs: 1 },
+    { fill: 'fill-fair',   label: 'Fair',      colour: '#f97316', segs: 2 },
+    { fill: 'fill-good',   label: 'Good',      colour: '#eab308', segs: 3 },
+    { fill: 'fill-strong', label: 'Strong',    colour: '#22c55e', segs: 4 }
+];
+
+const TIP_IDS = [
+    { id: 'tip-length',  test: pw => pw.length >= 8         },
+    { id: 'tip-upper',   test: pw => /[A-Z]/.test(pw)       },
+    { id: 'tip-number',  test: pw => /[0-9]/.test(pw)       },
+    { id: 'tip-special', test: pw => /[^A-Za-z0-9]/.test(pw) }
+];
+
+window.checkStrength = function(pw) {
+    const score  = pw ? getStrength(pw) : 0;
+    const segs   = ['seg1','seg2','seg3','seg4'];
+    const cfg    = STRENGTH_CONFIGS[score];
+
+    segs.forEach((id, i) => {
+        const el = document.getElementById(id);
+        el.className = 'strength-seg';
+        if (cfg && i < cfg.segs) el.classList.add(cfg.fill);
+    });
+
+    const lbl = document.getElementById('strengthLabel');
+    lbl.textContent  = cfg ? cfg.label : '';
+    lbl.style.color  = cfg ? cfg.colour : '';
+
+    // Update tip checklist
+    TIP_IDS.forEach(({ id, test }) => {
+        const el   = document.getElementById(id);
+        const pass = pw && test(pw);
+        const icon = pass
+            ? `<i data-lucide="check-circle-2" class="w-3 h-3 flex-shrink-0 text-emerald-500"></i>`
+            : `<i data-lucide="circle"          class="w-3 h-3 flex-shrink-0 text-gray-300"></i>`;
+        const txt = el.textContent.trim();
+        el.innerHTML  = icon + txt;
+        el.className  = `flex items-center gap-2 text-xs ${pass ? 'text-emerald-700 font-semibold' : 'text-gray-500'}`;
+    });
+
+    lucide.createIcons();
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  CHANGE PASSWORD SUBMIT
+// ══════════════════════════════════════════════════════════════════════════════
+document.getElementById('passwordForm').addEventListener('submit', function(e) {
+    if (!IS_LIVE_HOST) return;
+    e.preventDefault();
+    const current  = document.getElementById('currentPw').value.trim();
+    const newPw    = document.getElementById('newPw').value;
+    const confirmPw= document.getElementById('confirmPw').value;
+    let valid = true;
+
+    if (!current) { setErr('currentPwErr', true); valid = false; }
+    else           { setErr('currentPwErr', false); }
+
+    if (newPw.length < 8) { setErr('newPwErr', true); valid = false; }
+    else                  { setErr('newPwErr', false); }
+
+    if (newPw !== confirmPw) { setErr('confirmPwErr', true, 'Passwords do not match.'); valid = false; }
+    else if (newPw && confirmPw && newPw === current) {
+        setErr('confirmPwErr', true, 'New password must be different from your current password.');
+        valid = false;
+    } else { setErr('confirmPwErr', false); }
+
+    if (!valid) return;
+
+    (async () => {
+        try {
+            const userId = resolveCurrentUserId();
+            await fetchJson(`${API_BASE_URL}/customer/security/password?userId=${encodeURIComponent(userId)}`, {
+                method: 'PUT',
+                body: JSON.stringify({ currentPassword: current, newPassword: newPw })
+            });
+
+            this.reset();
+            checkStrength('');
+            document.getElementById('currentPw').value  = '';
+            document.getElementById('newPw').value      = '';
+            document.getElementById('confirmPw').value  = '';
+
+            showAlert('pwAlert', 'success', 'Your password has been updated successfully.');
+            await loadSecurityState();
+        } catch (error) {
+            showAlert('pwAlert', 'error', error.message || 'Failed to update password.');
+        }
+    })();
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  2FA TOGGLE
+// ══════════════════════════════════════════════════════════════════════════════
+function apply2FAState(state) {
+    const toggle   = document.getElementById('tfaToggle');
+    const options  = document.getElementById('tfaOptions');
+    const active   = document.getElementById('tfaActive');
+    const statusTx = document.getElementById('tfaStatusText');
+    const hint     = document.getElementById('hint2fa');
+
+    toggle.checked = state.enabled;
+
+    if (state.enabled) {
+        options.classList.add('hidden');
+        active.classList.remove('hidden');
+        statusTx.textContent = 'Currently enabled';
+        statusTx.className   = 'text-xs text-emerald-600 mt-0.5 font-semibold';
+        const method = state.method === 'sms' ? 'SMS Code' : 'Email Code';
+        document.getElementById('tfaMethodLabel').textContent = `Verification via ${method} is active.`;
+        hint.innerHTML = `<i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-500"></i> 2FA enabled`;
+        hint.className = 'flex items-center gap-1.5 text-emerald-700 font-semibold';
+    } else {
+        options.classList.add('hidden');
+        active.classList.add('hidden');
+        statusTx.textContent = 'Currently disabled';
+        statusTx.className   = 'text-xs text-gray-500 mt-0.5';
+        hint.innerHTML = `<i data-lucide="x-circle" class="w-3.5 h-3.5 text-red-400"></i> 2FA enabled`;
+        hint.className = 'flex items-center gap-1.5 text-gray-600';
+    }
+    lucide.createIcons();
+}
+
+document.getElementById('tfaToggle').addEventListener('change', function() {
+    const options = document.getElementById('tfaOptions');
+    const active  = document.getElementById('tfaActive');
+    const current = { enabled: !active.classList.contains('hidden') };
+
+    if (this.checked && !current.enabled) {
+        options.classList.remove('hidden');
+        active.classList.add('hidden');
+    } else if (!this.checked) {
+        options.classList.add('hidden');
+        active.classList.add('hidden');
+    }
+});
+
+window.save2FA = function() {
+    if (!IS_LIVE_HOST) return;
+    const method  = document.querySelector('input[name="tfaMethod"]:checked')?.value || 'email';
+    (async () => {
+        try {
+            const userId = resolveCurrentUserId();
+            const data = await fetchJson(`${API_BASE_URL}/customer/security/2fa?userId=${encodeURIComponent(userId)}`, {
+                method: 'PUT',
+                body: JSON.stringify({ enabled: true, method })
+            });
+            apply2FAState({ enabled: Boolean(data.twoFactorEnabled), method: data.twoFactorMethod || method });
+            showAlert('tfaAlert', 'success', `Two-Factor Authentication has been enabled using ${method === 'sms' ? 'SMS' : 'Email'} verification.`);
+            await loadSecurityState();
+        } catch (error) {
+            showAlert('tfaAlert', 'error', error.message || 'Failed to enable 2FA.');
+        }
+    })();
+};
+
+window.disable2FA = function() {
+    if (!IS_LIVE_HOST) return;
+    (async () => {
+        try {
+            const userId = resolveCurrentUserId();
+            await fetchJson(`${API_BASE_URL}/customer/security/2fa?userId=${encodeURIComponent(userId)}`, {
+                method: 'PUT',
+                body: JSON.stringify({ enabled: false, method: 'none' })
+            });
+            apply2FAState({ enabled: false, method: 'none' });
+            document.getElementById('tfaToggle').checked = false;
+            showToast('Two-Factor Authentication has been disabled.');
+            await loadSecurityState();
+        } catch (error) {
+            showAlert('tfaAlert', 'error', error.message || 'Failed to disable 2FA.');
+        }
+    })();
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  SECURITY HEALTH BAR
+// ══════════════════════════════════════════════════════════════════════════════
+// Factors: password updated (+35%), 2FA (+35%), email verified (always +30%)
+let healthState = { password: false, tfa: false, emailVerified: false };
+
+function updateHealthBar(passwordUpdated, tfaEnabled) {
+    if (passwordUpdated !== null) healthState.password = passwordUpdated;
+    if (tfaEnabled      !== null) healthState.tfa      = tfaEnabled;
+
+    const score = (healthState.emailVerified ? 30 : 0) + (healthState.password ? 35 : 0) + (healthState.tfa ? 35 : 0);
+    const bar   = document.getElementById('healthBar');
+    const lbl   = document.getElementById('healthLabel');
+
+    bar.style.width = score + '%';
+
+    let colour, label;
+    if (score >= 90) { colour = '#22c55e'; label = 'Excellent'; }
+    else if (score >= 65) { colour = '#84cc16'; label = 'Good'; }
+    else if (score >= 40) { colour = '#f59e0b'; label = 'Fair'; }
+    else { colour = '#ef4444'; label = 'Weak'; }
+
+    bar.style.background = colour;
+    lbl.textContent      = label;
+    lbl.style.color      = colour;
+
+    const pwHint = document.getElementById('hintPassword');
+    pwHint.innerHTML = healthState.password
+        ? `<i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-500"></i> Password updated`
+        : `<i data-lucide="x-circle" class="w-3.5 h-3.5 text-red-400"></i> Password updated`;
+    pwHint.className = healthState.password
+        ? 'flex items-center gap-1.5 text-emerald-700 font-semibold'
+        : 'flex items-center gap-1.5 text-gray-600';
+
+    lucide.createIcons();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  LOGOUT ALL DEVICES
+// ══════════════════════════════════════════════════════════════════════════════
+window.logoutAllDevices = function() {
+    document.getElementById('logoutModal').classList.remove('hidden');
+    lucide.createIcons();
+};
+
+window.closeLogoutModal = function() {
+    document.getElementById('logoutModal').classList.add('hidden');
+};
+
+window.confirmLogout = function() {
+    if (!IS_LIVE_HOST) return;
+    (async () => {
+        closeLogoutModal();
+        try {
+            const userId = resolveCurrentUserId();
+            await fetchJson(`${API_BASE_URL}/customer/security/logout-all-devices?userId=${encodeURIComponent(userId)}`, {
+                method: 'POST',
+                body: JSON.stringify({ location: 'Unknown' })
+            });
+            loginSessions = loginSessions.map(s => ({ ...s, isCurrent: false }));
+            renderActivityTable(loginSessions);
+            renderActivityCards(loginSessions);
+            lucide.createIcons();
+            showToast('You have been logged out from all devices.');
+        } catch (error) {
+            showToast(error.message || 'Failed to logout from all devices.');
+        }
+    })();
+};
+
+// Close modal on backdrop click
+document.getElementById('logoutModal').addEventListener('click', function(e) {
+    if (e.target === this) closeLogoutModal();
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════════════════════
+async function loadCartCount() {
+    if (!IS_LIVE_HOST) {
+        const badge = document.getElementById('cartCountBadge');
+        if (badge) badge.textContent = '0';
+        return;
+    }
+    try {
+        const userId = resolveCurrentUserId();
+        const data = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+        const badge = document.getElementById('cartCountBadge');
+        if (badge) badge.textContent = String(Number(data?.totalItems || data?.totals?.itemCount || 0));
+    } catch (_) {
+        const badge = document.getElementById('cartCountBadge');
+        if (badge) badge.textContent = '0';
+    }
+}
+
+async function loadSecurityState() {
+    if (!IS_LIVE_HOST) {
+        apply2FAState({ enabled: false, method: 'none' });
+        healthState.emailVerified = false;
+        updateHealthBar(false, false);
+        loginSessions = [];
+        renderActivityTable(loginSessions);
+        renderActivityCards(loginSessions);
+        return;
+    }
+
+    const userId = resolveCurrentUserId();
+
+    const [settings, activity] = await Promise.all([
+        fetchJson(`${API_BASE_URL}/customer/security/settings?userId=${encodeURIComponent(userId)}`),
+        fetchJson(`${API_BASE_URL}/customer/security/login-activity?userId=${encodeURIComponent(userId)}&limit=30`)
+    ]);
+
+    const tfaState = {
+        enabled: Boolean(settings?.security?.twoFactorEnabled),
+        method: settings?.security?.twoFactorMethod || 'none'
+    };
+
+    apply2FAState(tfaState);
+
+    const lastChanged = settings?.security?.lastPasswordChangedAt;
+    let passwordRecent = false;
+    if (lastChanged) {
+        const dt = new Date(lastChanged);
+        if (!Number.isNaN(dt.getTime())) {
+            const ageDays = (Date.now() - dt.getTime()) / (1000 * 60 * 60 * 24);
+            passwordRecent = ageDays >= 0 && ageDays <= 180;
+        }
+    }
+
+    healthState.emailVerified = Boolean(settings?.user?.email);
+    updateHealthBar(passwordRecent, tfaState.enabled);
+
+    loginSessions = Array.isArray(activity) ? activity.map(mapActivityRow) : [];
+    renderActivityTable(loginSessions);
+    renderActivityCards(loginSessions);
+}
+
+(async function initPage() {
+    if (!IS_LIVE_HOST) {
+        await Promise.all([loadSecurityState(), loadCartCount()]);
+        lucide.createIcons();
+        return;
+    }
+
+    try {
+        await Promise.all([loadSecurityState(), loadCartCount()]);
+    } catch (error) {
+        showAlert('tfaAlert', 'error', error.message || 'Failed to load security settings.');
+        loginSessions = [];
+        renderActivityTable(loginSessions);
+        renderActivityCards(loginSessions);
+    }
+    lucide.createIcons();
+})();
+</script>
+</body>
+</html>

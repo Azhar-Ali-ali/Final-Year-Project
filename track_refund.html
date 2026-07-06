@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Refund | LUMINA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #111827; }
+        .glass { background: rgba(255,255,255,0.94); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .account-flyout { width: 360px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
+        .signin-btn { display: inline-block; width: 130px; text-align: center; background: #facc15; border: 1px solid #f59e0b; color: #111827; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 7px; }
+        .signin-btn:hover { background: #fbbf24; }
+        .account-col-title { font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
+        .account-link { display: block; font-size: 12px; color: #374151; line-height: 1.55; }
+        .account-link:hover { color: #111827; text-decoration: underline; }
+        .panel-card { background: #fff; border: 1px solid #e8edf5; border-radius: 18px; box-shadow: 0 12px 28px rgba(15,23,42,0.06); }
+        .hero-panel { background: linear-gradient(140deg, #f8fbff 0%, #ffffff 45%, #fff8ec 100%); }
+        .step-row { display: flex; align-items: center; gap: 8px; }
+        .step-dot { width: 26px; height: 26px; border-radius: 999px; border: 2px solid #cbd5e1; background: #fff; color: #64748b; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; }
+        .step-dot.active { background: #111827; border-color: #111827; color: #fff; }
+        .step-line { flex: 1; height: 3px; background: #e2e8f0; border-radius: 999px; }
+        .step-line.active { background: #111827; }
+        .step-label { font-size: 11px; font-weight: 700; color: #64748b; text-align: center; }
+        .step-label.active { color: #0f172a; }
+        .summary-kv { display: grid; grid-template-columns: 1fr; gap: 14px; }
+        .kv-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; }
+        .kv-value { margin-top: 6px; font-size: 14px; color: #0f172a; font-weight: 600; }
+        .status-chip { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 5px 10px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+        .status-processing { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
+        .status-completed { background: #ecfdf5; color: #166534; border: 1px solid #bbf7d0; }
+        .action-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 10px; padding: 10px 14px; border: 1px solid #d8e1ec; background: #fff; color: #1f2937; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.2s; }
+        .action-btn:hover { background: #f8fafc; }
+        .action-btn.primary { background: #111827; border-color: #111827; color: #fff; }
+        .action-btn.primary:hover { background: #000; }
+
+        @media (max-width: 1024px) {
+            .content-shell { margin-left: 0; }
+        }
+
+        @media (max-width: 860px) {
+            .progress-track { overflow-x: auto; padding-bottom: 8px; }
+            .progress-content { min-width: 760px; }
+        }
+    </style>
+	<script src="/customer-pages/auth.js"></script>
+	<script src="/customer-pages/page-access.js"></script>
+</head>
+<body>
+    <nav class="fixed top-0 w-full z-[100] glass">
+        <div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
+            <div class="flex items-center gap-2 shrink-0">
+                <button id="sidebarToggle" type="button" class="p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
+                <a href="homepage.html" class="text-2xl font-bold tracking-tighter uppercase shrink-0">Lumina</a>
+            </div>
+            <div class="hidden md:flex flex-grow relative max-w-2xl mx-auto">
+                <input type="text" placeholder="Search for unique products, clothing or artisans..." class="w-full bg-gray-100 border-transparent border focus:border-black focus:bg-white rounded-full py-2.5 px-6 pl-12 text-sm transition-all outline-none">
+                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+            </div>
+            <div class="flex items-center gap-2 lg:gap-6 shrink-0">
+                <div id="accountMenuWrap" class="relative group">
+                    <button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                        <span id="accountMenuLabel" class="hidden sm:block text-xs font-bold uppercase tracking-widest">Account</span>
+                    </button>
+                    <div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block">
+                        <div id="accountMenuContent" class="account-flyout"></div>
+                    </div>
+                </div>
+                <a href="cart.html" class="relative p-2">
+                    <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                    <span id="cartCountBadge" class="absolute top-0 right-0 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
+                </a>
+                <a href="wishlist.html" class="relative p-2"><i data-lucide="heart" class="w-5 h-5"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+
+    <main class="content-shell mt-20 p-4 lg:p-8 min-h-[calc(100vh-5rem)]">
+        <div class="max-w-7xl mx-auto space-y-6">
+            <section class="panel-card hero-panel p-5 lg:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h1 class="text-3xl lg:text-4xl font-extrabold tracking-tight text-[#232f3e]">Track Refund</h1>
+                        <p class="text-sm lg:text-base text-gray-600 mt-2">Monitor your refund progress and transaction details.</p>
+                    </div>
+                    <a href="my_returns_refunds.html" class="action-btn"><i data-lucide="arrow-left" class="w-4 h-4"></i>Back to Returns</a>
+                </div>
+            </section>
+
+            <section class="panel-card p-5 lg:p-6">
+                <h2 class="text-lg font-extrabold text-[#232f3e] mb-4">Refund Status Progress</h2>
+                <div class="progress-track">
+                    <div class="progress-content">
+                        <div class="step-row">
+                            <span id="dot1" class="step-dot">1</span>
+                            <span id="line1" class="step-line"></span>
+                            <span id="dot2" class="step-dot">2</span>
+                            <span id="line2" class="step-line"></span>
+                            <span id="dot3" class="step-dot">3</span>
+                            <span id="line3" class="step-line"></span>
+                            <span id="dot4" class="step-dot">4</span>
+                            <span id="line4" class="step-line"></span>
+                            <span id="dot5" class="step-dot">5</span>
+                        </div>
+                        <div class="grid grid-cols-5 gap-2 mt-2">
+                            <p id="label1" class="step-label">Return Requested</p>
+                            <p id="label2" class="step-label">Return Approved</p>
+                            <p id="label3" class="step-label">Product Picked Up / Received</p>
+                            <p id="label4" class="step-label">Refund Processing</p>
+                            <p id="label5" class="step-label">Refund Completed</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                <article class="panel-card p-5 lg:p-6">
+                    <h2 class="text-lg font-extrabold text-[#232f3e] mb-4">Refund Summary</h2>
+                    <div class="summary-kv">
+                        <div><p class="kv-label">Order ID</p><p id="orderIdValue" class="kv-value"></p></div>
+                        <div><p class="kv-label">Refund Amount</p><p id="refundAmount" class="kv-value"></p></div>
+                        <div><p class="kv-label">Refund Method</p><p id="refundMethod" class="kv-value"></p></div>
+                        <div><p class="kv-label">Refund Status</p><p id="refundStatus" class="kv-value"></p></div>
+                    </div>
+                </article>
+
+                <article class="panel-card p-5 lg:p-6">
+                    <h2 class="text-lg font-extrabold text-[#232f3e] mb-4">Refund Details</h2>
+                    <div class="summary-kv">
+                        <div><p class="kv-label">Original Payment Method</p><p id="originalMethod" class="kv-value"></p></div>
+                        <div><p class="kv-label">Refund Date</p><p id="refundDate" class="kv-value"></p></div>
+                        <div><p class="kv-label">Transaction ID</p><p id="transactionId" class="kv-value"></p></div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="panel-card p-5 lg:p-6">
+                <div class="flex flex-wrap gap-3">
+                    <button id="downloadReceiptBtn" class="action-btn primary"><i data-lucide="download" class="w-4 h-4"></i>Download Refund Receipt</button>
+                    <button id="contactSupportBtn" class="action-btn"><i data-lucide="life-buoy" class="w-4 h-4"></i>Contact Support</button>
+                </div>
+            </section>
+        </div>
+    </main>
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+
+        function resolveCurrentUserId() {
+            try {
+                const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+                if (rawUser) {
+                    const parsed = JSON.parse(rawUser);
+                    return String(parsed.id || parsed.userId || parsed.customerId || '1').trim();
+                }
+            } catch (_) {}
+            return '1';
+        }
+
+        async function fetchJson(url, options = {}) {
+            if (!IS_LIVE_HOST) {
+                throw new Error('Open this page on localhost to load refund tracking data.');
+            }
+
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {})
+                }
+            });
+
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || payload.success === false) {
+                throw new Error(payload.message || 'Request failed');
+            }
+
+            return payload.data !== undefined ? payload.data : payload;
+        }
+
+        function resolveAuthState() {
+            const state = { isLoggedIn: false, fullName: '' };
+
+            try {
+                const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+                const isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+                if (rawUser) {
+                    const parsed = JSON.parse(rawUser);
+                    const name = String(parsed.fullName || parsed.name || '').trim();
+                    state.isLoggedIn = Boolean(name) || isLoggedIn;
+                    state.fullName = name;
+                } else {
+                    state.isLoggedIn = isLoggedIn;
+                }
+            } catch (_) {
+                state.isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+            }
+
+            return state;
+        }
+
+        function renderAccountFlyout() {
+            const auth = resolveAuthState();
+            const content = document.getElementById('accountMenuContent');
+            const label = document.getElementById('accountMenuLabel');
+            if (!content || !label) return;
+
+            if (!auth.isLoggedIn) {
+                label.textContent = 'Account';
+                content.innerHTML = `
+                    <div class="px-4 py-3 border-b border-gray-200 text-center">
+                        <a href="login_register.html" class="signin-btn">Sign in</a>
+                        <p class="text-[10px] text-gray-500 mt-1">New customer? <a href="login_register.html" class="text-blue-600 hover:underline">Start here.</a></p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-0">
+                        <div class="px-4 py-3 border-r border-gray-200">
+                            <h4 class="account-col-title">Your Lists</h4>
+                            <a href="wishlist.html" class="account-link">Create a List</a>
+                            <a href="login_register.html" class="account-link">Find a List or Registry</a>
+                        </div>
+                        <div class="px-4 py-3">
+                            <h4 class="account-col-title">Your Account</h4>
+                            <a href="login_register.html" class="account-link">Customer Dashboard</a>
+                            <a href="login_register.html" class="account-link">My Profile</a>
+                            <a href="login_register.html" class="account-link">My Orders</a>
+                            <a href="login_register.html" class="account-link">Cart</a>
+                            <a href="login_register.html" class="account-link">My Addresses</a>
+                            <a href="login_register.html" class="account-link">Messages</a>
+                            <a href="login_register.html" class="account-link">Returns & Refunds</a>
+                            <a href="login_register.html" class="account-link">Security Settings</a>
+                            <a href="login_register.html" class="account-link">Help & Support</a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const firstName = auth.fullName ? auth.fullName.split(' ')[0] : 'Account';
+                label.textContent = firstName;
+                content.innerHTML = `
+                    <div class="px-4 py-3 border-b border-gray-200 text-center">
+                        <a href="Customer_Dashboard.html" class="signin-btn">Go to Dashboard</a>
+                        <p class="text-[10px] text-gray-500 mt-1">Signed in as ${auth.fullName || 'Customer'}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-0">
+                        <div class="px-4 py-3 border-r border-gray-200">
+                            <h4 class="account-col-title">Your Lists</h4>
+                            <a href="wishlist.html" class="account-link">Wishlist</a>
+                            <a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+                            <a href="my_messages.html" class="account-link">Messages</a>
+                        </div>
+                        <div class="px-4 py-3">
+                            <h4 class="account-col-title">Your Account</h4>
+                            <a href="Customer_Dashboard.html" class="account-link">Customer Dashboard</a>
+                            <a href="my_profile.html" class="account-link">My Profile</a>
+                            <a href="my_orders.html" class="account-link">My Orders</a>
+                            <a href="cart.html" class="account-link">Cart</a>
+                            <a href="my_addresses.html" class="account-link">My Addresses</a>
+                            <a href="my_messages.html" class="account-link">Messages</a>
+                            <a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+                            <a href="security_settings.html" class="account-link">Security Settings</a>
+                            <a href="help_support.html" class="account-link">Help & Support</a>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        const accountMenuButton = document.getElementById('accountMenuButton');
+        const accountMenuDropdown = document.getElementById('accountMenuDropdown');
+        const accountMenuWrap = document.getElementById('accountMenuWrap');
+
+        if (accountMenuButton && accountMenuDropdown) {
+            accountMenuButton.addEventListener('click', () => {
+                accountMenuDropdown.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (event) => {
+                if (accountMenuWrap && !accountMenuWrap.contains(event.target)) {
+                    accountMenuDropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        renderAccountFlyout();
+
+        function getQueryParam(key) {
+            return new URLSearchParams(window.location.search).get(key);
+        }
+
+        function applyProgress(step) {
+            for (let i = 1; i <= 5; i++) {
+                const dot = document.getElementById(`dot${i}`);
+                const label = document.getElementById(`label${i}`);
+                const line = i < 5 ? document.getElementById(`line${i}`) : null;
+
+                dot.classList.remove('active');
+                label.classList.remove('active');
+                if (line) line.classList.remove('active');
+
+                if (i <= step) {
+                    dot.classList.add('active');
+                    label.classList.add('active');
+                }
+                if (i < step) {
+                    if (line) line.classList.add('active');
+                }
+            }
+        }
+
+        function formatDateTime(value) {
+            if (!value) return 'Not available yet';
+            const d = new Date(value);
+            if (Number.isNaN(d.getTime())) return 'Not available yet';
+            return d.toLocaleString('en-US', {
+                month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+        }
+
+        async function loadCartCount() {
+            if (!IS_LIVE_HOST) {
+                const badge = document.getElementById('cartCountBadge');
+                if (badge) badge.textContent = '0';
+                return;
+            }
+
+            try {
+                const userId = resolveCurrentUserId();
+                const payload = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+                const data = payload?.data || payload || {};
+                const badge = document.getElementById('cartCountBadge');
+                if (badge) badge.textContent = String(Number(data.totalItems || data.totals?.itemCount || 0));
+            } catch (_) {
+                const badge = document.getElementById('cartCountBadge');
+                if (badge) badge.textContent = '0';
+            }
+        }
+
+        function renderPage(data) {
+            const orderId = String(data.orderId || '').trim();
+            const requestId = getQueryParam('requestId');
+            const step = Number(data.step || 0);
+            const refundAmount = `Rs. ${Number(data.refundAmount || 0).toLocaleString()}`;
+            const refundMethod = data.refundMethod || 'Original Card';
+            const statusType = data.statusType === 'completed' ? 'completed' : 'processing';
+            const refundStatus = data.refundStatus || 'Pending Approval';
+            const originalPaymentMethod = data.originalPaymentMethod || 'Original Payment Method';
+            const refundDate = formatDateTime(data.refundDate);
+            const transactionId = data.transactionId || 'Not generated yet';
+
+            document.getElementById('orderIdValue').textContent = orderId;
+            document.getElementById('refundAmount').textContent = refundAmount;
+            document.getElementById('refundMethod').textContent = refundMethod;
+            document.getElementById('refundStatus').innerHTML = `<span class="status-chip status-${statusType}">${refundStatus}</span>`;
+            document.getElementById('originalMethod').textContent = originalPaymentMethod;
+            document.getElementById('refundDate').textContent = refundDate;
+            document.getElementById('transactionId').textContent = transactionId;
+
+            applyProgress(step);
+
+            document.getElementById('downloadReceiptBtn').addEventListener('click', () => {
+                if (step < 5) {
+                    alert('Receipt will be available once refund is completed.');
+                    return;
+                }
+                alert(`Downloading receipt for ${transactionId}`);
+            });
+
+            document.getElementById('contactSupportBtn').addEventListener('click', () => {
+                window.location.href = 'contact.html';
+            });
+        }
+
+        async function initPage() {
+            const orderId = String(getQueryParam('orderId') || '').trim();
+            const requestId = String(getQueryParam('requestId') || '').trim();
+
+            if (!IS_LIVE_HOST) {
+                renderPage({
+                    orderId: orderId || '-',
+                    step: 0,
+                    refundAmount: 0,
+                    refundMethod: 'Original Card',
+                    statusType: 'processing',
+                    refundStatus: 'Preview mode (database disabled)',
+                    originalPaymentMethod: 'Original Payment Method',
+                    refundDate: null,
+                    transactionId: 'Not generated yet'
+                });
+                await loadCartCount();
+                lucide.createIcons();
+                return;
+            }
+
+            if (!orderId && !requestId) {
+                window.location.href = 'my_returns_refunds.html';
+                return;
+            }
+
+            try {
+                const userId = resolveCurrentUserId();
+                const data = requestId
+                    ? await fetchJson(`${API_BASE_URL}/customer/returns/requests/${encodeURIComponent(requestId)}/refund-tracking?userId=${encodeURIComponent(userId)}`)
+                    : await fetchJson(`${API_BASE_URL}/customer/returns/requests/by-order/${encodeURIComponent(orderId)}/refund-tracking?userId=${encodeURIComponent(userId)}`);
+
+                renderPage(data);
+            } catch (_) {
+                window.location.href = 'my_returns_refunds.html';
+                return;
+            }
+
+            await loadCartCount();
+            lucide.createIcons();
+        }
+
+        initPage();
+    </script>
+</body>
+</html>

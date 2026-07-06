@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Admin | Reviews & Ratings Management</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script src="https://unpkg.com/lucide@latest"></script>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" />
+	<style>
+		:root {
+			--bg: #f5f5f5;
+			--panel: #ffffff;
+			--text: #232f3e;
+			--muted: #666666;
+			--border: #dddddd;
+			--primary: #232f3e;
+			--primary-600: #37475a;
+			--success: #28a745;
+			--warning: #ffc107;
+			--danger: #dc3545;
+			--info: #0066c0;
+			--purple: #7c3aed;
+			--orange: #f97316;
+			--gray: #6b7280;
+			--shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+			--radius: 10px;
+		}
+
+		* { box-sizing: border-box; margin: 0; padding: 0; }
+
+		body {
+			font-family: "Inter", Arial, sans-serif;
+			background: var(--bg);
+			color: var(--text);
+		}
+
+		.layout { display: block; min-height: 100vh; }
+		.content { display: flex; flex-direction: column; gap: 18px; padding: 20px; margin-top: 64px; }
+
+		@media (min-width: 768px) {
+			.content {
+				margin-left: 256px;
+			}
+		}
+
+		.glass {
+			background: rgba(255, 255, 255, 0.95);
+			backdrop-filter: blur(10px);
+			border-bottom: 1px solid #e5e7eb;
+		}
+
+		.page-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			flex-wrap: wrap;
+			margin-bottom: 10px;
+		}
+
+		.page-header .title {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			font-weight: 700;
+			font-size: 20px;
+			color: var(--text);
+		}
+
+		.page-header .title .material-symbols-rounded {
+			font-size: 26px;
+			color: var(--primary);
+		}
+
+		.page-header .actions {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+
+		.btn {
+			padding: 12px 18px;
+			border: none;
+			border-radius: 8px;
+			font-size: 13px;
+			cursor: pointer;
+			transition: all 0.3s ease;
+			font-weight: 600;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			background: #f3f4f6;
+			color: #333;
+		}
+
+		.btn.primary { background: var(--primary); color: white; }
+		.btn.primary:hover { background: var(--primary-600); }
+		.btn.success { background: var(--success); color: white; }
+		.btn.success:hover { background: #218838; }
+		.btn.danger { background: var(--danger); color: white; }
+		.btn.danger:hover { background: #c82333; }
+		.btn.warning { background: var(--warning); color: #333; }
+		.btn.warning:hover { background: #f9b233; }
+		.btn.secondary { background: #6b7280; color: white; }
+		.btn.secondary:hover { background: #4b5563; }
+		.btn.ghost { background: transparent; border: 1px solid var(--border); }
+		.btn.sm { padding: 8px 12px; font-size: 12px; }
+
+		.panel {
+			background: var(--panel);
+			border-radius: var(--radius);
+			box-shadow: var(--shadow);
+			padding: 20px;
+		}
+
+		.toolbar {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			background: white;
+			padding: 12px;
+			border-radius: 10px;
+			box-shadow: var(--shadow);
+			margin-bottom: 12px;
+		}
+
+		.search {
+			position: relative;
+			min-width: 260px;
+		}
+
+		.search input {
+			width: 100%;
+			padding: 10px 15px 10px 40px;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			font-size: 13px;
+			background: white;
+			color: var(--text);
+		}
+
+		.search input:focus {
+			outline: none;
+			border-color: var(--primary);
+			box-shadow: 0 0 0 3px rgba(35, 47, 62, 0.1);
+		}
+
+		.search .material-symbols-rounded {
+			position: absolute;
+			left: 12px;
+			top: 50%;
+			transform: translateY(-50%);
+			font-size: 18px;
+			color: #666;
+			pointer-events: none;
+		}
+
+		.filters { display: flex; gap: 10px; flex-wrap: wrap; }
+
+		.select {
+			padding: 10px 12px;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			font-size: 13px;
+			background-color: white;
+			cursor: pointer;
+			min-width: 140px;
+		}
+
+		.select:focus { outline: none; border-color: var(--primary); }
+
+		/* Tabs */
+		.tabs {
+			display: flex;
+			gap: 10px;
+			margin-bottom: 20px;
+			background: white;
+			padding: 10px;
+			border-radius: 10px;
+			box-shadow: var(--shadow);
+			flex-wrap: wrap;
+		}
+
+		.tab {
+			padding: 10px 20px;
+			cursor: pointer;
+			border: 2px solid transparent;
+			background-color: #f3f4f6;
+			color: #333;
+			border-radius: 6px;
+			font-size: 13px;
+			font-weight: 600;
+			transition: all 0.3s ease;
+		}
+
+		.tab.active {
+			background-color: var(--primary);
+			color: white;
+		}
+		.tab:hover { background-color: #e5e7eb; }
+
+		.tab-content { display: none; }
+		.tab-content.active { display: block; }
+
+		/* KPI Stats */
+		.stats-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+			gap: 16px;
+			margin-bottom: 20px;
+		}
+
+		.stat-card {
+			background: white;
+			border-radius: 10px;
+			padding: 16px;
+			box-shadow: var(--shadow);
+			border-left: 4px solid var(--primary);
+		}
+
+		.stat-card.warning { border-left-color: var(--warning); }
+		.stat-card.danger { border-left-color: var(--danger); }
+		.stat-card.success { border-left-color: var(--success); }
+
+		.stat-value {
+			font-weight: 700;
+			font-size: 24px;
+			color: var(--text);
+		}
+
+		.stat-label {
+			font-size: 12px;
+			color: var(--muted);
+			margin-top: 4px;
+			font-weight: 500;
+		}
+
+		/* Table */
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			font-size: 13px;
+		}
+
+		thead th {
+			padding: 15px;
+			text-align: left;
+			font-weight: 600;
+			color: var(--text);
+			font-size: 13px;
+			text-transform: uppercase;
+			background-color: #f5f5f5;
+			border-bottom: 2px solid var(--border);
+			white-space: nowrap;
+		}
+
+		tbody td {
+			padding: 15px;
+			border-bottom: 1px solid var(--border);
+			vertical-align: middle;
+			white-space: nowrap;
+		}
+
+		tbody tr:hover { background: #f5f5f5; }
+
+		/* Badges */
+		.badge {
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
+			padding: 6px 12px;
+			border-radius: 6px;
+			font-size: 11px;
+			font-weight: 600;
+		}
+
+		.badge-pending { background: #fef3c7; color: #92400e; }
+		.badge-approved { background: #dcfce7; color: #166534; }
+		.badge-denied { background: #fee2e2; color: #991b1b; }
+		.badge-flagged { background: #fed7aa; color: #92400e; }
+		.badge-suspicious { background: #ddd6fe; color: #5b21b6; }
+		.badge-verified { background: #dbeafe; color: #1e3a8a; }
+
+		.action-btn {
+			background: none;
+			border: none;
+			color: #0066c0;
+			cursor: pointer;
+			font-size: 13px;
+			font-weight: 600;
+			padding: 5px 10px;
+			transition: color 0.2s;
+		}
+
+		.action-btn:hover { color: #232f3e; text-decoration: underline; }
+		.action-btn.danger { color: #dc3545; }
+
+		/* Modal */
+		.modal {
+			position: fixed;
+			inset: 0;
+			background: rgba(0, 0, 0, 0.4);
+			display: none;
+			align-items: center;
+			justify-content: center;
+			z-index: 100;
+			padding: 20px;
+			overflow-y: auto;
+		}
+
+		.modal.active { display: flex; }
+
+		.modal-card {
+			background: white;
+			border-radius: 12px;
+			padding: 20px;
+			max-width: 700px;
+			width: 100%;
+			box-shadow: var(--shadow);
+			max-height: 90vh;
+			overflow-y: auto;
+		}
+
+		.modal-card h3 { font-size: 16px; margin-bottom: 10px; }
+		.modal-card p { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+
+		.modal-actions {
+			display: flex;
+			align-items: center;
+			justify-content: flex-end;
+			gap: 8px;
+			margin-top: 12px;
+		}
+
+		/* Forms */
+		.form-group {
+			margin-bottom: 16px;
+		}
+
+		.form-group label {
+			display: block;
+			font-weight: 600;
+			font-size: 13px;
+			margin-bottom: 6px;
+			color: var(--text);
+		}
+
+		.form-group input,
+		.form-group textarea,
+		.form-group select {
+			width: 100%;
+			padding: 10px 12px;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			font-size: 13px;
+			font-family: inherit;
+			color: var(--text);
+		}
+
+		.form-group input:focus,
+		.form-group textarea:focus,
+		.form-group select:focus {
+			outline: none;
+			border-color: var(--primary);
+			box-shadow: 0 0 0 3px rgba(35, 47, 62, 0.1);
+		}
+
+		.form-group textarea { resize: vertical; min-height: 100px; }
+
+		.form-row {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 12px;
+		}
+
+		/* Alert */
+		.alert {
+			padding: 12px 16px;
+			border-radius: 8px;
+			font-size: 13px;
+			margin-bottom: 12px;
+		}
+
+		.alert-info {
+			background: #dbeafe;
+			color: #1e3a8a;
+			border: 1px solid #bfdbfe;
+		}
+
+		.alert-warning {
+			background: #fff7ed;
+			color: #92400e;
+			border: 1px solid #fed7aa;
+		}
+
+		.alert-danger {
+			background: #fee2e2;
+			color: #991b1b;
+			border: 1px solid #fecaca;
+		}
+
+		/* Timeline */
+		.timeline {
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+		}
+
+		.timeline-item {
+			display: grid;
+			grid-template-columns: 22px 1fr;
+			gap: 12px;
+			padding-bottom: 12px;
+			border-bottom: 1px solid var(--border);
+		}
+
+		.timeline-item:last-child { border-bottom: none; }
+
+		.dot {
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
+			background: var(--primary);
+			margin-top: 6px;
+		}
+
+		.timeline-content {
+			background: #f9fafb;
+			border: 1px solid var(--border);
+			padding: 10px;
+			border-radius: 8px;
+			font-size: 12px;
+		}
+
+		.timeline-content .time { color: var(--muted); font-size: 11px; }
+
+		/* Toast */
+		.toast {
+			position: fixed;
+			right: 20px;
+			bottom: 20px;
+			background: #111827;
+			color: white;
+			padding: 10px 14px;
+			border-radius: 10px;
+			font-size: 12px;
+			box-shadow: var(--shadow);
+			opacity: 0;
+			transform: translateY(10px);
+			transition: all 0.3s ease;
+			pointer-events: none;
+			z-index: 99;
+		}
+
+		.toast.show { opacity: 1; transform: translateY(0); }
+
+		.hidden { display: none; }
+		.subtle { color: var(--muted); font-size: 12px; }
+		.overflow-x-auto { overflow-x: auto; }
+
+		.metric-row {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+			gap: 12px;
+			margin: 12px 0;
+		}
+
+		.metric {
+			background: #f9fafb;
+			padding: 10px;
+			border-radius: 6px;
+			font-size: 12px;
+			border-left: 3px solid var(--primary);
+		}
+
+		.metric-label {
+			color: var(--muted);
+			font-weight: 600;
+			margin-bottom: 4px;
+		}
+
+		.metric-value {
+			font-weight: 700;
+			font-size: 14px;
+			color: var(--text);
+		}
+
+		/* Review Card / Preview */
+		.review-preview {
+			background: var(--bg);
+			padding: 16px;
+			border-radius: 8px;
+			margin-bottom: 16px;
+			border-left: 4px solid var(--primary);
+		}
+
+		.review-preview.flagged {
+			border-left-color: var(--warning);
+			background: #fffbeb;
+		}
+
+		.review-preview.suspicious {
+			border-left-color: var(--purple);
+			background: #faf5ff;
+		}
+
+		.review-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+			margin-bottom: 8px;
+		}
+
+		.review-meta {
+			font-size: 12px;
+			color: var(--muted);
+		}
+
+		.review-text {
+			font-size: 13px;
+			line-height: 1.6;
+			color: #333;
+			margin: 8px 0;
+		}
+
+		/* Settings Panel */
+		.settings-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+			gap: 20px;
+		}
+
+		.settings-card {
+			background: var(--bg);
+			padding: 20px;
+			border-radius: 10px;
+			border: 1px solid var(--border);
+		}
+
+		.settings-card h3 {
+			font-size: 14px;
+			color: var(--primary);
+			margin-bottom: 16px;
+		}
+
+		.toggle {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			margin-bottom: 12px;
+			font-size: 13px;
+		}
+
+		.toggle input[type="checkbox"] {
+			width: 18px;
+			height: 18px;
+			cursor: pointer;
+		}
+
+		/* Analytics */
+		.analytics-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+			gap: 20px;
+		}
+
+		.chart-container {
+			background: white;
+			padding: 20px;
+			border-radius: 10px;
+			box-shadow: var(--shadow);
+		}
+
+		.chart-title {
+			font-size: 14px;
+			font-weight: 600;
+			margin-bottom: 16px;
+			color: var(--primary);
+		}
+
+		.distribution-bar {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			margin-bottom: 12px;
+		}
+
+		.distribution-label {
+			font-size: 12px;
+			font-weight: 600;
+			min-width: 60px;
+			color: var(--primary);
+		}
+
+		.distribution-fill {
+			flex: 1;
+			height: 20px;
+			background: var(--bg);
+			border-radius: 10px;
+			overflow: hidden;
+		}
+
+		.distribution-value {
+			display: flex;
+			align-items: center;
+			min-width: 40px;
+			font-size: 12px;
+			font-weight: 600;
+			color: white;
+		}
+
+		/* Star Rating */
+		.rating {
+			color: var(--warning);
+			letter-spacing: 2px;
+		}
+
+		.rating.high {
+			color: var(--success);
+		}
+
+		.rating.low {
+			color: var(--danger);
+		}
+
+		/* Risk Score */
+		.risk-score {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 4px 8px;
+			border-radius: 6px;
+			font-size: 12px;
+			font-weight: 600;
+		}
+
+		.risk-score.low {
+			background: #dcfce7;
+			color: #166534;
+		}
+
+		.risk-score.medium {
+			background: #fef3c7;
+			color: #92400e;
+		}
+
+		.risk-score.high {
+			background: #fee2e2;
+			color: #991b1b;
+		}
+
+		/* Sentiment Keywords */
+		.keywords-list {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+		}
+
+		.keyword {
+			padding: 6px 12px;
+			background: var(--bg);
+			border-radius: 20px;
+			font-size: 12px;
+			font-weight: 600;
+			color: var(--primary);
+			border: 1px solid var(--border);
+		}
+
+		.keyword.positive {
+			background: #dcfce7;
+			color: var(--success);
+			border-color: var(--success);
+		}
+
+		.keyword.negative {
+			background: #fee2e2;
+			color: var(--danger);
+			border-color: var(--danger);
+		}
+
+		/* Bulk Actions */
+		.bulk-actions {
+			display: flex;
+			gap: 10px;
+			padding: 12px;
+			background: var(--bg);
+			border-radius: 8px;
+			margin-bottom: 12px;
+			align-items: center;
+		}
+
+		.bulk-count {
+			font-size: 12px;
+			font-weight: 600;
+			color: var(--primary);
+			margin-right: auto;
+		}
+
+		/* Toast */
+		#toast {
+			position: fixed;
+			bottom: 20px;
+			right: 20px;
+			background: var(--primary);
+			color: white;
+			padding: 14px 20px;
+			border-radius: 8px;
+			border-left: 4px solid var(--success);
+			box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+			z-index: 2000;
+			max-width: 400px;
+			opacity: 0;
+			transition: opacity 0.2s;
+		}
+
+		#toast.show {
+			opacity: 1;
+		}
+
+		@media (max-width: 1100px) {
+			table { min-width: 900px; }
+		}
+
+		@media (max-width: 768px) {
+			.toolbar { flex-direction: column; align-items: stretch; }
+			.filters { width: 100%; }
+			.search { width: 100%; }
+			.page-header { flex-direction: column; align-items: flex-start; }
+			.modal-card { max-width: 95vw; }
+			.stats-grid { grid-template-columns: 1fr; }
+			.form-row { grid-template-columns: 1fr; }
+		}
+	</style>
+</head>
+<body class="bg-[#f9fafb] text-[#1a1a1a] min-h-screen flex flex-col">
+  <nav class="fixed top-0 w-full z-[100] glass">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-16 flex items-center justify-between gap-6">
+      <div class="flex items-center gap-3 shrink-0">
+        <button id="sidebarToggle" class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <a href="admin_dashboard.html" class="text-xl font-bold tracking-tight uppercase hover:opacity-70 transition-opacity">
+          <span class="text-gray-900">Lumina</span>
+          <span class="text-gray-400 font-normal text-xs ml-2">Admin</span>
+        </a>
+      </div>
+
+      <div class="hidden lg:flex flex-grow relative max-w-sm mx-auto">
+        <input type="text" placeholder="Search users, sellers, orders..." class="w-full bg-gray-50 border border-gray-200 focus:border-gray-400 focus:bg-white rounded-full py-2 px-4 pl-10 text-xs outline-none transition-all">
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+      </div>
+
+      <div class="flex items-center gap-3 shrink-0">
+        <button class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors group">
+          <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
+          <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          <div class="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 p-0 dropdown-hidden z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
+            <div class="px-4 py-3 border-b border-gray-100">
+              <p class="text-xs font-bold uppercase tracking-widest text-gray-600">Admin alerts</p>
+            </div>
+            <div class="max-h-80 overflow-y-auto">
+              <div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
+                <p class="text-xs font-bold text-gray-900">New seller #S422</p>
+                <p class="text-xs text-gray-500 mt-1">Request pending verification</p>
+              </div>
+              <div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
+                <p class="text-xs font-bold text-gray-900">Order #2451 flagged</p>
+                <p class="text-xs text-gray-500 mt-1">Payment discrepancy</p>
+              </div>
+              <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer">
+                <p class="text-xs font-bold text-gray-900">System update</p>
+                <p class="text-xs text-gray-500 mt-1">Analytics ready</p>
+              </div>
+            </div>
+            <div class="px-4 py-2 border-t border-gray-100 text-center">
+              <a href="#" class="text-xs font-bold text-gray-600 hover:text-black uppercase tracking-widest">View All</a>
+            </div>
+          </div>
+        </button>
+
+        <div class="relative group">
+          <button class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-full flex items-center justify-center text-white text-xs font-bold">A</div>
+            <div class="flex items-center gap-1">
+              <span class="text-xs font-bold text-gray-700 hidden sm:block">Admin</span>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-gray-600"></i>
+            </div>
+          </button>
+          <div class="absolute top-full right-0 mt-1 w-56 bg-white rounded-xl shadow-lg border border-gray-100 p-0 dropdown-hidden z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
+            <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-xs font-bold text-gray-900">Super Admin</span>
+                <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
+                  <i data-lucide="shield" class="w-3 h-3"></i>
+                  root
+                </span>
+              </div>
+              <p class="text-xs text-gray-500">full access</p>
+            </div>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+              <i data-lucide="user-cog" class="w-4 h-4 text-gray-600"></i>
+              <span class="text-sm text-gray-700">Profile</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+              <i data-lucide="settings" class="w-4 h-4 text-gray-600"></i>
+              <span class="text-sm text-gray-700">System settings</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-red-600">
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+              <span class="text-sm font-bold">Logout</span>
+            </a>
+          </div>
+        </div>
+
+        <button class="hidden sm:flex items-center gap-2 px-4 py-2 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-gray-900 transition-colors">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span class="hidden lg:block">New</span>
+        </button>
+        <button class="sm:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <i data-lucide="plus" class="w-5 h-5 text-gray-700"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <aside id="sidebar" class="hidden md:block fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-100 z-50 overflow-y-auto">
+    <nav class="p-4 space-y-2">
+      <a href="admin_dashboard.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+        Dashboard
+      </a>
+      <a href="user_management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="users" class="w-4 h-4"></i>
+        User Management
+      </a>
+      <a href="seller_management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="store" class="w-4 h-4"></i>
+        Seller Management
+      </a>
+      <a href="Order_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="package" class="w-4 h-4"></i>
+        Order Management
+      </a>
+      <a href="Product_Catalog_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="box" class="w-4 h-4"></i>
+        Product Catalog
+      </a>
+      <a href="cms.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="file-text" class="w-4 h-4"></i>
+        CMS
+      </a>
+      <a href="Reviews_Ratings_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg bg-gray-50 transition-all">
+        <i data-lucide="star" class="w-4 h-4"></i>
+        Reviews & Ratings
+      </a>
+      <a href="Logistics_Courier_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="truck" class="w-4 h-4"></i>
+        Logistics
+      </a>
+      <a href="Payment_Payout_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="credit-card" class="w-4 h-4"></i>
+        Payments
+      </a>
+      <a href="Dispute_Support_System.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="shield-alert" class="w-4 h-4"></i>
+        Dispute & Support
+      </a>
+      <a href="Reports_Analytics.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+        Reports
+      </a>
+
+      <div class="h-px bg-gray-100 my-4"></div>
+
+      <a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="settings" class="w-4 h-4"></i>
+        Settings
+      </a>
+      <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="help-circle" class="w-4 h-4"></i>
+        Help
+      </a>
+    </nav>
+  </aside>
+
+  <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+
+	<div class="layout">
+		<main class="content">
+			<!-- Page Header -->
+			<div class="page-header">
+				<div class="title">
+					<span class="material-symbols-rounded">star_rate</span>
+					Reviews & Ratings Management
+				</div>
+				<div class="actions">
+					<button class="btn primary sm" id="btn-settings">
+						<span class="material-symbols-rounded">settings</span>
+						Settings
+					</button>
+					<button class="btn secondary sm" id="btn-audit-log">
+						<span class="material-symbols-rounded">history</span>
+						Audit Log
+					</button>
+				</div>
+			</div>
+
+			<!-- KPI Stats -->
+			<div class="stats-grid" id="kpi-stats">
+				<!-- Rendered by JS -->
+			</div>
+
+			<!-- Tabs Navigation -->
+			<div class="tabs" id="reviews-tabs">
+				<button class="tab active" data-tab="queue">
+					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">list</span>
+					Moderation Queue
+				</button>
+				<button class="tab" data-tab="reported">
+					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">flag</span>
+					Reported Reviews
+				</button>
+				<button class="tab" data-tab="suspicious">
+					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">security</span>
+					Suspicious Reviews
+				</button>
+				<button class="tab" data-tab="abuse">
+					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">warning</span>
+					Abuse Control
+				</button>
+				<button class="tab" data-tab="analytics">
+					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">analytics</span>
+					Analytics
+				</button>
+				<button class="tab" data-tab="sentiment">
+					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">sentiment_satisfied</span>
+					Sentiment Analysis
+				</button>
+			</div>
+
+			<!-- TAB 1: Moderation Queue -->
+			<div id="queue" class="tab-content active">
+				<section class="panel">
+					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; justify-content: space-between;">
+						<div style="display: flex; align-items: center; gap: 8px;">
+							<span class="material-symbols-rounded">list</span>
+							Moderation Queue
+						</div>
+					</div>
+
+					<div class="toolbar">
+						<div class="search">
+							<span class="material-symbols-rounded">search</span>
+							<input type="text" id="search-queue" placeholder="Search by Review ID, Product, Customer...">
+						</div>
+						<div class="filters">
+							<select class="select" id="filter-queue-rating">
+								<option value="">All Ratings</option>
+								<option value="5">5 Stars</option>
+								<option value="4">4 Stars</option>
+								<option value="3">3 Stars</option>
+								<option value="2">2 Stars</option>
+								<option value="1">1 Star</option>
+							</select>
+							<select class="select" id="filter-queue-status">
+								<option value="">All Statuses</option>
+								<option value="pending">Pending</option>
+								<option value="approved">Approved</option>
+								<option value="denied">Denied</option>
+								<option value="flagged">Flagged</option>
+							</select>
+							<select class="select" id="filter-queue-verified">
+								<option value="">All Reviews</option>
+								<option value="verified">Verified Purchase Only</option>
+								<option value="unverified">Unverified Only</option>
+							</select>
+						</div>
+					</div>
+
+					<div style="margin-bottom: 12px; display: none;" id="bulk-actions-queue" class="bulk-actions">
+						<span class="bulk-count"><input type="checkbox" id="select-all-queue"> <span id="bulk-count-queue">0</span> selected</span>
+						<button class="btn success sm" id="btn-bulk-approve">✓ Approve All</button>
+						<button class="btn danger sm" id="btn-bulk-deny">✗ Deny All</button>
+					</div>
+
+					<div class="overflow-x-auto">
+						<table>
+							<thead>
+								<tr>
+									<th style="width: 30px;"><input type="checkbox" id="toggle-select-queue"></th>
+									<th>Review ID</th>
+									<th>Product</th>
+									<th>Seller</th>
+									<th>Customer</th>
+									<th style="text-align: center;">Rating</th>
+									<th>Review Text</th>
+									<th style="text-align: center;">Verified</th>
+									<th style="text-align: center;">Risk</th>
+									<th>Status</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody id="queue-tbody">
+								<!-- Rendered by JS -->
+							</tbody>
+						</table>
+					</div>
+				</section>
+			</div>
+
+			<!-- TAB 2: Reported Reviews -->
+			<div id="reported" class="tab-content">
+				<section class="panel">
+					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+						<span class="material-symbols-rounded">flag</span>
+						Reported Reviews
+					</div>
+
+					<div class="toolbar">
+						<div class="search">
+							<span class="material-symbols-rounded">search</span>
+							<input type="text" id="search-reported" placeholder="Search by Review ID, Product...">
+						</div>
+						<div class="filters">
+							<select class="select" id="filter-reported-reason">
+								<option value="">All Reasons</option>
+								<option value="offensive">Offensive Language</option>
+								<option value="false">False Information</option>
+								<option value="spam">Spam</option>
+								<option value="personal">Personal Attack</option>
+								<option value="promotion">Competitor Promotion</option>
+							</select>
+							<select class="select" id="filter-reported-count">
+								<option value="">All Reports</option>
+								<option value="1">1 Report</option>
+								<option value="2">2+ Reports</option>
+								<option value="3">3+ Reports</option>
+								<option value="5">5+ Reports</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="overflow-x-auto">
+						<table>
+							<thead>
+								<tr>
+									<th>Review ID</th>
+									<th>Product</th>
+									<th>Rating</th>
+									<th>Customer</th>
+									<th style="text-align: center;">Report Count</th>
+									<th>Primary Reason</th>
+									<th>Review Excerpt</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody id="reported-tbody">
+								<!-- Rendered by JS -->
+							</tbody>
+						</table>
+					</div>
+				</section>
+			</div>
+
+			<!-- TAB 3: Suspicious Reviews -->
+			<div id="suspicious" class="tab-content">
+				<section class="panel">
+					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+						<span class="material-symbols-rounded">security</span>
+						Suspicious Reviews
+					</div>
+
+					<div class="toolbar">
+						<div class="search">
+							<span class="material-symbols-rounded">search</span>
+							<input type="text" id="search-suspicious" placeholder="Search by Review ID, Customer...">
+						</div>
+						<div class="filters">
+							<select class="select" id="filter-suspicious-type">
+								<option value="">All Types</option>
+								<option value="duplicate">Duplicate Reviews</option>
+								<option value="bombing">Review Bombing</option>
+								<option value="ip-cluster">Same IP Cluster</option>
+								<option value="spam-keywords">Spam Keywords</option>
+								<option value="pre-delivery">Pre-Delivery Review</option>
+							</select>
+							<select class="select" id="filter-suspicious-risk">
+								<option value="">All Risk Levels</option>
+								<option value="low">Low Risk</option>
+								<option value="medium">Medium Risk</option>
+								<option value="high">High Risk</option>
+							</select>
+						</div>
+					</div>
+
+					<div style="margin-bottom: 12px; display: none;" id="bulk-actions-suspicious" class="bulk-actions">
+						<span class="bulk-count"><input type="checkbox" id="select-all-suspicious"> <span id="bulk-count-suspicious">0</span> selected</span>
+						<button class="btn danger sm" id="btn-bulk-delete-suspicious">🗑️ Delete Suspicious</button>
+						<button class="btn warning sm" id="btn-bulk-investigate">🔍 Investigate</button>
+					</div>
+
+					<div class="overflow-x-auto">
+						<table>
+							<thead>
+								<tr>
+									<th style="width: 30px;"><input type="checkbox" id="toggle-select-suspicious"></th>
+									<th>Review ID</th>
+									<th>Product</th>
+									<th>Customer</th>
+									<th style="text-align: center;">Rating</th>
+									<th>Suspicious Pattern</th>
+									<th>Risk Level</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody id="suspicious-tbody">
+								<!-- Rendered by JS -->
+							</tbody>
+						</table>
+					</div>
+				</section>
+			</div>
+
+			<!-- TAB 4: Abuse Control -->
+			<div id="abuse" class="tab-content">
+				<section class="panel">
+					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+						<span class="material-symbols-rounded">warning</span>
+						Abuse Control
+					</div>
+
+					<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+						<!-- Buyer Abuse -->
+						<div>
+							<h3 style="margin-bottom: 16px; color: var(--text); font-size: 14px;">👤 Buyer Abuse Detection</h3>
+							<div class="toolbar" style="flex-direction: column;">
+								<input type="text" id="search-buyer-abuse" placeholder="Search customer..." />
+								<select class="select" id="filter-buyer-abuse-type">
+									<option value="">All Types</option>
+									<option value="review-spam">Review Spam</option>
+									<option value="extortion">Extortion Attempt</option>
+									<option value="refund-abuse">Refund Abuse</option>
+									<option value="negative-bomb">1-Star Bombing</option>
+								</select>
+							</div>
+
+							<div class="overflow-x-auto" style="margin-top: 16px;">
+								<table>
+									<thead>
+										<tr>
+											<th>Customer</th>
+											<th style="text-align: center;">Violations</th>
+											<th>Status</th>
+											<th>Actions</th>
+										</tr>
+									</thead>
+									<tbody id="buyer-abuse-tbody">
+										<!-- Rendered by JS -->
+									</tbody>
+								</table>
+							</div>
+						</div>
+
+						<!-- Seller Manipulation -->
+						<div>
+							<h3 style="margin-bottom: 16px; color: var(--text); font-size: 14px;">🏪 Seller Review Manipulation</h3>
+							<div class="toolbar" style="flex-direction: column;">
+								<input type="text" id="search-seller-abuse" placeholder="Search seller..." />
+								<select class="select" id="filter-seller-abuse-type">
+									<option value="">All Types</option>
+									<option value="fake-reviews">Fake Reviews</option>
+									<option value="incentive">Incentive Offered</option>
+									<option value="rating-boost">Rating Boost Attempt</option>
+									<option value="suppress">Suppress Negative</option>
+								</select>
+							</div>
+
+							<div class="overflow-x-auto" style="margin-top: 16px;">
+								<table>
+									<thead>
+										<tr>
+											<th>Seller</th>
+											<th style="text-align: center;">Suspicious</th>
+											<th>Status</th>
+											<th>Actions</th>
+										</tr>
+									</thead>
+									<tbody id="seller-abuse-tbody">
+										<!-- Rendered by JS -->
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</section>
+			</div>
+
+			<!-- TAB 5: Analytics Dashboard -->
+			<div id="analytics" class="tab-content">
+				<section class="panel">
+					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+						<span class="material-symbols-rounded">analytics</span>
+						Analytics Dashboard
+					</div>
+
+					<div class="toolbar">
+						<div class="filters">
+							<select class="select" id="filter-analytics-period">
+								<option value="7d">Last 7 Days</option>
+								<option value="30d">Last 30 Days</option>
+								<option value="90d">Last 90 Days</option>
+								<option value="all">All Time</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="analytics-grid">
+						<!-- Average Rating Trend -->
+						<div class="chart-container">
+							<div class="chart-title">⭐ Average Rating Trend</div>
+							<div id="analytics-trend" style="font-size: 32px; font-weight: 700; color: var(--info); text-align: center; margin-bottom: 8px;">4.2</div>
+							<div style="font-size: 12px; color: var(--muted); text-align: center;">↑ 0.3 from last month</div>
+							<div id="analytics-trend-details" style="margin-top: 16px; font-size: 12px;"></div>
+						</div>
+
+						<!-- Rating Distribution -->
+						<div class="chart-container">
+							<div class="chart-title">📊 Rating Distribution</div>
+							<div id="analytics-distribution" style="margin-top: 12px;"></div>
+						</div>
+
+						<!-- Category Ratings -->
+						<div class="chart-container">
+							<div class="chart-title">📂 Category Rating Trends</div>
+							<div id="analytics-category" style="font-size: 12px;"></div>
+						</div>
+
+						<!-- Top Sellers -->
+						<div class="chart-container">
+							<div class="chart-title">🏆 Top Rated Sellers</div>
+							<div id="analytics-sellers" style="font-size: 12px;"></div>
+						</div>
+					</div>
+				</section>
+			</div>
+
+			<!-- TAB 6: Sentiment Analysis -->
+			<div id="sentiment" class="tab-content">
+				<section class="panel">
+					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+						<span class="material-symbols-rounded">sentiment_satisfied</span>
+						Sentiment Analysis
+					</div>
+
+					<div class="toolbar">
+						<div class="filters">
+							<select class="select" id="filter-sentiment-category">
+								<option value="">All Categories</option>
+								<option value="men">Men</option>
+								<option value="women">Women</option>
+								<option value="kids">Kids</option>
+								<option value="accessories">Accessories</option>
+							</select>
+							<select class="select" id="filter-sentiment-period">
+								<option value="7d">Last 7 Days</option>
+								<option value="30d">Last 30 Days</option>
+								<option value="90d">Last 90 Days</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="analytics-grid">
+						<!-- Positive Keywords -->
+						<div class="chart-container">
+							<div class="chart-title">✅ Top Positive Keywords</div>
+							<div id="sentiment-positive" style="margin-top: 12px;"></div>
+						</div>
+
+						<!-- Negative Keywords -->
+						<div class="chart-container">
+							<div class="chart-title">❌ Top Negative Keywords</div>
+							<div id="sentiment-negative" style="margin-top: 12px;"></div>
+						</div>
+
+						<!-- Sentiment Score -->
+						<div class="chart-container">
+							<div class="chart-title">📈 Overall Sentiment Score</div>
+							<div id="sentiment-score" style="margin-top: 12px;"></div>
+						</div>
+
+						<!-- Sentiment by Category -->
+						<div class="chart-container">
+							<div class="chart-title">📊 Sentiment by Category</div>
+							<div id="sentiment-categories" style="margin-top: 12px;"></div>
+						</div>
+					</div>
+				</section>
+			</div>
+
+		</main>
+	</div>
+
+	<!-- MODALS -->
+
+	<!-- Review Details Modal -->
+	<div id="review-modal" class="modal">
+		<div class="modal-card">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+				<h3>Review Details & Moderation</h3>
+				<button class="action-btn" onclick="closeModal('review-modal')">
+					<span class="material-symbols-rounded">close</span>
+				</button>
+			</div>
+			<div id="review-details"></div>
+			<div class="modal-actions">
+				<button class="btn ghost" onclick="closeModal('review-modal')">Close</button>
+				<button class="btn success" id="btn-approve-modal" onclick="approveReviewModal()">✓ Approve</button>
+				<button class="btn danger" id="btn-deny-modal" onclick="denyReviewModal()">✗ Deny</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Settings Modal -->
+	<div id="settings-modal" class="modal">
+		<div class="modal-card">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+				<h3>Moderation Settings</h3>
+				<button class="action-btn" onclick="closeModal('settings-modal')">
+					<span class="material-symbols-rounded">close</span>
+				</button>
+			</div>
+			<div class="settings-grid">
+				<div class="settings-card">
+					<h3>📋 Pre-Moderation</h3>
+					<div class="toggle">
+						<input type="checkbox" id="setting-require-approval" checked>
+						<label for="setting-require-approval">Require approval before publishing</label>
+					</div>
+					<div class="toggle">
+						<input type="checkbox" id="setting-auto-publish-positive">
+						<label for="setting-auto-publish-positive">Auto-publish 4-5 star reviews</label>
+					</div>
+					<div class="toggle">
+						<input type="checkbox" id="setting-auto-flag-negative" checked>
+						<label for="setting-auto-flag-negative">Auto-flag 1-star reviews</label>
+					</div>
+				</div>
+
+				<div class="settings-card">
+					<h3>✔️ Verification</h3>
+					<div class="toggle">
+						<input type="checkbox" id="setting-verified-only">
+						<label for="setting-verified-only">Only verified purchases can review</label>
+					</div>
+					<div class="toggle">
+						<input type="checkbox" id="setting-show-verified-badge" checked>
+						<label for="setting-show-verified-badge">Show verified purchase badge</label>
+					</div>
+					<div class="toggle">
+						<input type="checkbox" id="setting-hide-unverified" checked>
+						<label for="setting-hide-unverified">Hide unverified reviews</label>
+					</div>
+				</div>
+
+				<div class="settings-card">
+					<h3>Spam Detection</h3>
+					<div class="toggle">
+						<input type="checkbox" id="setting-enable-duplicate-detection" checked>
+						<label for="setting-enable-duplicate-detection">Detect duplicate reviews</label>
+					</div>
+					<div class="toggle">
+						<input type="checkbox" id="setting-enable-bombing-detection" checked>
+						<label for="setting-enable-bombing-detection">Detect review bombing</label>
+					</div>
+					<div class="toggle">
+						<input type="checkbox" id="setting-block-pre-delivery" checked>
+						<label for="setting-block-pre-delivery">Block pre-delivery reviews</label>
+					</div>
+				</div>
+
+				<div class="settings-card">
+					<h3>⚠️ Thresholds</h3>
+					<div class="form-group">
+						<label>Max reviews per customer per day</label>
+						<input type="number" id="setting-max-reviews-per-day" value="5" min="1" max="100">
+					</div>
+					<div class="form-group">
+						<label>Risk score threshold for flagging</label>
+						<input type="number" id="setting-risk-threshold" value="60" min="0" max="100">
+					</div>
+					<div class="form-group">
+						<label>Days to prevent review after order</label>
+						<input type="number" id="setting-review-delay-days" value="0" min="0" max="30">
+					</div>
+				</div>
+			</div>
+			<div class="modal-actions">
+				<button class="btn ghost" onclick="closeModal('settings-modal')">Cancel</button>
+				<button class="btn primary" onclick="saveSettings()">💾 Save Settings</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Denial Reason Modal -->
+	<div id="denial-modal" class="modal">
+		<div class="modal-card">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+				<h3>Deny Review</h3>
+				<button class="action-btn" onclick="closeModal('denial-modal')">
+					<span class="material-symbols-rounded">close</span>
+				</button>
+			</div>
+			<div class="form-group">
+				<label>Denial Reason</label>
+				<input type="hidden" id="current-review-id" />
+				<select class="select" id="denial-reason">
+					<option value="">-- Select Reason --</option>
+					<option value="offensive">Offensive Language</option>
+					<option value="spam">Spam/Duplicate</option>
+					<option value="unverified">Unverified Purchase</option>
+					<option value="false">False Information</option>
+					<option value="personal">Personal Attack</option>
+					<option value="promotional">Promotional Content</option>
+					<option value="other">Other</option>
+				</select>
+			</div>
+			<div class="form-group">
+				<label>Additional Notes</label>
+				<textarea id="denial-notes" placeholder="Optional notes for record..."></textarea>
+			</div>
+			<div class="toggle">
+				<input type="checkbox" id="denial-notify-buyer">
+				<label for="denial-notify-buyer">Notify buyer of denial</label>
+			</div>
+			<div class="modal-actions">
+				<button class="btn ghost" onclick="closeModal('denial-modal')">Cancel</button>
+				<button class="btn danger" onclick="confirmDenial()">✗ Confirm Denial</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Audit Log Modal -->
+	<div id="audit-modal" class="modal">
+		<div class="modal-card">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+				<h3>Moderation Audit Log</h3>
+				<button class="action-btn" onclick="closeModal('audit-modal')">
+					<span class="material-symbols-rounded">close</span>
+				</button>
+			</div>
+			<div class="toolbar" style="margin-bottom: 12px;">
+				<div class="search">
+					<span class="material-symbols-rounded">search</span>
+					<input type="text" id="search-audit" placeholder="Search audit log...">
+				</div>
+				<select class="select" id="filter-audit-action">
+					<option value="">All Actions</option>
+					<option value="approved">Review Approved</option>
+					<option value="denied">Review Denied</option>
+					<option value="flagged">Review Flagged</option>
+					<option value="shadowban">Shadow Ban</option>
+					<option value="deleted">Review Deleted</option>
+				</select>
+			</div>
+			<div id="audit-log" style="margin-top: 20px; max-height: 400px; overflow-y: auto;"></div>
+			<div class="modal-actions">
+				<button class="btn ghost" onclick="closeModal('audit-modal')">Close</button>
+				<button class="btn primary sm" onclick="exportAuditLog()">📥 Export CSV</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Toast Notification -->
+	<div id="toast"></div>
+
+  <footer class="bg-white border-t border-gray-100 mt-12 md:ml-64">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-8 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Lumina Admin</p>
+          <p class="text-sm text-gray-600 leading-relaxed">Centralized control for marketplace operations. Monitor users, sellers, and system health.</p>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Operations</p>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Moderation queue</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">System logs</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Audit trail</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Feature flags</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Help</p>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Admin guide</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Contact devops</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Status page</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Policies</p>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Privacy</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Terms</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Admin code of conduct</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-100 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <p class="text-xs font-bold uppercase tracking-widest text-gray-500">&copy; 2026 LUMINA Marketplace. All rights reserved.</p>
+        <div class="flex gap-6">
+          <a href="#" class="text-gray-600 hover:text-gray-900 transition-colors"><i data-lucide="facebook" class="w-4 h-4"></i></a>
+          <a href="#" class="text-gray-600 hover:text-gray-900 transition-colors"><i data-lucide="instagram" class="w-4 h-4"></i></a>
+          <a href="#" class="text-gray-600 hover:text-gray-900 transition-colors"><i data-lucide="twitter" class="w-4 h-4"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+	<script>
+		lucide.createIcons();
+
+		// Sidebar toggle functionality
+		const sidebarToggle = document.getElementById('sidebarToggle');
+		const sidebar = document.getElementById('sidebar');
+		const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+		function openMobileSidebar() {
+			sidebar.classList.remove('hidden');
+			sidebarOverlay.classList.remove('hidden');
+			document.body.style.overflow = 'hidden';
+		}
+
+		function closeMobileSidebar() {
+			sidebar.classList.add('hidden');
+			sidebarOverlay.classList.add('hidden');
+			document.body.style.overflow = 'auto';
+		}
+
+		if (sidebarToggle) {
+			sidebarToggle.addEventListener('click', () => {
+				if (sidebar.classList.contains('hidden')) {
+					openMobileSidebar();
+				} else {
+					closeMobileSidebar();
+				}
+			});
+		}
+
+		if (sidebarOverlay) {
+			sidebarOverlay.addEventListener('click', closeMobileSidebar);
+		}
+
+		if (sidebar) {
+			const sidebarLinks = sidebar.querySelectorAll('a');
+			sidebarLinks.forEach(link => {
+				link.addEventListener('click', closeMobileSidebar);
+			});
+		}
+	</script>
+	<script src="../js/Reviews-Ratings-Management.js"></script>
+</body>
+</html>

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Addresses | LUMINA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #111827; }
+        .glass { background: rgba(255,255,255,0.94); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .account-flyout { width: 360px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
+        .signin-btn { display: inline-block; width: 130px; text-align: center; background: #facc15; border: 1px solid #f59e0b; color: #111827; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 7px; }
+        .signin-btn:hover { background: #fbbf24; }
+        .account-col-title { font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
+        .account-link { display: block; font-size: 12px; color: #374151; line-height: 1.55; }
+        .account-link:hover { color: #111827; text-decoration: underline; }
+        .panel-card { background: #fff; border: 1px solid #e9eef5; border-radius: 18px; box-shadow: 0 12px 28px rgba(15,23,42,0.06); }
+        .summary-banner { background: linear-gradient(135deg, #fff7e8 0%, #ffffff 45%, #eef6ff 100%); border: 1px solid #e8edf5; }
+        .address-card { position: relative; overflow: hidden; }
+        .address-card.default-card { border-color: #f59e0b; box-shadow: 0 18px 38px rgba(245,158,11,0.14); }
+        .default-badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; background: #fff7e0; color: #92400e; border: 1px solid #f7d48b; padding: 6px 10px; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+        .meta-label { font-size: 11px; font-weight: 800; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase; }
+        .meta-value { font-size: 14px; line-height: 1.6; color: #111827; }
+        .action-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 10px; padding: 10px 14px; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid #dce4ee; transition: all 0.2s ease; }
+        .action-btn:hover { transform: translateY(-1px); }
+        .action-btn:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+        .action-btn.edit { background: #f8fbff; color: #1d4ed8; border-color: #d7e6ff; }
+        .action-btn.delete { background: #fff5f5; color: #b91c1c; border-color: #fecaca; }
+        .action-btn.default { background: #fffdf5; color: #a16207; border-color: #fde68a; }
+        .hero-stat { border: 1px solid #ecf1f6; border-radius: 16px; background: rgba(255,255,255,0.9); }
+        .modal-backdrop { background: rgba(15,23,42,0.55); }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            border: 1px solid #d8e0ea;
+            border-radius: 12px;
+            background: #fff;
+            padding: 12px 14px;
+            font-size: 14px;
+            color: #111827;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: #111827;
+            box-shadow: 0 0 0 3px rgba(17,24,39,0.08);
+        }
+        .form-label { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 800; color: #374151; letter-spacing: 0.06em; text-transform: uppercase; }
+        .empty-state { display: none; border: 1px dashed #cdd7e4; border-radius: 18px; background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); }
+
+        @media (max-width: 1024px) {
+            .content-shell { margin-left: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .action-row { flex-direction: column; }
+            .action-btn { width: 100%; }
+        }
+    </style>
+	<script src="/customer-pages/auth.js"></script>
+	<script src="/customer-pages/page-access.js"></script>
+</head>
+<body>
+    <nav class="fixed top-0 w-full z-[100] glass">
+        <div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
+            <div class="flex items-center gap-2 shrink-0">
+                <button id="sidebarToggle" type="button" class="p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
+                <a href="homepage.html" class="text-2xl font-bold tracking-tighter uppercase shrink-0">Lumina</a>
+            </div>
+
+            <div class="hidden md:flex flex-grow relative max-w-2xl mx-auto">
+                <input type="text" placeholder="Search for unique products, clothing or artisans..." class="w-full bg-gray-100 border-transparent border focus:border-black focus:bg-white rounded-full py-2.5 px-6 pl-12 text-sm transition-all outline-none">
+                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+            </div>
+
+            <div class="flex items-center gap-2 lg:gap-6 shrink-0">
+                <div id="accountMenuWrap" class="relative group">
+                    <button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                        <span id="accountMenuLabel" class="hidden sm:block text-xs font-bold uppercase tracking-widest">Account</span>
+                    </button>
+                    <div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block">
+                        <div id="accountMenuContent" class="account-flyout"></div>
+                    </div>
+                </div>
+                <a href="cart.html" class="relative p-2">
+                    <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                    <span id="cartCountBadge" class="absolute top-0 right-0 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
+                </a>
+                <a href="wishlist.html" class="relative p-2">
+                    <i data-lucide="heart" class="w-5 h-5"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+
+    <main class="content-shell mt-20 p-4 lg:p-8 min-h-[calc(100vh-5rem)]">
+        <div class="max-w-7xl mx-auto space-y-6">
+            <section class="panel-card summary-banner p-5 lg:p-6">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+                    <div>
+                        <p class="text-xs font-extrabold tracking-[0.3em] text-amber-700 uppercase mb-2">Address Book</p>
+                        <h1 class="text-3xl lg:text-4xl font-extrabold tracking-tight text-[#232f3e]">My Addresses</h1>
+                        <p class="text-sm lg:text-base text-gray-600 mt-2 max-w-2xl">Manage your delivery addresses for faster checkout.</p>
+                    </div>
+                    <button id="openAddAddress" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#111827] text-white text-sm font-extrabold uppercase tracking-[0.16em] hover:bg-black transition-colors">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Add New Address
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
+                    <div class="hero-stat p-4">
+                        <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-gray-500">Saved Addresses</p>
+                        <p id="savedCount" class="text-2xl font-extrabold text-[#232f3e] mt-2">0</p>
+                    </div>
+                    <div class="hero-stat p-4">
+                        <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-gray-500">Default City</p>
+                        <p id="defaultCity" class="text-2xl font-extrabold text-[#232f3e] mt-2">-</p>
+                    </div>
+                    <div class="hero-stat p-4">
+                        <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-gray-500">Checkout Status</p>
+                        <p id="checkoutHint" class="text-2xl font-extrabold text-[#232f3e] mt-2">Ready</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div id="emptyState" class="empty-state p-10 text-center panel-card">
+                    <div class="w-16 h-16 rounded-full bg-gray-100 text-gray-500 mx-auto mb-4 flex items-center justify-center">
+                        <i data-lucide="map-pin-off" class="w-7 h-7"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-[#232f3e]">No saved addresses yet</h2>
+                    <p class="text-sm text-gray-600 mt-2 max-w-md mx-auto">Add your first delivery address so checkout is faster and your orders can be delivered without extra steps.</p>
+                    <button id="emptyAddBtn" class="mt-5 inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#111827] text-white text-sm font-extrabold uppercase tracking-[0.16em] hover:bg-black transition-colors">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Add New Address
+                    </button>
+                </div>
+
+                <div id="addressGrid" class="grid grid-cols-1 xl:grid-cols-2 gap-5"></div>
+            </section>
+        </div>
+    </main>
+
+    <div id="addressModal" class="hidden fixed inset-0 z-[120] modal-backdrop items-center justify-center px-4 py-6">
+        <div class="panel-card w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between p-5 lg:p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
+                <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-gray-500">Delivery Address</p>
+                    <h2 id="modalTitle" class="text-2xl font-extrabold text-[#232f3e] mt-1">Add New Address</h2>
+                </div>
+                <button id="closeModal" class="w-10 h-10 rounded-full border border-gray-200 hover:bg-gray-50 flex items-center justify-center">
+                    <i data-lucide="x" class="w-5 h-5 text-gray-700"></i>
+                </button>
+            </div>
+
+            <form id="addressForm" class="p-5 lg:p-6 space-y-5">
+                <input type="hidden" id="addressId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="fullName" class="form-label">Full Name</label>
+                        <input id="fullName" class="form-input" type="text" placeholder="Enter full name" required>
+                    </div>
+                    <div>
+                        <label for="phoneNumber" class="form-label">Phone Number</label>
+                        <input id="phoneNumber" class="form-input" type="tel" placeholder="03XX-XXXXXXX" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="streetAddress" class="form-label">Street Address</label>
+                    <textarea id="streetAddress" class="form-textarea min-h-[110px]" placeholder="House, street, block, nearby landmark" required></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="city" class="form-label">City</label>
+                        <input id="city" class="form-input" type="text" placeholder="Enter city" required>
+                    </div>
+                    <div>
+                        <label for="stateProvince" class="form-label">State / Province</label>
+                        <input id="stateProvince" class="form-input" type="text" placeholder="Enter state or province" required>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="postalCode" class="form-label">Postal Code</label>
+                        <input id="postalCode" class="form-input" type="text" placeholder="Enter postal code" required>
+                    </div>
+                    <div>
+                        <label for="country" class="form-label">Country</label>
+                        <select id="country" class="form-select" required>
+                            <option value="">Select country</option>
+                            <option value="Pakistan">Pakistan</option>
+                            <option value="India">India</option>
+                            <option value="Bangladesh">Bangladesh</option>
+                            <option value="UAE">UAE</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label class="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 cursor-pointer">
+                    <input id="isDefault" type="checkbox" class="w-4 h-4 accent-black">
+                    <span>
+                        <span class="block text-sm font-bold text-[#232f3e]">Use as default address</span>
+                        <span class="block text-xs text-gray-500 mt-1">This address will be selected first during checkout.</span>
+                    </span>
+                </label>
+
+                <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 pt-2">
+                    <button id="cancelAddress" type="button" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-sm font-extrabold uppercase tracking-[0.16em] text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#111827] text-white text-sm font-extrabold uppercase tracking-[0.16em] hover:bg-black transition-colors">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        Save Address
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+
+        function resolveCurrentUserId() {
+            try {
+                const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+                if (rawUser) {
+                    const parsed = JSON.parse(rawUser);
+                    return String(parsed.id || parsed.userId || parsed.customerId || '1').trim();
+                }
+            } catch (_) {}
+            return '1';
+        }
+
+        async function fetchJson(url, options = {}) {
+            if (!IS_LIVE_HOST) {
+                throw new Error('Open this page on localhost to use database-backed address data.');
+            }
+
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {})
+                }
+            });
+
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || payload.success === false) {
+                throw new Error(payload.message || 'Request failed');
+            }
+
+            return payload.data;
+        }
+
+        function resolveAuthState() {
+            const state = { isLoggedIn: false, fullName: '' };
+
+            try {
+                const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+                const isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+                if (rawUser) {
+                    const parsed = JSON.parse(rawUser);
+                    const name = String(parsed.fullName || parsed.name || '').trim();
+                    state.isLoggedIn = Boolean(name) || isLoggedIn;
+                    state.fullName = name;
+                } else {
+                    state.isLoggedIn = isLoggedIn;
+                }
+            } catch (_) {
+                state.isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+            }
+
+            return state;
+        }
+
+        function renderAccountFlyout() {
+            const auth = resolveAuthState();
+            const content = document.getElementById('accountMenuContent');
+            const label = document.getElementById('accountMenuLabel');
+            if (!content || !label) return;
+
+            if (!auth.isLoggedIn) {
+                label.textContent = 'Account';
+                content.innerHTML = `
+                    <div class="px-4 py-3 border-b border-gray-200 text-center">
+                        <a href="login_register.html" class="signin-btn">Sign in</a>
+                        <p class="text-[10px] text-gray-500 mt-1">New customer? <a href="login_register.html" class="text-blue-600 hover:underline">Start here.</a></p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-0">
+                        <div class="px-4 py-3 border-r border-gray-200">
+                            <h4 class="account-col-title">Your Lists</h4>
+                            <a href="wishlist.html" class="account-link">Create a List</a>
+                            <a href="login_register.html" class="account-link">Find a List or Registry</a>
+                        </div>
+                        <div class="px-4 py-3">
+                            <h4 class="account-col-title">Your Account</h4>
+                            <a href="login_register.html" class="account-link">Customer Dashboard</a>
+                            <a href="login_register.html" class="account-link">My Profile</a>
+                            <a href="login_register.html" class="account-link">My Orders</a>
+                            <a href="login_register.html" class="account-link">Cart</a>
+                            <a href="login_register.html" class="account-link">My Addresses</a>
+                            <a href="login_register.html" class="account-link">Messages</a>
+                            <a href="login_register.html" class="account-link">Returns & Refunds</a>
+                            <a href="login_register.html" class="account-link">Security Settings</a>
+                            <a href="login_register.html" class="account-link">Help & Support</a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const firstName = auth.fullName ? auth.fullName.split(' ')[0] : 'Account';
+                label.textContent = firstName;
+                content.innerHTML = `
+                    <div class="px-4 py-3 border-b border-gray-200 text-center">
+                        <a href="Customer_Dashboard.html" class="signin-btn">Go to Dashboard</a>
+                        <p class="text-[10px] text-gray-500 mt-1">Signed in as ${auth.fullName || 'Customer'}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-0">
+                        <div class="px-4 py-3 border-r border-gray-200">
+                            <h4 class="account-col-title">Your Lists</h4>
+                            <a href="wishlist.html" class="account-link">Wishlist</a>
+                            <a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+                            <a href="my_messages.html" class="account-link">Messages</a>
+                        </div>
+                        <div class="px-4 py-3">
+                            <h4 class="account-col-title">Your Account</h4>
+                            <a href="Customer_Dashboard.html" class="account-link">Customer Dashboard</a>
+                            <a href="my_profile.html" class="account-link">My Profile</a>
+                            <a href="my_orders.html" class="account-link">My Orders</a>
+                            <a href="cart.html" class="account-link">Cart</a>
+                            <a href="my_addresses.html" class="account-link">My Addresses</a>
+                            <a href="my_messages.html" class="account-link">Messages</a>
+                            <a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+                            <a href="security_settings.html" class="account-link">Security Settings</a>
+                            <a href="help_support.html" class="account-link">Help & Support</a>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        const accountMenuButton = document.getElementById('accountMenuButton');
+        const accountMenuDropdown = document.getElementById('accountMenuDropdown');
+        const accountMenuWrap = document.getElementById('accountMenuWrap');
+
+        if (accountMenuButton && accountMenuDropdown) {
+            accountMenuButton.addEventListener('click', () => {
+                accountMenuDropdown.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (event) => {
+                if (accountMenuWrap && !accountMenuWrap.contains(event.target)) {
+                    accountMenuDropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        renderAccountFlyout();
+
+        let addresses = [];
+
+        const addressGrid = document.getElementById('addressGrid');
+        const emptyState = document.getElementById('emptyState');
+        const addressModal = document.getElementById('addressModal');
+        const addressForm = document.getElementById('addressForm');
+        const modalTitle = document.getElementById('modalTitle');
+        const savedCount = document.getElementById('savedCount');
+        const defaultCity = document.getElementById('defaultCity');
+        const checkoutHint = document.getElementById('checkoutHint');
+
+        async function loadCartCount() {
+            try {
+                const userId = resolveCurrentUserId();
+                const data = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+                const badge = document.getElementById('cartCountBadge');
+                if (badge) badge.textContent = String(Number(data?.totalItems) || 0);
+            } catch (_) {
+                const badge = document.getElementById('cartCountBadge');
+                if (badge) badge.textContent = '0';
+            }
+        }
+
+        function ensureDefaultAddress() {
+            if (!addresses.length) return;
+            if (!addresses.some((address) => address.isDefault)) {
+                addresses[0].isDefault = true;
+            }
+        }
+
+        function getDefaultAddress() {
+            return addresses.find((address) => address.isDefault) || null;
+        }
+
+        async function updateStatsFromApi() {
+            try {
+                const userId = resolveCurrentUserId();
+                const summary = await fetchJson(`${API_BASE_URL}/customer/addresses/summary?userId=${encodeURIComponent(userId)}`);
+                savedCount.textContent = String(Number(summary.savedCount) || 0);
+                defaultCity.textContent = summary.defaultCity || '-';
+                checkoutHint.textContent = summary.checkoutStatus || 'Ready';
+            } catch (_) {
+                savedCount.textContent = String(addresses.length);
+                const defaultAddress = getDefaultAddress();
+                defaultCity.textContent = defaultAddress ? defaultAddress.city : '-';
+                checkoutHint.textContent = defaultAddress ? 'Ready' : 'Needs Default';
+            }
+        }
+
+        function renderAddresses() {
+            ensureDefaultAddress();
+
+            if (!addresses.length) {
+                addressGrid.innerHTML = '';
+                emptyState.style.display = 'block';
+                lucide.createIcons();
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            addressGrid.innerHTML = addresses.map((address) => {
+                const fullAddress = `${address.streetAddress}, ${address.stateProvince}, ${address.country}`;
+                return `
+                    <article class="panel-card address-card p-5 lg:p-6 ${address.isDefault ? 'default-card' : ''}">
+                        <div class="flex items-start justify-between gap-3 mb-5">
+                            <div>
+                                <h3 class="text-xl font-extrabold text-[#232f3e]">${address.fullName}</h3>
+                                <p class="text-sm text-gray-500 mt-1">Delivery contact</p>
+                            </div>
+                            ${address.isDefault ? '<span class="default-badge"><i data-lucide="badge-check" class="w-3.5 h-3.5"></i>Default Address</span>' : ''}
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <p class="meta-label">Phone Number</p>
+                                <p class="meta-value mt-2">${address.phoneNumber}</p>
+                            </div>
+                            <div>
+                                <p class="meta-label">City</p>
+                                <p class="meta-value mt-2">${address.city}</p>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <p class="meta-label">Full Address</p>
+                                <p class="meta-value mt-2">${fullAddress}</p>
+                            </div>
+                            <div>
+                                <p class="meta-label">Postal Code</p>
+                                <p class="meta-value mt-2">${address.postalCode}</p>
+                            </div>
+                            <div>
+                                <p class="meta-label">Country</p>
+                                <p class="meta-value mt-2">${address.country}</p>
+                            </div>
+                        </div>
+
+                        <div class="action-row flex flex-wrap gap-3 mt-6">
+                            <button class="action-btn edit" type="button" onclick="editAddress('${address.id}')">
+                                <i data-lucide="pencil-line" class="w-4 h-4"></i>
+                                Edit Address
+                            </button>
+                            <button class="action-btn delete" type="button" onclick="deleteAddress('${address.id}')">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                Delete Address
+                            </button>
+                            <button class="action-btn default" type="button" onclick="setDefaultAddress('${address.id}')" ${address.isDefault ? 'disabled' : ''}>
+                                <i data-lucide="badge-check" class="w-4 h-4"></i>
+                                ${address.isDefault ? 'Default Selected' : 'Set as Default'}
+                            </button>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function openModal(mode, address) {
+            modalTitle.textContent = mode === 'edit' ? 'Edit Address' : 'Add New Address';
+            if (address) {
+                document.getElementById('addressId').value = address.id;
+                document.getElementById('fullName').value = address.fullName;
+                document.getElementById('phoneNumber').value = address.phoneNumber;
+                document.getElementById('streetAddress').value = address.streetAddress;
+                document.getElementById('city').value = address.city;
+                document.getElementById('stateProvince').value = address.stateProvince;
+                document.getElementById('postalCode').value = address.postalCode;
+                document.getElementById('country').value = address.country;
+                document.getElementById('isDefault').checked = address.isDefault;
+            } else {
+                addressForm.reset();
+                document.getElementById('addressId').value = '';
+                document.getElementById('isDefault').checked = addresses.length === 0;
+            }
+            addressModal.classList.remove('hidden');
+            addressModal.classList.add('flex');
+        }
+
+        function closeModal() {
+            addressModal.classList.add('hidden');
+            addressModal.classList.remove('flex');
+            addressForm.reset();
+            document.getElementById('addressId').value = '';
+        }
+
+        window.editAddress = function (id) {
+            const address = addresses.find((entry) => entry.id === id);
+            if (!address) return;
+            openModal('edit', address);
+        };
+
+        window.deleteAddress = function (id) {
+            const index = addresses.findIndex((entry) => String(entry.id) === String(id));
+            if (index === -1) return;
+            if (!confirm('Delete this address from your account?')) return;
+
+            (async () => {
+                try {
+                    const userId = resolveCurrentUserId();
+                    await fetchJson(`${API_BASE_URL}/customer/addresses/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, {
+                        method: 'DELETE'
+                    });
+                    await loadAddresses();
+                } catch (error) {
+                    alert(error.message || 'Failed to delete address.');
+                }
+            })();
+        };
+
+        window.setDefaultAddress = function (id) {
+            (async () => {
+                try {
+                    const userId = resolveCurrentUserId();
+                    await fetchJson(`${API_BASE_URL}/customer/addresses/${encodeURIComponent(id)}/default?userId=${encodeURIComponent(userId)}`, {
+                        method: 'PATCH'
+                    });
+                    await loadAddresses();
+                } catch (error) {
+                    alert(error.message || 'Failed to set default address.');
+                }
+            })();
+        };
+
+        function collectFormData() {
+            return {
+                id: document.getElementById('addressId').value || `addr-${Date.now()}`,
+                fullName: document.getElementById('fullName').value.trim(),
+                phoneNumber: document.getElementById('phoneNumber').value.trim(),
+                streetAddress: document.getElementById('streetAddress').value.trim(),
+                city: document.getElementById('city').value.trim(),
+                stateProvince: document.getElementById('stateProvince').value.trim(),
+                postalCode: document.getElementById('postalCode').value.trim(),
+                country: document.getElementById('country').value,
+                isDefault: document.getElementById('isDefault').checked
+            };
+        }
+
+        function validateAddress(data) {
+            return Object.values(data).every((value) => value !== '');
+        }
+
+        function handleSave(event) {
+            event.preventDefault();
+            const payload = collectFormData();
+
+            if (!validateAddress(payload)) {
+                alert('Please complete all address fields before saving.');
+                return;
+            }
+
+            (async () => {
+                try {
+                    const userId = resolveCurrentUserId();
+                    const addressId = document.getElementById('addressId').value;
+                    const requestPayload = {
+                        fullName: payload.fullName,
+                        phoneNumber: payload.phoneNumber,
+                        streetAddress: payload.streetAddress,
+                        city: payload.city,
+                        stateProvince: payload.stateProvince,
+                        postalCode: payload.postalCode,
+                        country: payload.country,
+                        isDefault: payload.isDefault,
+                        label: 'home'
+                    };
+
+                    if (addressId) {
+                        await fetchJson(`${API_BASE_URL}/customer/addresses/${encodeURIComponent(addressId)}?userId=${encodeURIComponent(userId)}`, {
+                            method: 'PUT',
+                            body: JSON.stringify(requestPayload)
+                        });
+                    } else {
+                        await fetchJson(`${API_BASE_URL}/customer/addresses?userId=${encodeURIComponent(userId)}`, {
+                            method: 'POST',
+                            body: JSON.stringify(requestPayload)
+                        });
+                    }
+
+                    await loadAddresses();
+                    closeModal();
+                } catch (error) {
+                    alert(error.message || 'Failed to save address.');
+                }
+            })();
+        }
+
+        async function loadAddresses() {
+            if (!IS_LIVE_HOST) {
+                addresses = [];
+                renderAddresses();
+                savedCount.textContent = '0';
+                defaultCity.textContent = '-';
+                checkoutHint.textContent = 'Needs Default';
+                const badge = document.getElementById('cartCountBadge');
+                if (badge) badge.textContent = '0';
+                return;
+            }
+
+            try {
+                const userId = resolveCurrentUserId();
+                const list = await fetchJson(`${API_BASE_URL}/customer/addresses?userId=${encodeURIComponent(userId)}`);
+                addresses = Array.isArray(list) ? list : [];
+                renderAddresses();
+                await updateStatsFromApi();
+                await loadCartCount();
+            } catch (error) {
+                addresses = [];
+                renderAddresses();
+                savedCount.textContent = '0';
+                defaultCity.textContent = '-';
+                checkoutHint.textContent = 'Needs Default';
+                alert(error.message || 'Failed to load addresses.');
+            }
+        }
+
+        document.getElementById('openAddAddress').addEventListener('click', () => openModal('add'));
+        document.getElementById('emptyAddBtn').addEventListener('click', () => openModal('add'));
+        document.getElementById('closeModal').addEventListener('click', closeModal);
+        document.getElementById('cancelAddress').addEventListener('click', closeModal);
+        addressModal.addEventListener('click', (event) => {
+            if (event.target === addressModal) {
+                closeModal();
+            }
+        });
+        addressForm.addEventListener('submit', handleSave);
+
+        if (IS_LIVE_HOST) {
+            loadAddresses();
+        } else {
+            addresses = [];
+            renderAddresses();
+            savedCount.textContent = '0';
+            defaultCity.textContent = '-';
+            checkoutHint.textContent = 'Needs Default';
+        }
+        lucide.createIcons();
+    </script>
+</body>
+</html>

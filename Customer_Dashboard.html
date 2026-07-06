@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard | LUMINA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; background: #f8fafc; color: #111827; }
+        .serif { font-family: 'Playfair Display', serif; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+        .account-flyout { width: 360px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
+        .signin-btn { display: inline-block; width: 130px; text-align: center; background: #facc15; border: 1px solid #f59e0b; color: #111827; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 7px; }
+        .signin-btn:hover { background: #fbbf24; }
+        .account-col-title { font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
+        .account-link { display: block; font-size: 12px; color: #374151; line-height: 1.55; }
+        .account-link:hover { color: #111827; text-decoration: underline; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .hero-panel {
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 55%, #f7f2ff 100%);
+        }
+
+        .hero-title {
+            color: #111827;
+            font-size: 32px;
+            line-height: 1.1;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 4px;
+        }
+
+        .hero-subtitle {
+            color: #4b5563;
+            font-size: 15px;
+            line-height: 1.55;
+        }
+
+        .hero-icon-wrap {
+            background: #ffffff;
+            border-color: #e0e7ff;
+            box-shadow: 0 8px 18px rgba(99, 102, 241, 0.12);
+        }
+
+        .hero-icon {
+            color: #5b5ce2;
+        }
+
+        .hero-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e8edf5;
+        }
+
+        .hero-stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .hero-stat-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            flex-shrink: 0;
+        }
+
+        .hero-stat-value {
+            font-size: 15px;
+            line-height: 1;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .hero-stat-label {
+            font-size: 15px;
+            line-height: 1;
+            font-weight: 500;
+            color: #667085;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 26px;
+        }
+
+        .quick-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border: 1px solid #d7dce2;
+            background: #fff;
+            color: #232f3e;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .quick-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+        }
+
+        .quick-btn.primary {
+            background: #232f3e;
+            border-color: #232f3e;
+            color: #fff;
+        }
+
+        .metrics-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            flex: 1 1 220px;
+            background: white;
+            padding: 16px;
+            border-radius: 18px;
+            border-left: 5px solid;
+            border: 1px solid #e8edf5;
+            box-shadow: 0 12px 28px rgba(15,23,42,0.06);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            transform: translateY(-4px);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .metric-header p {
+            opacity: 0.7;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 0;
+        }
+
+        .metric-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #f4f7fb;
+            color: #232f3e;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #232f3e;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 24px;
+            margin-bottom: 0;
+        }
+
+        .panel-card {
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 12px 28px rgba(15,23,42,0.06);
+            padding: 20px 28px;
+            border: 1px solid #e8edf5;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .panel-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #232f3e;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-link {
+            font-size: 12px;
+            font-weight: 700;
+            color: #0066c0;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .panel-link:hover { text-decoration: underline; }
+
+        .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .order-row {
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 10px;
+            display: grid;
+            grid-template-columns: 56px 1.2fr 0.8fr 0.7fr auto;
+            gap: 10px;
+            align-items: center;
+            background: #fff;
+            transition: background 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .order-row:hover {
+            background: #fafbfd;
+            box-shadow: 0 6px 18px rgba(15,23,42,0.05);
+        }
+
+        .order-img {
+            width: 56px;
+            height: 56px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid #eee;
+        }
+
+        .order-name { font-size: 13px; font-weight: 700; color: #232f3e; }
+        .order-meta { font-size: 12px; color: #666; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-shipped { background-color: #d1ecf1; color: #0c5460; }
+        .status-delivered { background-color: #d4edda; color: #155724; }
+
+        .btn-view {
+            border: 1px solid #d8dde3;
+            background: #fff;
+            color: #232f3e;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 8px 10px;
+            border-radius: 7px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-view:hover { background: #f5f5f5; }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .product-card {
+            border: 1px solid #e7eaef;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #fff;
+            transition: all 0.25s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .product-thumb {
+            width: 100%;
+            height: 145px;
+            object-fit: cover;
+        }
+
+        .product-body { padding: 10px; }
+
+        .product-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #232f3e;
+            margin-bottom: 6px;
+            min-height: 34px;
+            line-height: 1.35;
+        }
+
+        .product-price {
+            font-size: 15px;
+            color: #b12704;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .btn-row { display: flex; gap: 8px; }
+
+        .tiny-btn {
+            flex: 1;
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            text-decoration: none;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tiny-btn.view {
+            background: #fff;
+            color: #232f3e;
+            border-color: #d5dbe3;
+        }
+
+        .tiny-btn.cart {
+            background: #ffd814;
+            border-color: #f0c808;
+            color: #111;
+        }
+
+        .tiny-btn.view:hover { background: #f5f5f5; }
+        .tiny-btn.cart:hover { background: #f7ca00; }
+
+        @media (max-width: 1024px) {
+            .content-grid { grid-template-columns: 1fr; }
+            .products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            footer { margin-left: 0 !important; }
+        }
+
+        @media (max-width: 768px) {
+            .metrics-grid { gap: 12px; }
+            .metric-card { flex: 1 1 100%; }
+            .products-grid { grid-template-columns: 1fr; }
+            .panel-card { padding: 18px; }
+            .order-row {
+                grid-template-columns: 56px 1fr;
+                grid-template-areas:
+                    "img meta"
+                    "img date"
+                    "status action";
+            }
+            .order-row > :nth-child(1) { grid-area: img; }
+            .order-row > :nth-child(2) { grid-area: meta; }
+            .order-row > :nth-child(3) { grid-area: date; }
+            .order-row > :nth-child(4) { grid-area: status; }
+            .order-row > :nth-child(5) { grid-area: action; justify-self: end; }
+            .panel-card { padding: 16px; }
+            .btn-view, .tiny-btn { width: 100%; justify-content: center; }
+            .btn-row { flex-direction: column; }
+            footer { margin-left: 0 !important; }
+        }
+
+        @media (max-width: 640px) {
+            main { padding: 12px !important; }
+            .hero-panel { padding: 16px !important; }
+            .hero-panel .w-14 { width: 3.25rem; height: 3.25rem; }
+            .hero-panel .w-7 { width: 1.25rem; height: 1.25rem; }
+            .hero-title { font-size: 26px; }
+            .hero-subtitle { font-size: 14px; }
+            .hero-stats { gap: 12px 16px; }
+            .hero-stat-label { font-size: 14px; }
+            .quick-btn { width: 100%; justify-content: center; }
+            .order-row { grid-template-columns: 48px 1fr; padding: 10px; }
+            .order-img { width: 48px; height: 48px; }
+            .content-grid { gap: 14px; }
+            .products-grid { gap: 12px; }
+            .panel-card { padding: 16px; }
+        }
+    </style>
+    <script src="/customer-pages/auth.js"></script>
+    <script src="/customer-pages/page-access.js"></script>
+</head>
+<body class="bg-[#f9fafb] text-[#1a1a1a]">
+
+    <nav class="fixed top-0 w-full z-[100] glass">
+        <div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
+            <div class="flex items-center gap-2 shrink-0">
+                <button id="sidebarToggle" type="button" class="p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
+                <a href="homepage.html" class="text-2xl font-bold tracking-tighter uppercase shrink-0">Lumina</a>
+            </div>
+
+            <div class="hidden md:flex flex-grow relative max-w-2xl mx-auto">
+                <input type="text" placeholder="Search for unique products, clothing or artisans..." class="w-full bg-gray-100 border-transparent border focus:border-black focus:bg-white rounded-full py-2.5 px-6 pl-12 text-sm transition-all outline-none">
+                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+            </div>
+
+            <div class="flex items-center gap-2 lg:gap-6 shrink-0">
+                <div id="accountMenuWrap" class="relative group">
+                    <button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                        <span id="accountMenuLabel" class="hidden sm:block text-xs font-bold uppercase tracking-widest">Account</span>
+                    </button>
+                    <div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block">
+                        <div id="accountMenuContent" class="account-flyout"></div>
+                    </div>
+                </div>
+                <a href="cart.html" class="relative p-2">
+                    <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                    <span id="cartCountBadge" class="absolute top-0 right-0 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
+                </a>
+                <a href="wishlist.html" class="relative p-2">
+                    <i data-lucide="heart" class="w-5 h-5"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+
+
+    <main class="mt-20 p-4 lg:p-8 min-h-[calc(100vh-5rem)]">
+        <div class="max-w-7xl mx-auto dashboard-page">
+            <section class="panel-card hero-panel p-5 lg:p-7 mb-6 lg:mb-8">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div class="w-14 h-14 hero-icon-wrap border rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <i data-lucide="layout-dashboard" class="w-7 h-7 hero-icon"></i>
+                    </div>
+                    <div>
+                        <h1 id="dashboardGreeting" class="hero-title">Hello, User &#128075;</h1>
+                        <p id="dashboardSubtitle" class="hero-subtitle">Welcome back! Here is a quick overview of your account.</p>
+                    </div>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat"><span class="hero-stat-dot" style="background:#fbbf24;"></span><span id="statTotalOrders" class="hero-stat-value">0</span><span class="hero-stat-label">Orders</span></div>
+                    <div class="hero-stat"><span class="hero-stat-dot" style="background:#3b82f6;"></span><span id="statPendingOrders" class="hero-stat-value">0</span><span class="hero-stat-label">Pending</span></div>
+                    <div class="hero-stat"><span class="hero-stat-dot" style="background:#10b981;"></span><span id="statDeliveredOrders" class="hero-stat-value">0</span><span class="hero-stat-label">Delivered</span></div>
+                    <div class="hero-stat"><span class="hero-stat-dot" style="background:#9ca3af;"></span><span id="statWishlistItems" class="hero-stat-value">0</span><span class="hero-stat-label">Wishlist</span></div>
+                </div>
+            </section>
+
+            <div class="content-grid">
+                <section id="recent-orders" class="panel-card">
+                    <div class="panel-header">
+                        <div class="panel-title"><i data-lucide="receipt-text" class="w-5 h-5"></i>Recent Orders</div>
+                        <a class="panel-link" href="my_orders.html">View all</a>
+                    </div>
+                    <div id="recentOrdersList" class="orders-list">
+                        <div class="order-row">
+                            <div class="order-meta">Loading recent orders...</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel-card">
+                    <div class="panel-header">
+                        <div class="panel-title"><i data-lucide="history" class="w-5 h-5"></i>Recently Viewed</div>
+                    </div>
+                    <div id="recentlyViewedList" class="products-grid" style="grid-template-columns: 1fr;">
+                        <div class="product-card">
+                            <div class="product-body">
+                                <p class="product-name">Loading recently viewed...</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <section class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title"><i data-lucide="sparkles" class="w-5 h-5"></i>Recommended Products</div>
+                </div>
+                <div id="recommendedProductsList" class="products-grid">
+                    <div class="product-card">
+                        <div class="product-body">
+                            <p class="product-name">Loading recommendations...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-gray-100 mt-12 md:ml-0">
+        <div class="max-w-[1440px] mx-auto px-4 lg:px-8 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">About LUMINA</p>
+                    <p class="text-sm text-gray-600 leading-relaxed">Bringing trusted sellers and quality products together for a delightful shopping journey.</p>
+                </div>
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Shopping</p>
+                    <ul class="space-y-2">
+                        <li><a href="all_product_spages.html" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">All Products</a></li>
+                        <li><a href="wishlist.html" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Wishlist</a></li>
+                        <li><a href="cart.html" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Cart</a></li>
+                        <li><a href="checkout.html" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Checkout</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Support</p>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Help Center</a></li>
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Contact Us</a></li>
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Shipping & Returns</a></li>
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Track Order</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Policies</p>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Refund Policy</a></li>
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Code of Conduct</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-100 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                <p class="text-xs font-bold uppercase tracking-widest text-gray-500">&copy; 2026 LUMINA Marketplace. All rights reserved.</p>
+                <div class="flex gap-6">
+                    <a href="#" class="text-gray-600 hover:text-gray-900 transition-colors"><i data-lucide="facebook" class="w-4 h-4"></i></a>
+                    <a href="#" class="text-gray-600 hover:text-gray-900 transition-colors"><i data-lucide="instagram" class="w-4 h-4"></i></a>
+                    <a href="#" class="text-gray-600 hover:text-gray-900 transition-colors"><i data-lucide="twitter" class="w-4 h-4"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function resolveAuthState() {
+            const state = { isLoggedIn: false, fullName: '' };
+
+            try {
+                const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+                const isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+                if (rawUser) {
+                    const parsed = JSON.parse(rawUser);
+                    const name = String(parsed.fullName || parsed.name || '').trim();
+                    state.isLoggedIn = Boolean(name) || isLoggedIn;
+                    state.fullName = name;
+                } else {
+                    state.isLoggedIn = isLoggedIn;
+                }
+            } catch (_) {
+                state.isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+            }
+
+            return state;
+        }
+
+        function renderAccountFlyout() {
+            const auth = resolveAuthState();
+            const content = document.getElementById('accountMenuContent');
+            const label = document.getElementById('accountMenuLabel');
+            if (!content || !label) return;
+
+            if (!auth.isLoggedIn) {
+                label.textContent = 'Account';
+                content.innerHTML = `
+                    <div class="px-4 py-3 border-b border-gray-200 text-center">
+                        <a href="login_register.html" class="signin-btn">Sign in</a>
+                        <p class="text-[10px] text-gray-500 mt-1">New customer? <a href="login_register.html" class="text-blue-600 hover:underline">Start here.</a></p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-0">
+                        <div class="px-4 py-3 border-r border-gray-200">
+                            <h4 class="account-col-title">Your Lists</h4>
+                            <a href="wishlist.html" class="account-link">Create a List</a>
+                            <a href="login_register.html" class="account-link">Find a List or Registry</a>
+                        </div>
+                        <div class="px-4 py-3">
+                            <h4 class="account-col-title">Your Account</h4>
+                            <a href="login_register.html" class="account-link">Customer Dashboard</a>
+                            <a href="login_register.html" class="account-link">My Profile</a>
+                            <a href="login_register.html" class="account-link">My Orders</a>
+                            <a href="login_register.html" class="account-link">Cart</a>
+                            <a href="login_register.html" class="account-link">My Addresses</a>
+                            <a href="login_register.html" class="account-link">Messages</a>
+                            <a href="login_register.html" class="account-link">Returns & Refunds</a>
+                            <a href="login_register.html" class="account-link">Security Settings</a>
+                            <a href="login_register.html" class="account-link">Help & Support</a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const firstName = auth.fullName ? auth.fullName.split(' ')[0] : 'Account';
+                label.textContent = firstName;
+                content.innerHTML = `
+                    <div class="px-4 py-3 border-b border-gray-200 text-center">
+                        <a href="Customer_Dashboard.html" class="signin-btn">Go to Dashboard</a>
+                        <p class="text-[10px] text-gray-500 mt-1">Signed in as ${auth.fullName || 'Customer'}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-0">
+                        <div class="px-4 py-3 border-r border-gray-200">
+                            <h4 class="account-col-title">Your Lists</h4>
+                            <a href="wishlist.html" class="account-link">Wishlist</a>
+                            <a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+                            <a href="my_messages.html" class="account-link">Messages</a>
+                        </div>
+                        <div class="px-4 py-3">
+                            <h4 class="account-col-title">Your Account</h4>
+                            <a href="Customer_Dashboard.html" class="account-link">Customer Dashboard</a>
+                            <a href="my_profile.html" class="account-link">My Profile</a>
+                            <a href="my_orders.html" class="account-link">My Orders</a>
+                            <a href="cart.html" class="account-link">Cart</a>
+                            <a href="my_addresses.html" class="account-link">My Addresses</a>
+                            <a href="my_messages.html" class="account-link">Messages</a>
+                            <a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+                            <a href="security_settings.html" class="account-link">Security Settings</a>
+                            <a href="help_support.html" class="account-link">Help & Support</a>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        const accountMenuButton = document.getElementById('accountMenuButton');
+        const accountMenuDropdown = document.getElementById('accountMenuDropdown');
+        const accountMenuWrap = document.getElementById('accountMenuWrap');
+
+        if (accountMenuButton && accountMenuDropdown) {
+            accountMenuButton.addEventListener('click', () => {
+                accountMenuDropdown.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (event) => {
+                if (accountMenuWrap && !accountMenuWrap.contains(event.target)) {
+                    accountMenuDropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        const API_BASE_URL = 'http://localhost:5000/api';
+        const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+
+        function resolveCurrentUserId() {
+            try {
+                const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+                if (rawUser) {
+                    const parsed = JSON.parse(rawUser);
+                    return String(parsed.id || parsed.userId || parsed.customerId || '1').trim();
+                }
+            } catch (_) {}
+
+            return '1';
+        }
+
+        async function fetchJson(url) {
+            const response = await fetch(url);
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || payload.success === false) {
+                throw new Error(payload.message || 'Request failed');
+            }
+            return payload.data;
+        }
+
+        function formatCurrency(value, currency = 'PKR') {
+            const amount = Number(value) || 0;
+            const symbols = { PKR: 'Rs.', BDT: 'Tk' };
+            const symbol = symbols[currency] || 'Rs.';
+            return `${symbol} ${amount.toLocaleString('en-PK')}`;
+        }
+
+        function formatDate(value) {
+            if (!value) return 'N/A';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return 'N/A';
+            return date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function getStatusClass(status) {
+            const normalized = String(status || '').toLowerCase();
+            if (normalized === 'delivered') return 'status-delivered';
+            if (['shipped', 'confirmed', 'processing', 'packed', 'ready_for_pickup'].includes(normalized)) return 'status-shipped';
+            return 'status-pending';
+        }
+
+        function toDisplayStatus(status) {
+            const normalized = String(status || '').toLowerCase();
+            if (!normalized) return 'Pending';
+            if (normalized === 'ready_for_pickup') return 'Ready for Pickup';
+            return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+        }
+
+        function productLink(productId, slug) {
+            if (slug) return `products_details.html?slug=${encodeURIComponent(slug)}`;
+            if (productId) return `products_details.html?id=${encodeURIComponent(productId)}`;
+            return 'products_details.html';
+        }
+
+        function updateHero(profile, metrics) {
+            const greeting = document.getElementById('dashboardGreeting');
+            const subtitle = document.getElementById('dashboardSubtitle');
+            const firstName = String(profile?.fullName || 'User').trim().split(' ')[0] || 'User';
+
+            if (greeting) greeting.innerHTML = `Hello, ${escapeHtml(firstName)} &#128075;`;
+            if (subtitle) subtitle.textContent = 'Welcome back! Here is a quick overview of your account.';
+
+            const map = {
+                statTotalOrders: metrics?.totalOrders,
+                statPendingOrders: metrics?.pendingOrders,
+                statDeliveredOrders: metrics?.deliveredOrders,
+                statWishlistItems: metrics?.wishlistItems
+            };
+
+            Object.entries(map).forEach(([id, value]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = String(Number(value) || 0);
+            });
+        }
+
+        function renderRecentOrders(orders) {
+            const container = document.getElementById('recentOrdersList');
+            if (!container) return;
+
+            if (!Array.isArray(orders) || orders.length === 0) {
+                container.innerHTML = '<div class="order-row"><div class="order-meta">No recent orders found.</div></div>';
+                return;
+            }
+
+            container.innerHTML = orders.map((order) => {
+                const image = order.productImage || 'https://via.placeholder.com/120';
+                const name = order.productName || 'Order item';
+                const orderId = order.orderId || order.orderDbId || '';
+                const dateValue = order.placedAt || order.deliveredAt;
+                const status = order.displayLabel || order.displayStatus || order.status || 'Pending';
+                const statusClass = getStatusClass(order.displayStatus || order.displayLabel || order.status);
+
+                return `
+                    <div class="order-row">
+                        <img class="order-img" src="${escapeHtml(image)}" alt="${escapeHtml(name)}">
+                        <div>
+                            <p class="order-name">${escapeHtml(name)}</p>
+                            <p class="order-meta">Order #${escapeHtml(orderId)}</p>
+                        </div>
+                        <p class="order-meta">${escapeHtml(formatDate(dateValue))}</p>
+                        <span class="status-badge ${statusClass}">${escapeHtml(status)}</span>
+                        <a href="order_details.html?orderId=${encodeURIComponent(orderId)}" class="btn-view"><i data-lucide="eye" class="w-3 h-3"></i>View order</a>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSingleColumnProducts(containerId, items) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            if (!Array.isArray(items) || items.length === 0) {
+                container.innerHTML = '<div class="product-card"><div class="product-body"><p class="product-name">No products found.</p></div></div>';
+                return;
+            }
+
+            container.innerHTML = items.map((item) => {
+                const image = item.productImage || 'https://via.placeholder.com/300';
+                const link = productLink(item.productId, item.slug);
+                return `
+                    <div class="product-card">
+                        <img class="product-thumb" src="${escapeHtml(image)}" alt="${escapeHtml(item.productName || 'Product')}">
+                        <div class="product-body">
+                            <p class="product-name">${escapeHtml(item.productName || 'Product')}</p>
+                            <p class="product-price">${escapeHtml(formatCurrency(item.price, item.currency))}</p>
+                            <div class="btn-row">
+                                <a href="${escapeHtml(link)}" class="tiny-btn view">View Product</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderRecommendedProducts(items) {
+            const container = document.getElementById('recommendedProductsList');
+            if (!container) return;
+
+            if (!Array.isArray(items) || items.length === 0) {
+                container.innerHTML = '<div class="product-card"><div class="product-body"><p class="product-name">No recommendations available right now.</p></div></div>';
+                return;
+            }
+
+            container.innerHTML = items.map((item) => {
+                const image = item.productImage || 'https://via.placeholder.com/300';
+                const link = productLink(item.productId, item.slug);
+                return `
+                    <div class="product-card">
+                        <img class="product-thumb" src="${escapeHtml(image)}" alt="${escapeHtml(item.productName || 'Product')}">
+                        <div class="product-body">
+                            <p class="product-name">${escapeHtml(item.productName || 'Product')}</p>
+                            <p class="product-price">${escapeHtml(formatCurrency(item.price, item.currency))}</p>
+                            <div class="btn-row">
+                                <a href="${escapeHtml(link)}" class="tiny-btn view">View Product</a>
+                                <a href="cart.html" class="tiny-btn cart">Add to Cart</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function loadCartCount(userId) {
+            if (!IS_LIVE_HOST) return;
+            try {
+                const payload = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+                const data = payload?.data || payload || {};
+                const badge = document.getElementById('cartCountBadge');
+                if (badge) badge.textContent = String(Number(data.totalItems || data.totals?.itemCount || 0));
+            } catch (_) {
+                const badge = document.getElementById('cartCountBadge');
+                if (badge) badge.textContent = '0';
+            }
+        }
+
+        async function loadDashboardOverview() {
+            if (!IS_LIVE_HOST) return;
+            const userId = resolveCurrentUserId();
+
+            try {
+                const data = await fetchJson(`${API_BASE_URL}/customer/dashboard/overview?userId=${encodeURIComponent(userId)}`);
+                updateHero(data.profile, data.metrics);
+                renderRecentOrders(data.recentOrders || []);
+                renderSingleColumnProducts('recentlyViewedList', data.wishlistPreview || []);
+                renderRecommendedProducts(data.recommendations || []);
+                await loadCartCount(userId);
+            } catch (error) {
+                const orders = document.getElementById('recentOrdersList');
+                const viewed = document.getElementById('recentlyViewedList');
+                const recommended = document.getElementById('recommendedProductsList');
+
+                if (orders) orders.innerHTML = `<div class="order-row"><div class="order-meta">${escapeHtml(error.message)}</div></div>`;
+                if (viewed) viewed.innerHTML = '<div class="product-card"><div class="product-body"><p class="product-name">Unable to load recently viewed products.</p></div></div>';
+                if (recommended) recommended.innerHTML = '<div class="product-card"><div class="product-body"><p class="product-name">Unable to load recommendations.</p></div></div>';
+            }
+
+            lucide.createIcons();
+        }
+
+        renderAccountFlyout();
+        if (IS_LIVE_HOST) {
+            loadDashboardOverview();
+        }
+        lucide.createIcons();
+    </script>
+</body>
+</html>

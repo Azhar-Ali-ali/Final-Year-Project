@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Seller Profile | LUMINA</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script src="https://unpkg.com/lucide@latest"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+	<style>
+		body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; background: #f8fafc; color: #111827; }
+		.serif { font-family: 'Playfair Display', serif; }
+		.glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+		.account-flyout { width: 360px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
+		.signin-btn { display: inline-block; width: 130px; text-align: center; background: #facc15; border: 1px solid #f59e0b; color: #111827; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 7px; }
+		.signin-btn:hover { background: #fbbf24; }
+		.account-col-title { font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
+		.account-link { display: block; font-size: 12px; color: #374151; line-height: 1.55; }
+		.account-link:hover { color: #111827; text-decoration: underline; }
+		.hero-panel { background: linear-gradient(180deg, #f8fbff 0%, #ffffff 55%, #f7f2ff 100%); }
+		.panel-card { background: white; border-radius: 18px; box-shadow: 0 12px 28px rgba(15,23,42,0.06); padding: 20px 24px; border: 1px solid #e8edf5; }
+		.section-title { font-size: 18px; font-weight: 800; color: #232f3e; }
+		.section-subtitle { font-size: 13px; color: #64748b; margin-top: 4px; }
+		.chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 7px 12px; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; border: 1px solid #dbe4ee; background: #fff; color: #334155; transition: all 0.2s ease; }
+		.chip.active { background: #232f3e; border-color: #232f3e; color: #fff; }
+		.stat-card { background: #fff; border: 1px solid #e8edf5; border-radius: 16px; box-shadow: 0 12px 28px rgba(15,23,42,0.06); }
+		.product-card { background: #fff; border: 1px solid #e8edf5; border-radius: 18px; overflow: hidden; box-shadow: 0 10px 24px rgba(15,23,42,0.05); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+		.product-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(15,23,42,0.08); }
+		.muted { color: #64748b; }
+		.btn-solid { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; padding: 12px 16px; background: #232f3e; color: #fff; font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; border: 1px solid #232f3e; transition: transform 0.2s ease, background 0.2s ease; }
+		.btn-solid:hover { background: #1a2530; transform: translateY(-1px); }
+		.btn-soft { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; padding: 12px 16px; background: #fff; color: #232f3e; font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; border: 1px solid #d7dce2; transition: transform 0.2s ease, background 0.2s ease; }
+		.btn-soft:hover { background: #f8fafc; transform: translateY(-1px); }
+		.rating-star { color: #f59e0b; }
+		.review-card { background: #fff; border: 1px solid #e8edf5; border-radius: 16px; box-shadow: 0 10px 24px rgba(15,23,42,0.05); }
+		.policy-card { background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); border: 1px solid #e8edf5; border-radius: 16px; }
+		.hero-avatar { width: 92px; height: 92px; border-radius: 24px; object-fit: cover; border: 4px solid #fff; box-shadow: 0 14px 32px rgba(15,23,42,0.12); }
+		@media (max-width: 1024px) { .content-shell { margin-left: 0; } }
+		@media (max-width: 768px) { .hero-avatar { width: 76px; height: 76px; } }
+	</style>
+</head>
+<body>
+	<nav class="fixed top-0 w-full z-[100] glass">
+		<div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
+			<div class="flex items-center gap-2 shrink-0">
+				<button type="button" class="p-2" aria-label="Menu"><i data-lucide="menu" class="w-6 h-6"></i></button>
+				<a href="homepage.html" class="text-2xl font-bold tracking-tighter uppercase shrink-0">Lumina</a>
+			</div>
+
+			<div class="hidden md:flex flex-grow relative max-w-2xl mx-auto">
+				<input type="text" placeholder="Search for unique products, clothing or artisans..." class="w-full bg-gray-100 border-transparent border focus:border-black focus:bg-white rounded-full py-2.5 px-6 pl-12 text-sm transition-all outline-none">
+				<i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+			</div>
+
+			<div class="flex items-center gap-2 lg:gap-6 shrink-0">
+				<div id="accountMenuWrap" class="relative group">
+					<button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
+						<i data-lucide="user" class="w-5 h-5"></i>
+						<span id="accountMenuLabel" class="hidden sm:block text-xs font-bold uppercase tracking-widest">Account</span>
+					</button>
+					<div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block">
+						<div id="accountMenuContent" class="account-flyout"></div>
+					</div>
+				</div>
+				<a href="cart.html" class="relative p-2">
+					<i data-lucide="shopping-cart" class="w-5 h-5"></i>
+					<span id="cartCountBadge" class="absolute top-0 right-0 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
+				</a>
+				<a href="wishlist.html" class="relative p-2"><i data-lucide="heart" class="w-5 h-5"></i></a>
+			</div>
+		</div>
+	</nav>
+
+	<main class="content-shell mt-20 px-4 lg:px-8 py-6 lg:py-8 min-h-[calc(100vh-5rem)]">
+		<div class="max-w-7xl mx-auto space-y-6">
+			<section class="panel-card hero-panel p-5 lg:p-7">
+				<div class="flex flex-col gap-6">
+					<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+						<div class="flex items-center gap-4 lg:gap-5">
+							<img id="sellerAvatar" class="hero-avatar bg-white" src="https://via.placeholder.com/180x180?text=Store" alt="Seller profile picture">
+							<div>
+								<div class="flex items-center gap-2 flex-wrap mb-1">
+									<span id="verifiedBadge" class="hidden inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-extrabold uppercase tracking-[0.16em] border border-emerald-100">
+										<i data-lucide="badge-check" class="w-3.5 h-3.5"></i>
+										Verified Seller
+									</span>
+								</div>
+								<h1 id="storeName" class="hero-title serif">Seller Store</h1>
+								<div class="flex flex-wrap items-center gap-3 text-sm text-gray-600 mt-2">
+									<div class="inline-flex items-center gap-1.5"><i data-lucide="star" class="w-4 h-4 rating-star"></i><span id="sellerRating">0.0</span><span id="reviewCountText" class="text-gray-400">(0 Reviews)</span></div>
+									<div class="inline-flex items-center gap-1.5"><i data-lucide="map-pin" class="w-4 h-4 text-slate-400"></i><span id="sellerLocation">Pakistan</span></div>
+									<div class="inline-flex items-center gap-1.5"><i data-lucide="calendar-days" class="w-4 h-4 text-slate-400"></i><span>Member Since <span id="memberSince">2024</span></span></div>
+								</div>
+							</div>
+						</div>
+
+						<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full lg:w-auto">
+							<div class="stat-card p-4">
+								<p class="text-xs uppercase tracking-[0.16em] text-gray-400 font-bold">Total Products</p>
+								<p id="statTotalProducts" class="mt-2 text-2xl font-extrabold text-[#232f3e]">0</p>
+							</div>
+							<div class="stat-card p-4">
+								<p class="text-xs uppercase tracking-[0.16em] text-gray-400 font-bold">Orders Completed</p>
+								<p id="statOrdersCompleted" class="mt-2 text-2xl font-extrabold text-[#232f3e]">0</p>
+							</div>
+							<div class="stat-card p-4">
+								<p class="text-xs uppercase tracking-[0.16em] text-gray-400 font-bold">Response Time</p>
+								<p id="statResponseTime" class="mt-2 text-2xl font-extrabold text-[#232f3e]">< 2 hours</p>
+							</div>
+							<div class="stat-card p-4">
+								<p class="text-xs uppercase tracking-[0.16em] text-gray-400 font-bold">On-Time Delivery</p>
+								<p id="statOnTime" class="mt-2 text-2xl font-extrabold text-[#232f3e]">92%</p>
+							</div>
+						</div>
+					</div>
+
+					<div class="flex flex-wrap gap-3">
+						<a id="contactSellerBtn" href="#reviews" class="btn-solid"><i data-lucide="message-circle" class="w-4 h-4"></i>Contact Seller</a>
+						<button id="followStoreBtn" type="button" class="btn-soft"><i data-lucide="heart" class="w-4 h-4"></i>Follow Store</button>
+						<a id="reportSellerBtn" href="help_support.html" class="btn-soft"><i data-lucide="flag" class="w-4 h-4"></i>Report Seller</a>
+						<a id="viewAllProductsBtn" href="#products" class="btn-soft"><i data-lucide="package-search" class="w-4 h-4"></i>View All Products</a>
+							<button id="copyStoreLinkBtn" type="button" class="btn-soft"><i data-lucide="link" class="w-4 h-4"></i>Copy Store Link</button>
+					</div>
+						<p id="storeLinkHint" class="text-xs text-gray-500"></p>
+				</div>
+			</section>
+
+			<section class="panel-card p-5 lg:p-7">
+				<div class="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-6">
+					<div>
+						<h2 class="section-title">About Seller</h2>
+						<p id="aboutSellerText" class="section-subtitle leading-7 mt-3 text-[15px]">Seller details loading...</p>
+					</div>
+					<div class="policy-card p-5">
+						<h3 class="section-title mb-4">Store Policies</h3>
+						<div class="space-y-4 text-sm">
+							<div>
+								<p class="font-extrabold text-[#232f3e]">Shipping Policy</p>
+								<p id="policyShipping" class="muted mt-1">Delivery in 3-5 days</p>
+							</div>
+							<div>
+								<p class="font-extrabold text-[#232f3e]">Return Policy</p>
+								<p id="policyReturns" class="muted mt-1">Returns accepted within 7 days</p>
+							</div>
+							<div>
+								<p class="font-extrabold text-[#232f3e]">Payment Methods</p>
+								<p id="policyPayments" class="muted mt-1">COD and Card</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<section class="panel-card p-5 lg:p-7">
+				<div class="flex items-start justify-between gap-4 flex-wrap mb-5">
+					<div>
+						<h2 class="section-title">Seller Performance</h2>
+						<p class="section-subtitle">Trust indicators based on store activity and order history.</p>
+					</div>
+					<div class="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-[0.18em]">
+						<i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+						Trusted Store
+					</div>
+				</div>
+
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+					<div class="stat-card p-5">
+						<p class="text-xs uppercase tracking-[0.16em] text-gray-400 font-bold">Order Completion Rate</p>
+						<p id="completionRate" class="mt-2 text-3xl font-extrabold text-[#232f3e]">96%</p>
+					</div>
+					<div class="stat-card p-5">
+						<p class="text-xs uppercase tracking-[0.16em] text-gray-400 font-bold">On-Time Delivery</p>
+						<p id="onTimeDelivery" class="mt-2 text-3xl font-extrabold text-[#232f3e]">92%</p>
+					</div>
+					<div class="stat-card p-5">
+						<p class="text-xs uppercase tracking-[0.16em] text-gray-400 font-bold">Customer Satisfaction</p>
+						<p id="customerSatisfaction" class="mt-2 text-3xl font-extrabold text-[#232f3e]">4.7/5</p>
+					</div>
+				</div>
+			</section>
+
+			<section id="products" class="panel-card p-5 lg:p-7">
+				<div class="flex items-center justify-between gap-4 flex-wrap mb-5">
+					<div>
+						<h2 class="section-title">Seller Products</h2>
+						<p class="section-subtitle">Browse this store's active product catalog.</p>
+					</div>
+					<div class="flex flex-wrap gap-2" id="categoryFilters"></div>
+				</div>
+				<div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
+				<div id="productsEmpty" class="hidden py-12 text-center text-gray-500">
+					<i data-lucide="package" class="w-12 h-12 mx-auto mb-3 text-gray-300"></i>
+					<p class="font-semibold">No products found for this filter.</p>
+				</div>
+			</section>
+
+			<section id="reviews" class="panel-card p-5 lg:p-7">
+				<div class="flex items-start justify-between gap-4 flex-wrap mb-5">
+					<div>
+						<h2 class="section-title">Customer Reviews</h2>
+						<p class="section-subtitle">What customers are saying about this store.</p>
+					</div>
+				<div class="text-right">
+					<p class="text-2xl font-bold text-[#232f3e]"><span id="avgStoreRating">0.0</span>/5</p>
+					<p class="text-xs text-gray-500">Based on <span id="totalStoreReviews">0</span> reviews</p>
+				</div>
+			</div>
+			<div id="reviewsList" class="space-y-4"></div>
+			<div id="reviewsEmpty" class="hidden py-10 text-center text-gray-500">
+				<i data-lucide="message-square" class="w-12 h-12 mx-auto mb-3 text-gray-300"></i>
+				<p class="font-semibold">No seller reviews yet.</p>
+			</div>
+		</section>
+
+		<section id="leaveReview" class="panel-card p-5 lg:p-7">
+			<div class="flex items-start justify-between gap-4 flex-wrap mb-5">
+				<div>
+					<h2 class="section-title">Leave a Store Review</h2>
+					<p class="section-subtitle">Share your experience with this seller to help other customers.</p>
+				</div>
+			</div>
+			<form id="storeReviewForm" class="space-y-5">
+				<div>
+					<label class="block text-sm font-bold text-[#232f3e] mb-2">Your Rating</label>
+					<div class="flex gap-2">
+						<button type="button" class="star-rating-btn" data-rating="1" aria-label="1 star"><i data-lucide="star" class="w-8 h-8 text-gray-300 hover:text-yellow-400"></i></button>
+						<button type="button" class="star-rating-btn" data-rating="2" aria-label="2 stars"><i data-lucide="star" class="w-8 h-8 text-gray-300 hover:text-yellow-400"></i></button>
+						<button type="button" class="star-rating-btn" data-rating="3" aria-label="3 stars"><i data-lucide="star" class="w-8 h-8 text-gray-300 hover:text-yellow-400"></i></button>
+						<button type="button" class="star-rating-btn" data-rating="4" aria-label="4 stars"><i data-lucide="star" class="w-8 h-8 text-gray-300 hover:text-yellow-400"></i></button>
+						<button type="button" class="star-rating-btn" data-rating="5" aria-label="5 stars"><i data-lucide="star" class="w-8 h-8 text-gray-300 hover:text-yellow-400"></i></button>
+					</div>
+					<input type="hidden" id="storeReviewRating" value="0">
+					<p id="storeReviewRatingText" class="text-xs text-gray-500 mt-2">Select a rating</p>
+				</div>
+
+				<div>
+					<label for="storeReviewTitle" class="block text-sm font-bold text-[#232f3e] mb-2">Review Title</label>
+					<input id="storeReviewTitle" type="text" maxlength="100" placeholder="Summarize your experience" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-[#232f3e] focus:ring-1 focus:ring-[#232f3e]" required>
+				</div>
+
+				<div>
+					<label for="storeReviewBody" class="block text-sm font-bold text-[#232f3e] mb-2">Your Review</label>
+					<textarea id="storeReviewBody" rows="5" maxlength="1000" placeholder="Share what you liked or what could improve" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-[#232f3e] focus:ring-1 focus:ring-[#232f3e] resize-none" required></textarea>
+				</div>
+
+				<div class="flex gap-3">
+					<button type="submit" id="submitStoreReviewBtn" class="btn-solid" disabled><i data-lucide="send" class="w-4 h-4"></i>Submit Review</button>
+					<button type="reset" class="btn-soft">Clear</button>
+				</div>
+				<p id="storeReviewFormMessage" class="text-sm hidden"></p>
+			</form>
+		</section>
+	</div>
+</main>
+
+<script>
+	const API_BASE_URL = 'http://localhost:5000/api';
+		const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+
+		function getQueryParam(key) {
+			return new URLSearchParams(window.location.search).get(key);
+		}
+
+		function resolveCurrentUserId() {
+			try {
+				const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+				if (rawUser) {
+					const parsed = JSON.parse(rawUser);
+					return String(parsed.id || parsed.userId || parsed.customerId || '1').trim();
+				}
+			} catch (_) {}
+			return '1';
+		}
+
+		async function fetchJson(url, options = {}) {
+			if (!IS_LIVE_HOST) {
+				throw new Error('Open this page on localhost to load seller data from database.');
+			}
+
+			const response = await fetch(url, {
+				...options,
+				headers: {
+					'Content-Type': 'application/json',
+					...(options.headers || {})
+				}
+			});
+
+			const payload = await response.json().catch(() => ({}));
+			if (!response.ok || payload.success === false) {
+				throw new Error(payload.message || 'Request failed');
+			}
+
+			return payload.data !== undefined ? payload.data : payload;
+		}
+
+		function resolveAuthState() {
+			const state = { isLoggedIn: false, fullName: '' };
+			try {
+				const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+				const isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+				if (rawUser) {
+					const parsed = JSON.parse(rawUser);
+					const name = String(parsed.fullName || parsed.name || '').trim();
+					state.isLoggedIn = Boolean(name) || isLoggedIn;
+					state.fullName = name;
+				} else {
+					state.isLoggedIn = isLoggedIn;
+				}
+			} catch (_) {
+				state.isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+			}
+			return state;
+		}
+
+		async function addToWishlist(productId) {
+			const userId = resolveCurrentUserId();
+			const token = localStorage.getItem('lumina_session_token') || localStorage.getItem('lumina.session.token') || localStorage.getItem('lumina.auth.token');
+			try {
+				const res = await fetch(`${API_BASE_URL}/wishlist/${encodeURIComponent(userId)}`, {
+					method: 'POST',
+					credentials: 'include',
+					headers: {
+						'Content-Type': 'application/json',
+						...(token ? { 'Authorization': `Bearer ${token}` } : {})
+					},
+					body: JSON.stringify({ productId })
+				});
+				if (!res.ok) throw new Error(`HTTP ${res.status}`);
+				alert('Added to favorites!');
+			} catch (error) {
+				console.error('[Wishlist] Error:', error.message);
+				alert('Failed to add to wishlist. Please ensure you are logged in.');
+			}
+		}
+
+		function renderAccountFlyout() {
+			const auth = resolveAuthState();
+			const content = document.getElementById('accountMenuContent');
+			const label = document.getElementById('accountMenuLabel');
+			if (!content || !label) return;
+
+			if (!auth.isLoggedIn) {
+				label.textContent = 'Account';
+				content.innerHTML = `
+					<div class="px-4 py-3 border-b border-gray-200 text-center">
+						<a href="login_register.html" class="signin-btn">Sign in</a>
+						<p class="text-[10px] text-gray-500 mt-1">New customer? <a href="login_register.html" class="text-blue-600 hover:underline">Start here.</a></p>
+					</div>
+					<div class="grid grid-cols-2 gap-0">
+						<div class="px-4 py-3 border-r border-gray-200">
+							<h4 class="account-col-title">Your Lists</h4>
+							<a href="wishlist.html" class="account-link">Create a List</a>
+							<a href="login_register.html" class="account-link">Find a List or Registry</a>
+						</div>
+						<div class="px-4 py-3">
+							<h4 class="account-col-title">Your Account</h4>
+							<a href="login_register.html" class="account-link">Customer Dashboard</a>
+							<a href="login_register.html" class="account-link">My Profile</a>
+							<a href="login_register.html" class="account-link">My Orders</a>
+							<a href="login_register.html" class="account-link">Cart</a>
+							<a href="login_register.html" class="account-link">My Addresses</a>
+							<a href="login_register.html" class="account-link">Messages</a>
+							<a href="login_register.html" class="account-link">Returns & Refunds</a>
+							<a href="login_register.html" class="account-link">Security Settings</a>
+							<a href="help_support.html" class="account-link">Help & Support</a>
+						</div>
+					</div>
+				`;
+			} else {
+				const firstName = auth.fullName ? auth.fullName.split(' ')[0] : 'Account';
+				label.textContent = firstName;
+				content.innerHTML = `
+					<div class="px-4 py-3 border-b border-gray-200 text-center">
+						<a href="Customer_Dashboard.html" class="signin-btn">Go to Dashboard</a>
+						<p class="text-[10px] text-gray-500 mt-1">Signed in as ${auth.fullName || 'Customer'}</p>
+					</div>
+					<div class="grid grid-cols-2 gap-0">
+						<div class="px-4 py-3 border-r border-gray-200">
+							<h4 class="account-col-title">Your Lists</h4>
+							<a href="wishlist.html" class="account-link">Wishlist</a>
+							<a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+							<a href="my_messages.html" class="account-link">Messages</a>
+						</div>
+						<div class="px-4 py-3">
+							<h4 class="account-col-title">Your Account</h4>
+							<a href="Customer_Dashboard.html" class="account-link">Customer Dashboard</a>
+							<a href="my_profile.html" class="account-link">My Profile</a>
+							<a href="my_orders.html" class="account-link">My Orders</a>
+							<a href="cart.html" class="account-link">Cart</a>
+							<a href="my_addresses.html" class="account-link">My Addresses</a>
+							<a href="my_messages.html" class="account-link">Messages</a>
+							<a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+							<a href="security_settings.html" class="account-link">Security Settings</a>
+							<a href="help_support.html" class="account-link">Help & Support</a>
+						</div>
+					</div>
+				`;
+			}
+		}
+
+		const accountMenuButton = document.getElementById('accountMenuButton');
+		const accountMenuDropdown = document.getElementById('accountMenuDropdown');
+		const accountMenuWrap = document.getElementById('accountMenuWrap');
+
+		if (accountMenuButton && accountMenuDropdown) {
+			accountMenuButton.addEventListener('click', () => {
+				accountMenuDropdown.classList.toggle('hidden');
+			});
+
+			document.addEventListener('click', (event) => {
+				if (accountMenuWrap && !accountMenuWrap.contains(event.target)) {
+					accountMenuDropdown.classList.add('hidden');
+				}
+			});
+		}
+
+		renderAccountFlyout();
+
+		function getSellerKey() {
+			return String(getQueryParam('sellerId') || getQueryParam('id') || getQueryParam('slug') || getQueryParam('seller') || '').trim();
+		}
+
+		function buildSellerProfileUrl(seller) {
+			const base = 'sellerprofile.html';
+			if (seller?.sellerId) return `${base}?sellerId=${encodeURIComponent(seller.sellerId)}`;
+			if (seller?.storeSlug) return `${base}?slug=${encodeURIComponent(seller.storeSlug)}`;
+			if (seller?.storeName) return `${base}?seller=${encodeURIComponent(seller.storeName)}`;
+			const key = getSellerKey();
+			return key ? `${base}?sellerId=${encodeURIComponent(key)}` : base;
+		}
+
+		function money(value) {
+			const amount = Number(value || 0);
+			return `Rs. ${amount.toLocaleString('en-PK', { maximumFractionDigits: 0 })}`;
+		}
+
+		function stars(rating) {
+			const safe = Math.max(0, Math.min(5, Number(rating) || 0));
+			const full = Math.floor(safe);
+			const half = safe - full >= 0.5;
+			let html = '';
+			for (let index = 1; index <= 5; index += 1) {
+				if (index <= full) {
+					html += '<i data-lucide="star" class="w-4 h-4 rating-star fill-current"></i>';
+				} else if (index === full + 1 && half) {
+					html += '<i data-lucide="star-half" class="w-4 h-4 rating-star fill-current"></i>';
+				} else {
+					html += '<i data-lucide="star" class="w-4 h-4 text-gray-300"></i>';
+				}
+			}
+			return html;
+		}
+
+		let sellerData = null;
+		let activeCategory = 'All';
+
+		function getStoreReviewKey() {
+			return `lumina.store.reviews.${getSellerKey()}`;
+		}
+
+		function loadLocalStoreReviews() {
+			try {
+				return JSON.parse(localStorage.getItem(getStoreReviewKey()) || '[]');
+			} catch (_) {
+				return [];
+			}
+		}
+
+		function saveLocalStoreReview(review) {
+			const reviews = loadLocalStoreReviews();
+			reviews.unshift(review);
+			localStorage.setItem(getStoreReviewKey(), JSON.stringify(reviews));
+		}
+
+		function mergeReviews(remoteReviews = []) {
+			const localReviews = loadLocalStoreReviews();
+			const ids = new Set(remoteReviews.map((rev) => rev.id));
+			return [...localReviews, ...remoteReviews.filter((rev) => !ids.has(rev.id))];
+		}
+
+		function getCategoriesFromProducts(products = []) {
+			const categories = new Set(['All']);
+			(products || []).forEach((product) => {
+				if (product?.category) categories.add(product.category);
+			});
+			return Array.from(categories);
+		}
+
+		function computeAverageRating(reviews = []) {
+			const numeric = (reviews || []).filter((review) => Number(review.rating) > 0);
+			if (!numeric.length) return 0;
+			return numeric.reduce((sum, review) => sum + Number(review.rating), 0) / numeric.length;
+		}
+
+		function setHeader(data) {
+			const seller = data.seller;
+			const reviews = data.reviews || [];
+			const averageRating = computeAverageRating(reviews) || Number(seller.rating || 0);
+			const reviewCount = reviews.length || Number(seller.totalReviews || 0);
+			document.getElementById('sellerAvatar').src = seller.profileImage || 'https://via.placeholder.com/180x180?text=Store';
+			document.getElementById('storeName').textContent = seller.storeName || 'Seller Store';
+			document.getElementById('sellerRating').textContent = averageRating.toFixed(1);
+			document.getElementById('reviewCountText').textContent = `(${reviewCount} Reviews)`;
+			document.getElementById('avgStoreRating').textContent = averageRating.toFixed(1);
+			document.getElementById('totalStoreReviews').textContent = reviewCount;
+			document.getElementById('sellerLocation').textContent = seller.location || 'Pakistan';
+			document.getElementById('memberSince').textContent = seller.memberSince || 'Unknown';
+			document.getElementById('aboutSellerText').textContent = seller.about || '';
+			document.getElementById('policyShipping').textContent = seller.policies?.shipping || 'Delivery in 3-5 days';
+			document.getElementById('policyReturns').textContent = seller.policies?.returns || 'Returns accepted within 7 days';
+			document.getElementById('policyPayments').textContent = seller.policies?.payments || 'COD and Card';
+
+			document.getElementById('statTotalProducts').textContent = Number(data.stats?.totalProducts || 0);
+			document.getElementById('statOrdersCompleted').textContent = Number(data.stats?.completedOrders || 0);
+			document.getElementById('statResponseTime').textContent = data.stats?.responseTimeText || '< 2 hours';
+			document.getElementById('statOnTime').textContent = `${Number(data.stats?.onTimeDelivery || 0)}%`;
+			document.getElementById('completionRate').textContent = `${Number(data.stats?.completionRate || 0)}%`;
+			document.getElementById('onTimeDelivery').textContent = `${Number(data.stats?.onTimeDelivery || 0)}%`;
+			document.getElementById('customerSatisfaction').textContent = `${Number(data.stats?.satisfaction || 0).toFixed(1)}/5`;
+
+			const verifiedBadge = document.getElementById('verifiedBadge');
+			verifiedBadge.classList.toggle('hidden', !seller.isVerified);
+
+			const sellerKey = seller.sellerId || getSellerKey();
+			document.getElementById('contactSellerBtn').href = `my_messages.html?sellerId=${encodeURIComponent(sellerKey)}`;
+			document.getElementById('reportSellerBtn').href = `help_support.html?sellerId=${encodeURIComponent(sellerKey)}`;
+			document.getElementById('viewAllProductsBtn').href = `all_product_spages.html?sellerId=${encodeURIComponent(sellerKey)}`;
+			document.getElementById('followStoreBtn').setAttribute('data-store', seller.storeSlug || seller.storeName || 'store');
+			document.getElementById('storeLinkHint').textContent = `Store link: ${buildSellerProfileUrl(seller)}`;
+			document.getElementById('copyStoreLinkBtn').onclick = async () => {
+				const link = `${window.location.origin}/${buildSellerProfileUrl(seller)}`;
+				try {
+					await navigator.clipboard.writeText(link);
+					document.getElementById('copyStoreLinkBtn').innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>Copied';
+					lucide.createIcons();
+				} catch (_) {
+					alert('Unable to copy store link.');
+				}
+			};
+		}
+
+		function renderCategoryFilters(categories) {
+			const container = document.getElementById('categoryFilters');
+			container.innerHTML = categories.map((category) => `
+				<button type="button" class="chip ${category === activeCategory ? 'active' : ''}" data-category="${category}">${category}</button>
+			`).join('');
+
+			container.querySelectorAll('[data-category]').forEach((button) => {
+				button.addEventListener('click', () => {
+					activeCategory = button.getAttribute('data-category') || 'All';
+					renderProducts();
+					renderCategoryFilters(categories);
+				});
+			});
+		}
+
+		function renderProducts() {
+			const grid = document.getElementById('productsGrid');
+			const empty = document.getElementById('productsEmpty');
+			const products = (sellerData?.products || []).filter((product) => {
+				if (activeCategory === 'All') return true;
+				return String(product.category || '').toLowerCase() === activeCategory.toLowerCase();
+			});
+
+			if (!products.length) {
+				grid.innerHTML = '';
+				empty.classList.remove('hidden');
+				return;
+			}
+
+			empty.classList.add('hidden');
+			grid.innerHTML = products.map((product) => `
+				<article class="product-card">
+					<a href="products_details.html?id=${encodeURIComponent(product.id)}" class="block">
+						<div class="aspect-square bg-gray-50 overflow-hidden relative">
+							<img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover">
+							<button data-product-id="${encodeURIComponent(product.id)}" class="absolute top-3 right-3 add-to-wishlist-btn bg-white rounded-full p-2 hover:bg-gray-100 shadow-sm transition-colors" aria-label="Add to wishlist">
+								<i data-lucide="heart" class="w-4 h-4"></i>
+							</button>
+						</div>
+					</a>
+					<div class="p-4">
+						<p class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-gray-400">${product.category || 'General'}</p>
+						<a href="products_details.html?id=${encodeURIComponent(product.id)}" class="block mt-1">
+							<h3 class="font-bold text-[#232f3e] leading-snug line-clamp-2">${product.name}</h3>
+						</a>
+						<div class="flex items-center gap-1 mt-2 text-xs text-gray-500">
+							<div class="inline-flex items-center gap-0.5">${stars(product.rating)}</div>
+							<span>${Number(product.reviewCount || 0)} reviews</span>
+						</div>
+						<div class="flex items-center justify-between mt-4">
+							<div>
+								<p class="text-lg font-extrabold text-[#232f3e]">${money(product.price)}</p>
+								${Number(product.originalPrice) > Number(product.price) ? `<p class="text-xs text-gray-400 line-through">${money(product.originalPrice)}</p>` : ''}
+							</div>
+							<span class="text-xs font-bold ${product.inStock ? 'text-emerald-600' : 'text-rose-600'}">${product.inStock ? 'In Stock' : 'Out of Stock'}</span>
+						</div>
+					</div>
+				</article>
+			`).join('');
+			lucide.createIcons();
+		}
+
+		function renderReviews() {
+			const container = document.getElementById('reviewsList');
+			const empty = document.getElementById('reviewsEmpty');
+			const reviews = sellerData?.reviews || [];
+
+			if (!reviews.length) {
+				container.innerHTML = '';
+				empty.classList.remove('hidden');
+				return;
+			}
+
+			empty.classList.add('hidden');
+			container.innerHTML = reviews.map((review) => `
+				<article class="review-card p-4 lg:p-5">
+					<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+						<div>
+							<div class="flex items-center gap-0.5 mb-2">${stars(review.rating)}</div>
+							<h3 class="font-bold text-[#232f3e]">${review.title || 'Customer Review'}</h3>
+							<p class="text-sm text-gray-600 mt-2 leading-7">${review.body || ''}</p>
+						</div>
+						<div class="text-xs text-gray-400 sm:text-right">
+							<p class="font-bold text-gray-500">${review.customerName || 'Customer'}</p>
+							<p class="mt-1">${review.productName || 'Product'}</p>
+							<p class="mt-1">${new Date(review.createdAt).toLocaleDateString()}</p>
+						</div>
+					</div>
+				</article>
+			`).join('');
+			lucide.createIcons();
+		}
+
+		async function loadSellerProfile() {
+			const sellerKey = getSellerKey();
+			const userId = resolveCurrentUserId();
+			const url = `${API_BASE_URL}/customer/sellers/profile?sellerId=${encodeURIComponent(sellerKey)}&userId=${encodeURIComponent(userId)}`;
+			const data = await fetchJson(url);
+			data.reviews = mergeReviews(data.reviews || []);
+			sellerData = data;
+			setHeader(sellerData);
+			renderCategoryFilters(getCategoriesFromProducts(sellerData.products || []));
+			renderProducts();
+			renderReviews();
+		}
+
+		const storeReviewForm = document.getElementById('storeReviewForm');
+		const storeReviewRatingInput = document.getElementById('storeReviewRating');
+		const storeReviewRatingText = document.getElementById('storeReviewRatingText');
+		const storeReviewTitleInput = document.getElementById('storeReviewTitle');
+		const storeReviewBodyInput = document.getElementById('storeReviewBody');
+		const submitStoreReviewBtn = document.getElementById('submitStoreReviewBtn');
+		const storeReviewFormMessage = document.getElementById('storeReviewFormMessage');
+
+		function updateStoreReviewFormState() {
+			const rating = Number(storeReviewRatingInput?.value || 0) > 0;
+			const title = storeReviewTitleInput?.value.trim().length > 3;
+			const body = storeReviewBodyInput?.value.trim().length > 10;
+			if (submitStoreReviewBtn) submitStoreReviewBtn.disabled = !(rating && title && body);
+		}
+
+		function showStoreReviewMessage(message, type) {
+			if (!storeReviewFormMessage) return;
+			storeReviewFormMessage.textContent = message;
+			storeReviewFormMessage.className = `text-sm ${type === 'success' ? 'text-emerald-600 bg-emerald-50 p-3 rounded' : 'text-rose-600 bg-rose-50 p-3 rounded'}`;
+			storeReviewFormMessage.classList.remove('hidden');
+		}
+
+		document.querySelectorAll('.star-rating-btn').forEach((button) => {
+			button.addEventListener('click', () => {
+				const rating = Number(button.getAttribute('data-rating') || '0');
+				if (storeReviewRatingInput) storeReviewRatingInput.value = String(rating);
+				if (storeReviewRatingText) storeReviewRatingText.textContent = `${rating} star${rating !== 1 ? 's' : ''} selected`;
+				document.querySelectorAll('.star-rating-btn i').forEach((icon, index) => {
+					if (index < rating) {
+						icon.classList.add('fill-current', 'text-yellow-400');
+						icon.classList.remove('text-gray-300');
+					} else {
+						icon.classList.remove('fill-current', 'text-yellow-400');
+						icon.classList.add('text-gray-300');
+					}
+				});
+				updateStoreReviewFormState();
+			});
+		});
+
+		if (storeReviewTitleInput) storeReviewTitleInput.addEventListener('input', updateStoreReviewFormState);
+		if (storeReviewBodyInput) storeReviewBodyInput.addEventListener('input', updateStoreReviewFormState);
+
+		if (storeReviewForm) {
+			storeReviewForm.addEventListener('submit', (event) => {
+				event.preventDefault();
+				const auth = resolveAuthState();
+				if (!auth.isLoggedIn) {
+					showStoreReviewMessage('Please log in to leave a review.', 'error');
+					return;
+				}
+
+				const review = {
+					id: `local-${Date.now()}`,
+					rating: Number(storeReviewRatingInput?.value || 0),
+					title: storeReviewTitleInput?.value.trim() || '',
+					body: storeReviewBodyInput?.value.trim() || '',
+					customerName: auth.fullName || 'Customer',
+					productName: 'Store Review',
+					createdAt: new Date().toISOString(),
+					isVerifiedPurchase: true
+				};
+
+				saveLocalStoreReview(review);
+				sellerData.reviews = mergeReviews(sellerData.reviews || []);
+				setHeader(sellerData);
+				renderReviews();
+				showStoreReviewMessage('Thank you! Your review has been submitted.', 'success');
+				storeReviewForm.reset();
+				if (storeReviewRatingText) storeReviewRatingText.textContent = 'Select a rating';
+				document.querySelectorAll('.star-rating-btn i').forEach((icon) => {
+					icon.classList.remove('fill-current', 'text-yellow-400');
+					icon.classList.add('text-gray-300');
+				});
+				updateStoreReviewFormState();
+			});
+		}
+
+		const productsGrid = document.getElementById('productsGrid');
+		if (productsGrid) {
+			productsGrid.addEventListener('click', (event) => {
+				const wishlistBtn = event.target.closest('.add-to-wishlist-btn');
+				if (wishlistBtn) {
+					event.preventDefault();
+					event.stopPropagation();
+					const productId = wishlistBtn.getAttribute('data-product-id');
+					addToWishlist(productId);
+				}
+			});
+		}
+
+		document.getElementById('followStoreBtn').addEventListener('click', () => {
+			const store = document.getElementById('followStoreBtn').getAttribute('data-store') || 'store';
+			const count = Number(localStorage.getItem(`lumina.follow.store.${store}`) || '0') + 1;
+			localStorage.setItem(`lumina.follow.store.${store}`, String(count));
+			document.getElementById('followStoreBtn').innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>Following';
+			lucide.createIcons();
+		});
+
+		(async function init() {
+			if (!IS_LIVE_HOST) {
+				document.getElementById('aboutSellerText').textContent = 'Seller data is available only on localhost runtime.';
+				document.getElementById('productsGrid').innerHTML = '';
+				document.getElementById('reviewsList').innerHTML = '';
+				document.getElementById('productsEmpty').classList.remove('hidden');
+				document.getElementById('reviewsEmpty').classList.remove('hidden');
+				const cartBadge = document.getElementById('cartCountBadge');
+				if (cartBadge) cartBadge.textContent = '0';
+				lucide.createIcons();
+				return;
+			}
+
+			try {
+				await loadSellerProfile();
+				const cartBadge = document.getElementById('cartCountBadge');
+				if (cartBadge) {
+					const userId = resolveCurrentUserId();
+					const cart = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+					cartBadge.textContent = String(Number(cart?.totalItems || cart?.totals?.itemCount || 0));
+				}
+			} catch (error) {
+				document.getElementById('aboutSellerText').textContent = error.message || 'Failed to load seller profile.';
+				document.getElementById('productsGrid').innerHTML = '';
+				document.getElementById('reviewsList').innerHTML = '';
+				document.getElementById('productsEmpty').classList.remove('hidden');
+				document.getElementById('reviewsEmpty').classList.remove('hidden');
+			}
+			lucide.createIcons();
+		})();
+	</script>
+</body>
+</html>

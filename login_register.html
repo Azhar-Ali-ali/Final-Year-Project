@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Login & Register | LUMINA</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script src="https://unpkg.com/lucide@latest"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+	<style>
+		body { font-family: 'Plus Jakarta Sans', sans-serif; }
+		.serif { font-family: 'Playfair Display', serif; }
+		
+		/* Tab Animation */
+		.tab-content { display: none; }
+		.tab-content.active { display: block; animation: fadeIn 0.3s; }
+		
+		@keyframes fadeIn {
+			from { opacity: 0; transform: translateY(10px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+		
+		/* Progress Bar */
+		.progress-step {
+			transition: all 0.3s;
+		}
+		.progress-step.completed {
+			background-color: #22c55e !important;
+		}
+		.progress-step.active {
+			background-color: #000 !important;
+			scale: 1.1;
+		}
+		
+		/* Password Toggle */
+		.password-toggle {
+			cursor: pointer;
+			user-select: none;
+		}
+	</style>
+	<script src="/customer-pages/auth.js"></script>
+	<script src="/customer-pages/page-access.js"></script>
+</head>
+<body class="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 min-h-screen">
+
+	<!-- Header -->
+	<nav class="bg-white/80 backdrop-blur-md border-b border-gray-200">
+		<div class="px-4 h-20 flex items-center justify-between max-w-7xl mx-auto">
+			<a href="homepage.html" class="text-2xl font-bold tracking-tighter uppercase">Lumina</a>
+			<div class="flex items-center gap-5 text-sm font-semibold text-gray-600">
+				<a href="homepage.html" class="flex items-center gap-2 hover:text-black transition-all">
+					<i data-lucide="arrow-left" class="w-4 h-4"></i>
+					Home
+				</a>
+				<a href="all_product_spages.html" class="hover:text-black transition-all">Products</a>
+				<a href="cart.html" class="hover:text-black transition-all">Cart</a>
+				<a href="wishlist.html" class="hover:text-black transition-all">Wishlist</a>
+			</div>
+		</div>
+	</nav>
+
+	<!-- Main Content -->
+	<main class="py-12 px-4">
+		<div class="max-w-6xl mx-auto">
+			
+			<!-- Main Tabs: Login / Register -->
+			<div class="bg-white rounded-3xl shadow-2xl overflow-hidden">
+				
+				<!-- Tab Headers -->
+				<div class="flex border-b">
+					<button onclick="switchMainTab('login')" id="loginMainTab" class="main-tab flex-1 py-6 font-bold text-lg border-b-4 border-black transition-all">
+						Login
+					</button>
+					<button onclick="switchMainTab('register')" id="registerMainTab" class="main-tab flex-1 py-6 font-bold text-lg border-b-4 border-transparent text-gray-400 hover:text-black transition-all">
+						Register
+					</button>
+				</div>
+
+				<!-- ==================== LOGIN TAB ==================== -->
+				<div id="loginTab" class="tab-content active p-8 md:p-12">
+					<div class="max-w-md mx-auto">
+						<h2 class="text-3xl font-bold mb-2 text-center">Welcome Back!</h2>
+						<p class="text-gray-600 text-center mb-8">Login to continue shopping or managing your store</p>
+
+						<!-- Role Selection -->
+						<div class="grid grid-cols-2 gap-3 mb-6">
+							<button onclick="selectLoginRole('customer')" id="loginCustomerBtn" class="login-role-btn border-2 border-black bg-black text-white rounded-xl py-3 font-semibold transition-all">
+								<i data-lucide="user" class="w-5 h-5 inline-block mr-2"></i>
+								Customer
+							</button>
+							<button onclick="selectLoginRole('seller')" id="loginSellerBtn" class="login-role-btn border-2 border-gray-300 rounded-xl py-3 font-semibold hover:border-black transition-all">
+								<i data-lucide="store" class="w-5 h-5 inline-block mr-2"></i>
+								Seller
+							</button>
+						</div>
+
+						<!-- Login Form -->
+						<form id="loginForm" class="space-y-4">
+							<div>
+								<label class="block text-sm font-semibold mb-2">Email or Phone</label>
+								<input type="text" id="loginEmail" required placeholder="Enter your email or phone" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all">
+							</div>
+
+							<div>
+								<label class="block text-sm font-semibold mb-2">Password</label>
+								<div class="relative">
+									<input type="password" id="loginPassword" required placeholder="Enter your password" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all pr-12">
+									<span onclick="togglePasswordVisibility('loginPassword', this)" class="password-toggle absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+										<i data-lucide="eye" class="w-5 h-5"></i>
+									</span>
+								</div>
+							</div>
+
+							<div class="flex items-center justify-between text-sm">
+								<label class="flex items-center gap-2 cursor-pointer">
+									<input type="checkbox" class="w-4 h-4 accent-black">
+									<span class="text-gray-600">Remember me</span>
+								</label>
+								<a href="/reset-password.html" class="text-blue-600 hover:underline font-semibold">Forgot Password?</a>
+							</div>
+
+							<button type="submit" class="w-full bg-black text-white py-4 rounded-xl font-bold text-lg hover:bg-gray-800 transition-all">
+								Login
+							</button>
+						</form>
+
+						<!-- Divider -->
+						<div class="relative my-6">
+							<div class="absolute inset-0 flex items-center">
+								<div class="w-full border-t border-gray-300"></div>
+							</div>
+							<div class="relative flex justify-center text-sm">
+								<span class="px-4 bg-white text-gray-500">Or continue with</span>
+							</div>
+						</div>
+
+						<!-- Social Login -->
+						<button class="w-full border-2 border-gray-300 rounded-xl py-3 font-semibold hover:border-black transition-all flex items-center justify-center gap-2">
+							<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5">
+							Continue with Google
+						</button>
+
+						<p class="text-center text-sm text-gray-600 mt-6">
+							Don't have an account? <button onclick="switchMainTab('register')" class="text-blue-600 hover:underline font-semibold">Register now</button>
+						</p>
+					</div>
+				</div>
+
+				<!-- ==================== REGISTER TAB ==================== -->
+				<div id="registerTab" class="tab-content p-8 md:p-12">
+					
+					<!-- Register Type Tabs -->
+					<div class="flex justify-center gap-4 mb-8">
+						<button onclick="switchRegisterType('customer')" id="customerRegTab" class="register-type-tab px-8 py-3 rounded-full border-2 border-black bg-black text-white font-bold transition-all">
+							<i data-lucide="user" class="w-4 h-4 inline-block mr-2"></i>
+							Customer Register
+						</button>
+						<button onclick="switchRegisterType('seller')" id="sellerRegTab" class="register-type-tab px-8 py-3 rounded-full border-2 border-gray-300 text-gray-600 font-bold hover:border-black hover:text-black transition-all">
+							<i data-lucide="store" class="w-4 h-4 inline-block mr-2"></i>
+							Seller Register
+						</button>
+					</div>
+
+					<!-- ==================== CUSTOMER REGISTER ==================== -->
+					<div id="customerRegister" class="register-content">
+						<div class="max-w-md mx-auto">
+							<h2 class="text-3xl font-bold mb-2 text-center">Create Customer Account</h2>
+							<p class="text-gray-600 text-center mb-8">Join LUMINA and start shopping!</p>
+
+							<form id="customerRegForm" class="space-y-4">
+								<div>
+									<label class="block text-sm font-semibold mb-2">Full Name *</label>
+									<input type="text" id="custName" required placeholder="Ahmed Khan" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all">
+								</div>
+
+								<div>
+									<label class="block text-sm font-semibold mb-2">Email or Phone *</label>
+									<input type="text" id="custEmailPhone" required placeholder="ahmed@example.com or 03001234567" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all">
+								</div>
+
+								<div>
+									<label class="block text-sm font-semibold mb-2">Password *</label>
+									<div class="relative">
+										<input type="password" id="custPassword" required placeholder="Minimum 8 characters" minlength="8" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all pr-12">
+										<span onclick="togglePasswordVisibility('custPassword', this)" class="password-toggle absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+											<i data-lucide="eye" class="w-5 h-5"></i>
+										</span>
+									</div>
+								</div>
+
+								<div>
+									<label class="block text-sm font-semibold mb-2">Confirm Password *</label>
+									<div class="relative">
+										<input type="password" id="custConfirmPassword" required placeholder="Re-enter password" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all pr-12">
+										<span onclick="togglePasswordVisibility('custConfirmPassword', this)" class="password-toggle absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+											<i data-lucide="eye" class="w-5 h-5"></i>
+										</span>
+									</div>
+								</div>
+
+								<label class="flex items-start gap-2 cursor-pointer">
+									<input type="checkbox" required class="w-4 h-4 mt-1 accent-black">
+									<span class="text-sm text-gray-600">I agree to the <a href="#" class="text-blue-600 hover:underline">Terms & Conditions</a> and <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a></span>
+								</label>
+
+								<button type="submit" class="w-full bg-black text-white py-4 rounded-xl font-bold text-lg hover:bg-gray-800 transition-all">
+									Create Account
+								</button>
+							</form>
+
+							<!-- Divider -->
+							<div class="relative my-6">
+								<div class="absolute inset-0 flex items-center">
+									<div class="w-full border-t border-gray-300"></div>
+								</div>
+								<div class="relative flex justify-center text-sm">
+									<span class="px-4 bg-white text-gray-500">Or sign up with</span>
+								</div>
+							</div>
+
+							<!-- Social Register -->
+							<button class="w-full border-2 border-gray-300 rounded-xl py-3 font-semibold hover:border-black transition-all flex items-center justify-center gap-2">
+								<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5">
+								Sign up with Google
+							</button>
+
+							<p class="text-center text-sm text-gray-600 mt-6">
+								Already have an account? <button onclick="switchMainTab('login')" class="text-blue-600 hover:underline font-semibold">Login</button>
+							</p>
+						</div>
+					</div>
+
+					<!-- ==================== SELLER REGISTER (Multi-Step) ==================== -->
+					<div id="sellerRegister" class="register-content hidden">
+						<div class="max-w-2xl mx-auto">
+							
+							<!-- Progress Indicator -->
+							<div class="mb-12">
+								<div class="flex items-center justify-between relative">
+									<div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-gray-200 -z-10"></div>
+									
+									<div class="progress-step w-12 h-12 rounded-full bg-black text-white flex items-center justify-center font-bold z-10 active" data-step="1">1</div>
+									<div class="progress-step w-12 h-12 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold z-10" data-step="2">2</div>
+									<div class="progress-step w-12 h-12 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold z-10" data-step="3">3</div>
+									<div class="progress-step w-12 h-12 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold z-10" data-step="4">4</div>
+									<div class="progress-step w-12 h-12 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold z-10" data-step="5">5</div>
+								</div>
+								<div class="flex items-center justify-between mt-2">
+									<span class="text-xs font-semibold text-center w-12">Account</span>
+									<span class="text-xs font-semibold text-center w-12">Store</span>
+									<span class="text-xs font-semibold text-center w-12">Address</span>
+									<span class="text-xs font-semibold text-center w-12">Bank</span>
+									<span class="text-xs font-semibold text-center w-12">Terms</span>
+								</div>
+							</div>
+
+							<form id="sellerRegForm">
+								<!-- Step 1: Basic Account -->
+								<div class="seller-step active" data-step="1">
+									<h2 class="text-2xl font-bold mb-2">Basic Account Information</h2>
+									<p class="text-gray-600 mb-6">Let's start with your personal details</p>
+
+									<div class="space-y-4">
+										<div>
+											<label class="block text-sm font-semibold mb-2">Full Name *</label>
+											<input type="text" id="sellerName" required placeholder="Your full name" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all">
+										</div>
+
+										<div>
+											<label class="block text-sm font-semibold mb-2">Email *</label>
+											<input type="email" id="sellerEmail" required placeholder="your@email.com" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all">
+										</div>
+
+										<div>
+											<label class="block text-sm font-semibold mb-2">Phone Number *</label>
+											<input type="text" id="sellerPhone" required placeholder="03001234567" maxlength="11" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all">
+										</div>
+
+										<div>
+											<label class="block text-sm font-semibold mb-2">Password *</label>
+											<div class="relative">
+												<input type="password" id="sellerPassword" required placeholder="Minimum 8 characters" minlength="8" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all pr-12">
+												<span onclick="togglePasswordVisibility('sellerPassword', this)" class="password-toggle absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+													<i data-lucide="eye" class="w-5 h-5"></i>
+												</span>
+											</div>
+										</div>
+
+										<div>
+											<label class="block text-sm font-semibold mb-2">Confirm Password *</label>
+											<div class="relative">
+												<input type="password" id="sellerConfirmPassword" required placeholder="Re-enter password" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all pr-12">
+												<span onclick="togglePasswordVisibility('sellerConfirmPassword', this)" class="password-toggle absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+													<i data-lucide="eye" class="w-5 h-5"></i>
+												</span>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Step 2: Store Information -->
+								<div class="seller-step hidden" data-step="2">
+									<h2 class="text-2xl font-bold mb-2">Store Information</h2>
+									<p class="text-gray-600 mb-6">Tell us about your store</p>
+
+									<div class="space-y-4">
+										<div>
+											<label class="block text-sm font-semibold mb-2">Store Name *</label>
+											<input type="text" id="storeName" required placeholder="e.g., BeautyHub Store" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all">
+										</div>
+
+										<div>
+											<label class="block text-sm font-semibold mb-2">Store Description *</label>
+											<textarea id="storeDescription" required placeholder="Describe what you sell and what makes your store unique..." rows="5" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all resize-none"></textarea>
+											<p class="text-xs text-gray-500 mt-1">Minimum 50 characters</p>
+										</div>
+
+										<div>
+											<label class="block text-sm font-semibold mb-2">Store Category *</label>
+											<select id="storeCategory" required class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all">
+												<option value="">Select a category</option>
+												<option value="beauty">Beauty & Cosmetics</option>
+												<option value="electronics">Electronics</option>
+												<option value="fashion">Fashion & Clothing</option>
+												<option value="home">Home & Living</option>
+												<option value="sports">Sports & Fitness</option>
+												<option value="books">Books & Media</option>
+												<option value="toys">Toys & Games</option>
+												<option value="automotive">Automotive</option>
+												<option value="other">Other</option>
+											</select>
+										</div>
+									</div>
+								</div>
+
+								<!-- Step 3: Address -->
+								<div class="seller-step hidden" data-step="3">
+									<h2 class="text-2xl font-bold mb-2">Business Address</h2>
+									<p class="text-gray-600 mb-6">Where is your business located?</p>
+
+									<div class="space-y-4">
+										<div>
+											<label class="block text-sm font-semibold mb-2">City *</label>
+											<select id="sellerCity" required class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all">
+												<option value="">Select city</option>
+												<option value="Karachi">Karachi</option>
+												<option value="Lahore">Lahore</option>
+												<option value="Islamabad">Islamabad</option>
+												<option value="Rawalpindi">Rawalpindi</option>
+												<option value="Faisalabad">Faisalabad</option>
+												<option value="Multan">Multan</option>
+												<option value="Peshawar">Peshawar</option>
+												<option value="Quetta">Quetta</option>
+												<option value="Other">Other</option>
+											</select>
+										</div>
+
+										<div>
+											<label class="block text-sm font-semibold mb-2">Full Address *</label>
+											<textarea id="sellerAddress" required placeholder="Complete address including building, street, area..." rows="3" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all resize-none"></textarea>
+										</div>
+
+										<div>
+											<label class="block text-sm font-semibold mb-2">Postal Code</label>
+											<input type="text" id="sellerPostalCode" placeholder="e.g., 44000" maxlength="5" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all">
+										</div>
+									</div>
+								</div>
+
+								<!-- Step 4: Bank Information -->
+								<div class="seller-step hidden" data-step="4">
+									<h2 class="text-2xl font-bold mb-2">Bank Information</h2>
+									<p class="text-gray-600 mb-6">This is required for receiving payments (can be added later)</p>
+
+									<div class="space-y-4">
+										<div>
+											<label class="block text-sm font-semibold mb-2">Bank Name</label>
+											<select id="bankName" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all">
+												<option value="">Select bank (optional)</option>
+												<option value="HBL">Habib Bank Limited (HBL)</option>
+												<option value="UBL">United Bank Limited (UBL)</option>
+												<option value="Meezan">Meezan Bank</option>
+												<option value="Allied">Allied Bank</option>
+												<option value="MCB">MCB Bank</option>
+												<option value="Faysal">Faysal Bank</option>
+												<option value="Other">Other</option>
+											</select>
+										</div>
+
+										<div>
+											<label class="block text-sm font-semibold mb-2">Account Title</label>
+											<input type="text" id="accountTitle" placeholder="Name as per bank account" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all">
+										</div>
+
+										<div>
+											<label class="block text-sm font-semibold mb-2">Account Number</label>
+											<input type="text" id="accountNumber" placeholder="Your account number" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all">
+										</div>
+
+										<div>
+											<label class="block text-sm font-semibold mb-2">IBAN (Optional)</label>
+											<input type="text" id="iban" placeholder="PK12XXXX1234567890123456" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all">
+										</div>
+
+										<div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+											<div class="flex items-start gap-3">
+												<i data-lucide="info" class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"></i>
+												<p class="text-sm text-blue-900">
+													<strong>Note:</strong> You can skip this step and add bank details later from your dashboard. However, you won't be able to withdraw earnings without bank information.
+												</p>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Step 5: Terms & Agreement -->
+								<div class="seller-step hidden" data-step="5">
+									<h2 class="text-2xl font-bold mb-2">Terms & Conditions</h2>
+									<p class="text-gray-600 mb-6">Please review and accept our terms</p>
+
+									<div class="space-y-6">
+										<!-- Terms Box -->
+										<div class="border-2 border-gray-300 rounded-xl p-6 max-h-80 overflow-y-auto bg-gray-50">
+											<h3 class="font-bold text-lg mb-4">Seller Agreement</h3>
+											
+											<div class="space-y-4 text-sm text-gray-700">
+												<p><strong>1. Account Verification:</strong> Your seller account will be reviewed by our team. Until verified, you will have limited access to features.</p>
+												
+												<p><strong>2. Selling Rights:</strong> Once verified, you can list products, manage orders, and receive payments.</p>
+												
+												<p><strong>3. Commission Structure:</strong> LUMINA charges a 10% commission on each successful sale. This will be deducted before payout.</p>
+												
+												<p><strong>4. Product Guidelines:</strong> All products must comply with our quality standards and legal requirements. Prohibited items include counterfeit goods, illegal substances, and weapons.</p>
+												
+												<p><strong>5. Payment Terms:</strong> Payments are processed weekly. Minimum withdrawal amount is Rs. 1,000.</p>
+												
+												<p><strong>6. Customer Service:</strong> You are responsible for responding to customer inquiries within 24 hours.</p>
+												
+												<p><strong>7. Return & Refund:</strong> You must honor our 7-day return policy for eligible products.</p>
+												
+												<p><strong>8. Account Suspension:</strong> Violation of terms may result in account suspension or termination.</p>
+												
+												<p><strong>9. Data Privacy:</strong> We protect your personal information according to our Privacy Policy.</p>
+												
+												<p><strong>10. Changes to Terms:</strong> LUMINA reserves the right to modify these terms with prior notice.</p>
+											</div>
+										</div>
+
+										<!-- Checkboxes -->
+										<div class="space-y-3">
+											<label class="flex items-start gap-3 cursor-pointer">
+												<input type="checkbox" id="agreeTerms" required class="w-5 h-5 mt-0.5 accent-black flex-shrink-0">
+												<span class="text-sm">I have read and agree to the <a href="#" class="text-blue-600 hover:underline font-semibold">Terms & Conditions</a></span>
+											</label>
+
+											<label class="flex items-start gap-3 cursor-pointer">
+												<input type="checkbox" id="agreePrivacy" required class="w-5 h-5 mt-0.5 accent-black flex-shrink-0">
+												<span class="text-sm">I agree to the <a href="#" class="text-blue-600 hover:underline font-semibold">Privacy Policy</a></span>
+											</label>
+
+											<label class="flex items-start gap-3 cursor-pointer">
+												<input type="checkbox" id="agreeCommission" required class="w-5 h-5 mt-0.5 accent-black flex-shrink-0">
+												<span class="text-sm">I understand and accept the 10% commission structure</span>
+											</label>
+										</div>
+
+										<!-- Verification Notice -->
+										<div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg">
+											<div class="flex items-start gap-3">
+												<i data-lucide="alert-circle" class="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0"></i>
+												<div class="text-sm text-yellow-900">
+													<strong>Account Verification Required</strong>
+													<p class="mt-1">Your account will be reviewed within 24-48 hours. You'll receive an email once verified. Until then, you can explore the dashboard but cannot add products or process orders.</p>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Navigation Buttons -->
+								<div class="flex items-center justify-between mt-8 pt-6 border-t">
+									<button type="button" id="prevBtn" onclick="previousStep()" class="px-8 py-3 border-2 border-gray-300 rounded-xl font-semibold hover:border-black transition-all hidden">
+										<i data-lucide="arrow-left" class="w-4 h-4 inline-block mr-2"></i>
+										Previous
+									</button>
+									<button type="button" id="nextBtn" onclick="nextStep()" class="ml-auto px-8 py-3 bg-black text-white rounded-xl font-semibold hover:bg-gray-800 transition-all">
+										Next
+										<i data-lucide="arrow-right" class="w-4 h-4 inline-block ml-2"></i>
+									</button>
+									<button type="submit" id="submitBtn" class="hidden ml-auto px-8 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-all">
+										<i data-lucide="check-circle" class="w-4 h-4 inline-block mr-2"></i>
+										Create Seller Account
+									</button>
+								</div>
+							</form>
+
+							<p class="text-center text-sm text-gray-600 mt-6">
+								Already have an account? <button onclick="switchMainTab('login')" class="text-blue-600 hover:underline font-semibold">Login</button>
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<script>
+		lucide.createIcons();
+		const API_BASE_URL = 'http://localhost:5000/api';
+		const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+
+		let currentLoginRole = 'customer';
+		let currentRegisterType = 'customer';
+		let currentSellerStep = 1;
+		const totalSellerSteps = 5;
+
+		async function authRequest(path, options = {}) {
+			if (!IS_LIVE_HOST) {
+				throw new Error('Open this page on localhost to use database-backed login and register forms.');
+			}
+			const response = await fetch(`${API_BASE_URL}${path}`, {
+				...options,
+				headers: {
+					'Content-Type': 'application/json',
+					...(options.headers || {})
+				}
+			});
+
+			const payload = await response.json().catch(() => ({}));
+			if (!response.ok || payload.success === false) {
+				throw new Error(payload.message || 'Request failed');
+			}
+
+			return payload.data;
+		}
+
+		function persistAuthSession(authData) {
+			if (!authData || !authData.user) return;
+
+			if (window.LuminaAuth) {
+				window.LuminaAuth.saveSession(authData, { persist: true });
+				return;
+			}
+
+			const user = authData.user;
+			localStorage.setItem('lumina.auth.user', JSON.stringify(user));
+			localStorage.setItem('lumina.customer.session', JSON.stringify(user));
+			localStorage.setItem('lumina.auth.role', String(user.role || 'customer'));
+			localStorage.setItem('lumina.isLoggedIn', 'true');
+			if (authData.token) localStorage.setItem('lumina.auth.token', authData.token);
+		}
+
+		// ==================== MAIN TAB SWITCHING ====================
+		function switchMainTab(tab) {
+			// Update tab buttons
+			document.querySelectorAll('.main-tab').forEach(btn => {
+				btn.classList.remove('border-black', 'text-black');
+				btn.classList.add('border-transparent', 'text-gray-400');
+			});
+
+			if (tab === 'login') {
+				document.getElementById('loginMainTab').classList.add('border-black', 'text-black');
+				document.getElementById('loginMainTab').classList.remove('text-gray-400');
+				document.getElementById('loginTab').classList.add('active');
+				document.getElementById('registerTab').classList.remove('active');
+			} else {
+				document.getElementById('registerMainTab').classList.add('border-black', 'text-black');
+				document.getElementById('registerMainTab').classList.remove('text-gray-400');
+				document.getElementById('registerTab').classList.add('active');
+				document.getElementById('loginTab').classList.remove('active');
+			}
+
+			lucide.createIcons();
+		}
+
+		// ==================== LOGIN ROLE SELECTION ====================
+		function selectLoginRole(role) {
+			currentLoginRole = role;
+			
+			document.querySelectorAll('.login-role-btn').forEach(btn => {
+				btn.classList.remove('border-black', 'bg-black', 'text-white');
+				btn.classList.add('border-gray-300', 'text-black');
+			});
+
+			if (role === 'customer') {
+				document.getElementById('loginCustomerBtn').classList.add('border-black', 'bg-black', 'text-white');
+				document.getElementById('loginCustomerBtn').classList.remove('border-gray-300', 'text-black');
+			} else {
+				document.getElementById('loginSellerBtn').classList.add('border-black', 'bg-black', 'text-white');
+				document.getElementById('loginSellerBtn').classList.remove('border-gray-300', 'text-black');
+			}
+
+			lucide.createIcons();
+		}
+
+		// ==================== REGISTER TYPE SWITCHING ====================
+		function switchRegisterType(type) {
+			currentRegisterType = type;
+
+			document.querySelectorAll('.register-type-tab').forEach(btn => {
+				btn.classList.remove('border-black', 'bg-black', 'text-white');
+				btn.classList.add('border-gray-300', 'text-gray-600');
+			});
+
+			if (type === 'customer') {
+				document.getElementById('customerRegTab').classList.add('border-black', 'bg-black', 'text-white');
+				document.getElementById('customerRegTab').classList.remove('text-gray-600');
+				document.getElementById('customerRegister').classList.remove('hidden');
+				document.getElementById('sellerRegister').classList.add('hidden');
+			} else {
+				document.getElementById('sellerRegTab').classList.add('border-black', 'bg-black', 'text-white');
+				document.getElementById('sellerRegTab').classList.remove('text-gray-600');
+				document.getElementById('sellerRegister').classList.remove('hidden');
+				document.getElementById('customerRegister').classList.add('hidden');
+			}
+
+			lucide.createIcons();
+		}
+
+		// ==================== PASSWORD VISIBILITY TOGGLE ====================
+		function togglePasswordVisibility(inputId, icon) {
+			const input = document.getElementById(inputId);
+			const iconElement = icon && typeof icon.querySelector === 'function'
+				? (icon.querySelector('i') || icon.querySelector('svg'))
+				: null;
+
+			if (!input || !iconElement) return;
+			
+			if (input.type === 'password') {
+				input.type = 'text';
+				iconElement.setAttribute('data-lucide', 'eye-off');
+			} else {
+				input.type = 'password';
+				iconElement.setAttribute('data-lucide', 'eye');
+			}
+			
+			lucide.createIcons();
+		}
+
+		// ==================== SELLER MULTI-STEP NAVIGATION ====================
+		function nextStep() {
+			// Validate current step
+			if (!validateCurrentStep()) {
+				return;
+			}
+
+			if (currentSellerStep < totalSellerSteps) {
+				currentSellerStep++;
+				updateSellerSteps();
+			}
+		}
+
+		function previousStep() {
+			if (currentSellerStep > 1) {
+				currentSellerStep--;
+				updateSellerSteps();
+			}
+		}
+
+		function updateSellerSteps() {
+			// Hide all steps
+			document.querySelectorAll('.seller-step').forEach(step => {
+				step.classList.remove('active');
+				step.classList.add('hidden');
+			});
+
+			// Show current step
+			const currentStepElement = document.querySelector(`.seller-step[data-step="${currentSellerStep}"]`);
+			if (currentStepElement) {
+				currentStepElement.classList.remove('hidden');
+				currentStepElement.classList.add('active');
+			}
+
+			// Update progress indicators
+			document.querySelectorAll('.progress-step').forEach((step, index) => {
+				const stepNum = index + 1;
+				step.classList.remove('active', 'completed');
+				
+				if (stepNum < currentSellerStep) {
+					step.classList.add('completed');
+					step.innerHTML = '<i data-lucide="check" class="w-5 h-5"></i>';
+				} else if (stepNum === currentSellerStep) {
+					step.classList.add('active');
+					step.textContent = stepNum;
+				} else {
+					step.textContent = stepNum;
+				}
+			});
+
+			// Update navigation buttons
+			const prevBtn = document.getElementById('prevBtn');
+			const nextBtn = document.getElementById('nextBtn');
+			const submitBtn = document.getElementById('submitBtn');
+
+			if (currentSellerStep === 1) {
+				prevBtn.classList.add('hidden');
+			} else {
+				prevBtn.classList.remove('hidden');
+			}
+
+			if (currentSellerStep === totalSellerSteps) {
+				nextBtn.classList.add('hidden');
+				submitBtn.classList.remove('hidden');
+			} else {
+				nextBtn.classList.remove('hidden');
+				submitBtn.classList.add('hidden');
+			}
+
+			lucide.createIcons();
+		}
+
+		function validateCurrentStep() {
+			const currentStepElement = document.querySelector(`.seller-step[data-step="${currentSellerStep}"]`);
+			const inputs = currentStepElement.querySelectorAll('input[required], select[required], textarea[required]');
+			
+			let isValid = true;
+			inputs.forEach(input => {
+				if (!input.value.trim()) {
+					input.classList.add('border-red-500');
+					isValid = false;
+				} else {
+					input.classList.remove('border-red-500');
+				}
+			});
+
+			// Special validation for step 1 (password match)
+			if (currentSellerStep === 1) {
+				const password = document.getElementById('sellerPassword').value;
+				const confirmPassword = document.getElementById('sellerConfirmPassword').value;
+				
+				if (password !== confirmPassword) {
+					alert('Passwords do not match!');
+					document.getElementById('sellerConfirmPassword').classList.add('border-red-500');
+					return false;
+				}
+			}
+
+			// Step 2 validation (description length)
+			if (currentSellerStep === 2) {
+				const description = document.getElementById('storeDescription').value;
+				if (description.length < 50) {
+					alert('Store description must be at least 50 characters long.');
+					document.getElementById('storeDescription').classList.add('border-red-500');
+					return false;
+				}
+			}
+
+			// Step 5 validation (checkboxes)
+			if (currentSellerStep === 5) {
+				if (!document.getElementById('agreeTerms').checked || 
+					!document.getElementById('agreePrivacy').checked || 
+					!document.getElementById('agreeCommission').checked) {
+					alert('Please accept all terms and conditions to continue.');
+					return false;
+				}
+			}
+
+			if (!isValid) {
+				alert('Please fill in all required fields.');
+			}
+
+			return isValid;
+		}
+
+		// ==================== FORM SUBMISSIONS ====================
+
+		// Login Form
+		document.getElementById('loginForm').addEventListener('submit', async function(e) {
+			e.preventDefault();
+			
+			const email = document.getElementById('loginEmail').value;
+			const password = document.getElementById('loginPassword').value;
+
+			try {
+				const data = await authRequest('/auth/login', {
+					method: 'POST',
+					body: JSON.stringify({
+						identifier: email,
+						password,
+						role: currentLoginRole
+					})
+				});
+
+				persistAuthSession(data);
+				alert(`✅ Login Successful!\n\nRole: ${currentLoginRole === 'customer' ? 'Customer' : 'Seller'}\nEmail: ${email}\n\nRedirecting...`);
+
+				setTimeout(() => {
+					window.location.href = data.redirectTo || (currentLoginRole === 'seller' ? '/seller-pages/Dashboard.html' : '/customer-pages/homepage.html');
+				}, 700);
+			} catch (error) {
+				alert(`❌ ${error.message}`);
+			}
+		});
+
+		// Customer Register Form
+		document.getElementById('customerRegForm').addEventListener('submit', async function(e) {
+			e.preventDefault();
+			
+			const name = document.getElementById('custName').value;
+			const emailPhone = document.getElementById('custEmailPhone').value;
+			const password = document.getElementById('custPassword').value;
+			const confirmPassword = document.getElementById('custConfirmPassword').value;
+
+			// Validate passwords match
+			if (password !== confirmPassword) {
+				alert('❌ Passwords do not match!');
+				document.getElementById('custConfirmPassword').classList.add('border-red-500');
+				return;
+			}
+
+			try {
+				const data = await authRequest('/auth/register/customer', {
+					method: 'POST',
+					body: JSON.stringify({
+						fullName: name,
+						emailPhone,
+						password,
+						confirmPassword
+					})
+				});
+
+				persistAuthSession(data);
+				alert(`✅ Account Created Successfully!\n\nWelcome to LUMINA, ${name}!\n\nYou are now logged in.\nRedirecting to homepage...`);
+				setTimeout(() => {
+					window.location.href = '/customer-pages/homepage.html';
+				}, 700);
+			} catch (error) {
+				alert(`❌ ${error.message}`);
+			}
+		});
+
+		// Seller Register Form
+		document.getElementById('sellerRegForm').addEventListener('submit', async function(e) {
+			e.preventDefault();
+			
+			if (!validateCurrentStep()) {
+				return;
+			}
+
+			// Collect all data
+			const sellerData = {
+				// Step 1
+				name: document.getElementById('sellerName').value,
+				email: document.getElementById('sellerEmail').value,
+				phone: document.getElementById('sellerPhone').value,
+				password: document.getElementById('sellerPassword').value,
+				
+				// Step 2
+				storeName: document.getElementById('storeName').value,
+				storeDescription: document.getElementById('storeDescription').value,
+				storeCategory: document.getElementById('storeCategory').value,
+				
+				// Step 3
+				city: document.getElementById('sellerCity').value,
+				address: document.getElementById('sellerAddress').value,
+				postalCode: document.getElementById('sellerPostalCode').value,
+				
+				// Step 4
+				bankName: document.getElementById('bankName').value,
+				accountTitle: document.getElementById('accountTitle').value,
+				accountNumber: document.getElementById('accountNumber').value,
+				iban: document.getElementById('iban').value,
+				
+				// Meta
+				role: 'seller',
+				isVerified: false
+			};
+
+			try {
+				const data = await authRequest('/auth/register/seller', {
+					method: 'POST',
+					body: JSON.stringify({
+						fullName: sellerData.name,
+						email: sellerData.email,
+						phone: sellerData.phone,
+						password: sellerData.password,
+						confirmPassword: document.getElementById('sellerConfirmPassword').value,
+						storeName: sellerData.storeName,
+						storeDescription: sellerData.storeDescription,
+						storeCategory: sellerData.storeCategory,
+						city: sellerData.city,
+						address: sellerData.address,
+						postalCode: sellerData.postalCode,
+						bankName: sellerData.bankName,
+						accountTitle: sellerData.accountTitle,
+						accountNumber: sellerData.accountNumber,
+						iban: sellerData.iban,
+						agreeTerms: document.getElementById('agreeTerms').checked,
+						agreePrivacy: document.getElementById('agreePrivacy').checked,
+						agreeCommission: document.getElementById('agreeCommission').checked
+					})
+				});
+
+				persistAuthSession(data);
+				alert(`✅ Seller Account Created!\n\nStore: ${sellerData.storeName}\n\n⚠️ VERIFICATION PENDING\n\nYour account will be reviewed within 24-48 hours. You'll receive an email once verified.\n\nYou can now access your dashboard with limited features.\n\nRedirecting to Seller Dashboard...`);
+				setTimeout(() => {
+					window.location.href = '/seller-pages/Dashboard.html?verified=false';
+				}, 1200);
+			} catch (error) {
+				alert(`❌ ${error.message}`);
+			}
+		});
+	</script>
+</body>
+</html>

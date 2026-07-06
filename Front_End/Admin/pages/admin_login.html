@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Admin Login | LUMINA</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script src="https://unpkg.com/lucide@latest"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+	<style>
+		body { font-family: 'Plus Jakarta Sans', sans-serif; }
+		.serif { font-family: 'Playfair Display', serif; }
+		.password-toggle {
+			cursor: pointer;
+			user-select: none;
+		}
+	</style>
+</head>
+<body class="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 min-h-screen">
+
+	<nav class="bg-white/80 backdrop-blur-md border-b border-gray-200">
+		<div class="px-4 h-20 flex items-center justify-between max-w-7xl mx-auto">
+			<a href="../../../homepage.html" class="text-2xl font-bold tracking-tighter uppercase">Lumina</a>
+			<a href="../../../homepage.html" class="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-black transition-all">
+				<i data-lucide="arrow-left" class="w-4 h-4"></i>
+				Back to Home
+			</a>
+		</div>
+	</nav>
+
+	<main class="py-12 px-4">
+		<div class="max-w-6xl mx-auto">
+			<div class="bg-white rounded-3xl shadow-2xl overflow-hidden">
+				<div class="border-b">
+					<div class="py-6 font-bold text-lg border-b-4 border-black text-center">
+						Admin Login
+					</div>
+				</div>
+
+				<div class="p-8 md:p-12">
+					<div class="max-w-md mx-auto">
+						<h2 class="text-3xl font-bold mb-2 text-center">Welcome Back, Admin</h2>
+						<p class="text-gray-600 text-center mb-8">Login to access the admin control panel</p>
+
+						<form id="adminLoginForm" class="space-y-4">
+							<div>
+								<label class="block text-sm font-semibold mb-2">Admin Email</label>
+								<input type="email" id="adminEmail" required placeholder="admin@lumina.com" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all">
+							</div>
+
+							<div>
+								<label class="block text-sm font-semibold mb-2">Password</label>
+								<div class="relative">
+									<input type="password" id="adminPassword" required placeholder="Enter your password" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-black outline-none transition-all pr-12">
+									<span onclick="togglePasswordVisibility('adminPassword', this)" class="password-toggle absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+										<i data-lucide="eye" class="w-5 h-5"></i>
+									</span>
+								</div>
+							</div>
+
+							<div class="flex items-center justify-between text-sm">
+								<label class="flex items-center gap-2 cursor-pointer">
+									<input type="checkbox" class="w-4 h-4 accent-black">
+									<span class="text-gray-600">Remember me</span>
+								</label>
+								<a href="#" class="text-blue-600 hover:underline font-semibold">Forgot Password?</a>
+							</div>
+
+							<button type="submit" class="w-full bg-black text-white py-4 rounded-xl font-bold text-lg hover:bg-gray-800 transition-all">
+								Login to Admin Panel
+							</button>
+						</form>
+
+						<div class="relative my-6">
+							<div class="absolute inset-0 flex items-center">
+								<div class="w-full border-t border-gray-300"></div>
+							</div>
+							<div class="relative flex justify-center text-sm">
+								<span class="px-4 bg-white text-gray-500">Or continue with</span>
+							</div>
+						</div>
+
+						<button type="button" class="w-full border-2 border-gray-300 rounded-xl py-3 font-semibold hover:border-black transition-all flex items-center justify-center gap-2">
+							<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5">
+							Continue with Google
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<script>
+		lucide.createIcons();
+		const ADMIN_API_BASE_URL = window.ADMIN_API_BASE_URL || 'http://localhost:5000';
+		const IS_LOCALHOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+
+		function togglePasswordVisibility(inputId, icon) {
+			const input = document.getElementById(inputId);
+			const iconElement = icon.querySelector('i');
+
+			if (input.type === 'password') {
+				input.type = 'text';
+				iconElement.setAttribute('data-lucide', 'eye-off');
+			} else {
+				input.type = 'password';
+				iconElement.setAttribute('data-lucide', 'eye');
+			}
+
+			lucide.createIcons();
+		}
+
+		document.getElementById('adminLoginForm').addEventListener('submit', async function (e) {
+			e.preventDefault();
+
+			const emailInput = document.getElementById('adminEmail');
+			const passwordInput = document.getElementById('adminPassword');
+			const rememberMe = document.querySelector('input[type="checkbox"]')?.checked || false;
+			const submitBtn = this.querySelector('button[type="submit"]');
+
+			const email = emailInput.value.trim();
+			const password = passwordInput.value;
+
+			if (!IS_LOCALHOST) {
+				alert('Please open this page from localhost so admin login can connect to the backend.');
+				return;
+			}
+
+			submitBtn.disabled = true;
+			const originalBtnText = submitBtn.textContent;
+			submitBtn.textContent = 'Logging in...';
+
+			try {
+				const response = await fetch(`${ADMIN_API_BASE_URL}/api/admin/auth/login`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ email, password, rememberMe })
+				});
+
+				const result = await response.json();
+
+				if (!response.ok || !result.success) {
+					throw new Error(result.message || 'Login failed');
+				}
+
+				localStorage.setItem('lumina.admin.authToken', result.data.token);
+				localStorage.setItem('lumina.auth.token', result.data.token);
+				localStorage.setItem('lumina.admin.authExpiresAt', result.data.expiresAt);
+				localStorage.setItem('lumina.admin.profile', JSON.stringify(result.data.admin));
+				localStorage.setItem('adminId', result.data.admin?.id || '');
+				localStorage.setItem('adminName', result.data.admin?.name || result.data.admin?.full_name || 'Admin');
+
+				window.location.href = 'admin_dashboard.html';
+			} catch (error) {
+				alert(`Login failed: ${error.message}`);
+			} finally {
+				submitBtn.disabled = false;
+				submitBtn.textContent = originalBtnText;
+			}
+		});
+	</script>
+</body>
+</html>

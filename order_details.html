@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details | LUMINA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #111827; }
+        .glass { background: rgba(255,255,255,0.94); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .section-card { background: #fff; border: 1px solid #e8edf5; border-radius: 18px; box-shadow: 0 12px 28px rgba(15,23,42,0.06); padding: 20px 28px; }
+        .hero-panel { background: linear-gradient(140deg, #f0f7ff 0%, #ffffff 40%, #f5f0ff 100%); }
+        .hero-title { color: #111827; font-size: 32px; line-height: 1.1; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 4px; }
+        .hero-subtitle { color: #4b5563; font-size: 15px; line-height: 1.55; }
+        .hero-stats { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e8edf5; }
+        .hero-stat { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+        .hero-stat-dot { width: 10px; height: 10px; border-radius: 999px; flex-shrink: 0; }
+        .hero-stat-value { font-size: 15px; line-height: 1; font-weight: 800; color: #111827; }
+        .hero-stat-label { font-size: 15px; line-height: 1; font-weight: 500; color: #667085; }
+        .status-badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 6px 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-processing { background: #e9f2ff; color: #0f4f9b; }
+        .status-shipped { background: #d1ecf1; color: #0c5460; }
+        .status-delivered { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        .product-row { border: 1px solid #e8ecf1; border-radius: 10px; padding: 12px; display: grid; grid-template-columns: 70px 1.4fr .8fr .8fr .9fr; gap: 12px; align-items: center; }
+        .thumb { width: 68px; height: 68px; object-fit: cover; border-radius: 9px; border: 1px solid #eceff4; }
+        .kv { display: grid; grid-template-columns: 180px 1fr; gap: 12px; font-size: 13px; padding: 8px 0; border-bottom: 1px dashed #edf1f5; }
+        .kv:last-child { border-bottom: none; }
+        .kv-label { color: #6b7280; font-weight: 600; }
+        .kv-value { color: #1f2937; font-weight: 600; }
+        .action-btn { border: 1px solid #d8e1ec; background: #fff; color: #1f2937; border-radius: 9px; padding: 10px 14px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; display: inline-flex; align-items: center; gap: 7px; text-decoration: none; transition: all 0.2s; }
+        .action-btn:hover { background: #f8fafc; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+        .action-btn.primary { background: #232f3e; border-color: #232f3e; color: #fff; }
+        .action-btn.warn { background: #fff5f6; border-color: #f5c2c7; color: #842029; }
+        .track-link { color: #0066c0; font-weight: 700; text-decoration: none; font-size: 13px; }
+        .track-link:hover { text-decoration: underline; }
+        .modal { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: none; align-items: center; justify-content: center; z-index: 1400; padding: 14px; }
+        .modal.show { display: flex; }
+        .modal-content { background: #fff; width: min(620px, 100%); border-radius: 14px; border: 1px solid #e7ebf2; box-shadow: 0 16px 40px rgba(15,23,42,0.2); overflow: hidden; }
+        .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid #eef2f6; }
+        .modal-body { padding: 16px 18px; display: grid; gap: 12px; }
+        .input, .select, .textarea { width: 100%; border: 1px solid #d8dde6; border-radius: 10px; padding: 10px 12px; font-size: 13px; outline: none; }
+        .input:focus, .select:focus, .textarea:focus { border-color: #232f3e; box-shadow: 0 0 0 3px rgba(35,47,62,0.08); }
+        .textarea { min-height: 90px; resize: vertical; }
+        .form-label { font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; display: block; }
+        .form-note { font-size: 12px; color: #64748b; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        @media (max-width: 900px) {
+            .product-row { grid-template-columns: 70px 1fr; }
+        }
+        @media (max-width: 768px) {
+            .section-card { padding: 18px; border-radius: 16px; }
+            .hero-title { font-size: 26px; }
+            .hero-subtitle { font-size: 14px; }
+            .hero-stats { gap: 12px 16px; }
+            .kv { grid-template-columns: 1fr; gap: 4px; }
+            .row { grid-template-columns: 1fr; }
+        }
+    </style>
+	<script src="/customer-pages/auth.js"></script>
+	<script src="/customer-pages/page-access.js"></script>
+</head>
+<body class="bg-[#f9fafb] text-[#1a1a1a]">
+    <nav class="fixed top-0 w-full z-[100] glass">
+        <div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
+            <div class="flex items-center gap-3 shrink-0">
+                <a href="Customer_Dashboard.html" class="text-xl font-bold tracking-tight uppercase hover:opacity-70 transition-opacity">
+                    <span class="text-gray-900">Lumina</span>
+                    <span class="text-gray-400 font-normal text-xs ml-2">Customer</span>
+                </a>
+            </div>
+            <div class="flex items-center gap-3 shrink-0">
+                <a href="my_orders.html" class="text-xs font-bold uppercase tracking-widest px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50">Back to Orders</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="mt-20 p-4 lg:p-8 min-h-[calc(100vh-5rem)]">
+        <div class="max-w-7xl mx-auto space-y-6">
+            <section class="section-card hero-panel p-5 lg:p-7">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div class="w-14 h-14 bg-white border border-indigo-100 rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0">
+                        <i data-lucide="file-text" class="w-7 h-7 text-indigo-600"></i>
+                    </div>
+                    <div>
+                        <h1 class="hero-title">Order Details</h1>
+                        <p id="orderIntro" class="hero-subtitle">Order #00000 placed on Mar 10, 2026</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-card">
+                <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                    <h2 class="text-lg font-bold text-[#232f3e] inline-flex items-center gap-2"><i data-lucide="file-text" class="w-5 h-5"></i> Order Information</h2>
+                    <span id="orderStatusBadge" class="status-badge status-pending">Pending</span>
+                </div>
+                <div id="orderInfoBox"></div>
+            </section>
+
+            <section class="section-card">
+                <h2 class="text-lg font-bold text-[#232f3e] inline-flex items-center gap-2 mb-3"><i data-lucide="package-open" class="w-5 h-5"></i> Product Information</h2>
+                <div id="productsList" class="space-y-3"></div>
+            </section>
+
+            <section class="section-card">
+                <h2 class="text-lg font-bold text-[#232f3e] inline-flex items-center gap-2 mb-3"><i data-lucide="truck" class="w-5 h-5"></i> Shipping Information</h2>
+                <div id="shippingInfoBox"></div>
+            </section>
+
+            <section class="flex flex-wrap gap-3">
+                <button id="downloadInvoiceBtn" class="action-btn primary"><i data-lucide="download" class="w-4 h-4"></i> Download Invoice</button>
+                <a id="contactSellerBtn" href="#" class="action-btn"><i data-lucide="message-circle" class="w-4 h-4"></i> Contact Seller</a>
+                <button id="returnItemBtn" class="action-btn warn"><i data-lucide="undo-2" class="w-4 h-4"></i> Return Item</button>
+            </section>
+        </div>
+    </main>
+
+    <div id="returnModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-head">
+                <div>
+                    <h3 class="text-lg font-bold text-[#232f3e]">Return Request Form</h3>
+                    <p class="text-xs text-gray-500 mt-1">Submit your return request for review.</p>
+                </div>
+                <button id="closeReturnModal" class="text-2xl leading-none text-gray-500 hover:text-gray-800">&times;</button>
+            </div>
+            <form id="returnForm" class="modal-body">
+                <div>
+                    <label class="form-label" for="returnProductName">Product Name</label>
+                    <input id="returnProductName" class="input" type="text" readonly>
+                </div>
+                <div>
+                    <label class="form-label" for="returnReason">Return Reason</label>
+                    <select id="returnReason" class="select" required>
+                        <option value="">Select return reason</option>
+                        <option value="Damaged product">Damaged product</option>
+                        <option value="Wrong item received">Wrong item received</option>
+                        <option value="Product not as described">Product not as described</option>
+                        <option value="Size issue">Size issue</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label" for="returnDescription">Description</label>
+                    <textarea id="returnDescription" class="textarea" placeholder="Describe your issue (optional)"></textarea>
+                </div>
+                <div class="row">
+                    <div>
+                        <label class="form-label" for="returnImage">Upload Image (Optional)</label>
+                        <input id="returnImage" class="input" type="file" accept="image/*">
+                    </div>
+                    <div class="self-end">
+                        <p id="returnPolicyText" class="form-note"></p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-3 pt-1">
+                    <button type="submit" class="action-btn primary"><i data-lucide="send" class="w-4 h-4"></i> Submit Return Request</button>
+                    <button id="cancelReturnForm" type="button" class="action-btn"><i data-lucide="x" class="w-4 h-4"></i> Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+        let currentOrderData = null;
+
+        function resolveCurrentUserId() {
+            const params = new URLSearchParams(window.location.search);
+            const queryUserId = params.get('userId');
+            if (queryUserId) {
+                return String(queryUserId).trim();
+            }
+
+            try {
+                const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+                if (rawUser) {
+                    const parsed = JSON.parse(rawUser);
+                    return String(parsed.id || parsed.userId || parsed.customerId || '1').trim();
+                }
+            } catch (_) {}
+            return '1';
+        }
+
+        async function fetchJson(url, options = {}) {
+            if (!IS_LIVE_HOST) {
+                throw new Error('Open this page on localhost to load database-backed order details.');
+            }
+
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {})
+                }
+            });
+
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || payload.success === false) {
+                throw new Error(payload.message || 'Request failed');
+            }
+
+            return payload.data !== undefined ? payload.data : payload;
+        }
+
+        function parseOrderId() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('orderId');
+        }
+
+        function formatDate(date) {
+            if (!date) return 'N/A';
+            const parsed = new Date(date);
+            if (Number.isNaN(parsed.getTime())) return 'N/A';
+            return parsed.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function formatPrice(value) {
+            return 'Rs. ' + Number(value || 0).toLocaleString();
+        }
+
+        function statusClass(status) {
+            const normalized = String(status || '').toLowerCase();
+            if (normalized === 'ready_for_pickup') return 'status-shipped';
+            return 'status-' + normalized;
+        }
+
+        function mapOrderDetails(apiData) {
+            const hasNestedOrder = Boolean(apiData && apiData.order && typeof apiData.order === 'object');
+            const order = hasNestedOrder ? apiData.order : (apiData || {});
+            const items = Array.isArray(apiData?.items) ? apiData.items : [];
+            const normalizedStatus = String(order.displayStatus || order.status || 'pending').toLowerCase();
+            const displayLabel = String(order.displayLabel || order.displayStatus || order.status || 'Pending');
+            const statusMessage = String(order.statusMessage || 'Order status is being updated.');
+
+            return {
+                id: String(order.orderId || order.id || ''),
+                date: order.orderDate || order.placedAt || null,
+                paymentMethod: order.paymentMethod || 'N/A',
+                status: normalizedStatus,
+                displayLabel,
+                statusMessage,
+                phone: order.phone || 'N/A',
+                address: order.address || [order.addressLine1, order.addressLine2, order.city, order.province, order.postalCode, order.country].filter(Boolean).join(', ') || 'N/A',
+                courier: order.courierName || 'N/A',
+                trackingNo: order.trackingNumber || 'N/A',
+                totalAmount: Number(order.totalAmount || 0),
+                products: items.map((item) => ({
+                    orderItemId: item.orderItemId,
+                    productId: item.productId,
+                    name: item.productName || 'Product',
+                    qty: Number(item.quantity || 0),
+                    price: Number(item.unitPrice || 0),
+                    lineTotal: Number(item.lineTotal || 0),
+                    seller: item.sellerName || 'Seller',
+                    image: item.productImage || 'https://via.placeholder.com/120x120?text=Product'
+                })),
+                existingReturnRequest: apiData?.existingReturnRequest || order.existingReturnRequest || null,
+                returnEligibility: apiData?.returnEligibility || order.returnEligibility || { eligible: false, reason: 'Return details unavailable.' }
+            };
+        }
+
+        function renderOrder(order) {
+            document.getElementById('orderIntro').textContent = `Order #${order.id} placed on ${formatDate(order.date)}`;
+
+            const statusBadge = document.getElementById('orderStatusBadge');
+            statusBadge.textContent = order.displayLabel || order.status;
+            statusBadge.className = `status-badge ${statusClass(order.status)}`;
+
+            const infoBox = document.getElementById('orderInfoBox');
+            infoBox.innerHTML = `
+                <div class="kv"><div class="kv-label">Order ID</div><div class="kv-value">${order.id}</div></div>
+                <div class="kv"><div class="kv-label">Order Date</div><div class="kv-value">${formatDate(order.date)}</div></div>
+                <div class="kv"><div class="kv-label">Payment Method</div><div class="kv-value">${order.paymentMethod}</div></div>
+                <div class="kv"><div class="kv-label">Order Status</div><div class="kv-value"><span class="status-badge ${statusClass(order.status)}">${order.displayLabel || order.status}</span></div></div>
+                <div class="kv"><div class="kv-label">Status Update</div><div class="kv-value">${order.statusMessage || 'Order status is being updated.'}</div></div>
+                <div class="kv"><div class="kv-label">Order Total</div><div class="kv-value">${formatPrice(order.totalAmount)}</div></div>
+            `;
+
+            const productsList = document.getElementById('productsList');
+            productsList.innerHTML = order.products.map((product) => `
+                <div class="product-row">
+                    <img src="${product.image}" alt="${product.name}" class="thumb">
+                    <div>
+                        <p class="font-semibold text-sm text-[#232f3e]">${product.name}</p>
+                        <p class="text-xs text-gray-500 mt-1">Seller: ${product.seller}</p>
+                    </div>
+                    <div class="text-sm"><span class="text-gray-500">Qty:</span> <span class="font-semibold">${product.qty}</span></div>
+                    <div class="text-sm"><span class="text-gray-500">Price:</span> <span class="font-semibold text-[#b12704]">${formatPrice(product.price)}</span></div>
+                    <div class="text-sm flex flex-col gap-2">
+                        <span class="font-semibold">${formatPrice(product.lineTotal || (product.price * product.qty))}</span>
+                        ${order.status === 'delivered' ? `<a href="products_details.html?id=${encodeURIComponent(product.productId || '')}&review=1" class="text-xs font-semibold text-indigo-600 hover:underline">Leave a Review</a>` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            const shippingBox = document.getElementById('shippingInfoBox');
+            shippingBox.innerHTML = `
+                <div class="kv"><div class="kv-label">Shipping Address</div><div class="kv-value">${order.address}</div></div>
+                <div class="kv"><div class="kv-label">Customer Phone</div><div class="kv-value">${order.phone}</div></div>
+                <div class="kv"><div class="kv-label">Courier</div><div class="kv-value">${order.courier}</div></div>
+                <div class="kv"><div class="kv-label">Tracking Number</div><div class="kv-value">${order.trackingNo} &nbsp; <a class="track-link" href="my_orders.html" title="Open tracking view">Track Shipment</a></div></div>
+            `;
+
+            const returnBtn = document.getElementById('returnItemBtn');
+            const returnPolicy = order.returnEligibility || { eligible: false, reason: 'Return details unavailable.' };
+            const existingRequest = order.existingReturnRequest;
+            const eligible = Boolean(returnPolicy.eligible) && !existingRequest;
+            returnBtn.disabled = !eligible;
+            returnBtn.style.opacity = eligible ? '1' : '0.55';
+            if (existingRequest) {
+                returnBtn.title = 'Return request already submitted for this order';
+            } else {
+                returnBtn.title = eligible ? '' : returnPolicy.reason;
+            }
+
+            document.getElementById('contactSellerBtn').setAttribute('href', `my_messages.html?orderId=${encodeURIComponent(order.id)}`);
+            document.getElementById('downloadInvoiceBtn').onclick = async () => {
+                try {
+                    const userId = resolveCurrentUserId();
+                    const invoice = await fetchJson(`${API_BASE_URL}/orders/${encodeURIComponent(order.id)}/invoice?userId=${encodeURIComponent(userId)}`);
+                    alert(`Invoice ${invoice.invoiceNumber || ''} is ready for order ${order.id}.`);
+                } catch (error) {
+                    alert(error.message || 'Failed to fetch invoice.');
+                }
+            };
+
+            returnBtn.onclick = () => {
+                if (!eligible) {
+                    if (existingRequest) {
+                        window.location.href = `return_request_details.html?orderId=${encodeURIComponent(order.id)}&requestId=${encodeURIComponent(existingRequest.returnRequestId)}`;
+                    }
+                    return;
+                }
+                openReturnModal(order, returnPolicy);
+            };
+        }
+
+        function openReturnModal(order, policy) {
+            const modal = document.getElementById('returnModal');
+            const firstProduct = order.products[0];
+            document.getElementById('returnProductName').value = firstProduct ? firstProduct.name : '';
+            document.getElementById('returnPolicyText').textContent = policy.reason || 'Return policy: 7 days after delivery.';
+            document.getElementById('returnReason').value = '';
+            document.getElementById('returnDescription').value = '';
+            document.getElementById('returnImage').value = '';
+            modal.classList.add('show');
+        }
+
+        function closeReturnModal() {
+            document.getElementById('returnModal').classList.remove('show');
+        }
+
+        function fileToDataUrl(file) {
+            return new Promise((resolve) => {
+                if (!file) {
+                    resolve('');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+                reader.onerror = () => resolve('');
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function submitReturnRequest(event, order) {
+            event.preventDefault();
+            const reason = document.getElementById('returnReason').value;
+            if (!reason) {
+                alert('Please select a return reason.');
+                return;
+            }
+
+            const firstProduct = order.products[0];
+            if (!firstProduct || !firstProduct.orderItemId) {
+                alert('Unable to determine order item for return.');
+                return;
+            }
+
+            const description = document.getElementById('returnDescription').value.trim();
+            const file = document.getElementById('returnImage').files[0];
+            const imageData = await fileToDataUrl(file);
+
+            let result;
+            try {
+                const userId = resolveCurrentUserId();
+                result = await fetchJson(`${API_BASE_URL}/customer/returns/requests?userId=${encodeURIComponent(userId)}`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        orderItemId: firstProduct.orderItemId,
+                        selectedReason: reason,
+                        customerDescription: description,
+                        evidence: imageData ? [imageData] : []
+                    })
+                });
+            } catch (error) {
+                alert(error.message || 'Unable to submit return request.');
+                return;
+            }
+
+            closeReturnModal();
+            alert('Return request submitted successfully. Status: Pending');
+            window.location.href = `return_request_details.html?orderId=${encodeURIComponent(order.id)}&requestId=${encodeURIComponent(result.returnRequestId)}`;
+        }
+
+        async function initOrderDetailsPage() {
+            if (!IS_LIVE_HOST) {
+                document.getElementById('orderIntro').textContent = 'Open on localhost to load live order details.';
+                return;
+            }
+
+            const orderId = parseOrderId();
+            if (!orderId) {
+                alert('Order id is missing.');
+                window.location.href = 'my_orders.html';
+                return;
+            }
+
+            try {
+                const userId = resolveCurrentUserId();
+                const data = await fetchJson(`${API_BASE_URL}/orders/${encodeURIComponent(orderId)}/details?userId=${encodeURIComponent(userId)}`);
+                currentOrderData = mapOrderDetails(data);
+                renderOrder(currentOrderData);
+                document.getElementById('returnForm').addEventListener('submit', (event) => submitReturnRequest(event, currentOrderData));
+            } catch (error) {
+                alert(error.message || 'Failed to load order details.');
+                window.location.href = 'my_orders.html';
+            }
+        }
+
+        document.getElementById('closeReturnModal').addEventListener('click', closeReturnModal);
+        document.getElementById('cancelReturnForm').addEventListener('click', closeReturnModal);
+        document.getElementById('returnModal').addEventListener('click', (event) => {
+            if (event.target.id === 'returnModal') closeReturnModal();
+        });
+
+        initOrderDetailsPage();
+        lucide.createIcons();
+    </script>
+</body>
+</html>

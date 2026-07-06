@@ -1,0 +1,2357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Product Catalog Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" />
+    <style>
+        :root {
+            --bg: #f5f5f5;
+            --panel: #ffffff;
+            --text: #232f3e;
+            --muted: #666666;
+            --border: #dddddd;
+            --primary: #232f3e;
+            --primary-600: #37475a;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #0066c0;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --radius: 10px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Inter", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        body.dark {
+            --bg: #0f172a;
+            --panel: #111827;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --border: #1f2937;
+            --shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+        }
+
+        .layout {
+            display: block;
+            min-height: 100vh;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            padding: 20px;
+            margin-top: 64px;
+        }
+
+        @media (min-width: 768px) {
+            .content {
+                margin-left: 256px;
+            }
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .page-header .title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--text);
+        }
+
+        .page-header .title .material-symbols-rounded {
+            font-size: 26px;
+            color: var(--primary);
+        }
+
+        .page-header .actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f3f4f6;
+            color: #333;
+        }
+
+        .btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn.primary:hover {
+            background: var(--primary-600);
+        }
+
+        .btn.success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn.success:hover {
+            background: #218838;
+        }
+
+        .btn.danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn.danger:hover {
+            background: #c82333;
+        }
+
+        .btn.secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn.secondary:hover {
+            background: #4b5563;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .panel {
+            background: var(--panel);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 25px;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        .search {
+            position: relative;
+            min-width: 260px;
+        }
+
+        .search input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+            color: var(--text);
+        }
+
+        .search input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(35, 47, 62, 0.1);
+        }
+
+        .search .material-symbols-rounded {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: #666;
+            pointer-events: none;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .select {
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            background-color: white;
+            cursor: pointer;
+            min-width: 140px;
+        }
+
+        .select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border: 2px solid transparent;
+            background-color: #f3f4f6;
+            color: #333;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .tab:hover {
+            background-color: #e5e7eb;
+        }
+
+        .tab.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .action-tabs-container {
+            display: flex;
+            gap: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .btn.action-tab-btn {
+            padding: 10px 20px;
+            border: 2px solid transparent;
+            background-color: #f3f4f6;
+            color: #333;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .btn.action-tab-btn:hover {
+            background-color: #e5e7eb;
+        }
+
+        .btn.action-tab-btn.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 1200px;
+        }
+
+        thead th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text);
+            font-size: 13px;
+            text-transform: uppercase;
+            background-color: #f5f5f5;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        tbody tr:hover { background: #f5f5f5; }
+
+        .product-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .product-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 6px;
+            object-fit: cover;
+            border: 1px solid var(--border);
+        }
+
+        .product-details h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+            color: var(--text);
+        }
+
+        .product-details p {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .seller-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .seller-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        .pill {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pill-pending { background: #fef3c7; color: #92400e; }
+        .pill-approved { background: #dcfce7; color: #166534; }
+        .pill-rejected { background: #fee2e2; color: #991b1b; }
+        .pill-disabled { background: #f3f4f6; color: #4b5563; }
+        .pill-live { background: #dcfce7; color: #166534; }
+        .pill-hidden { background: #f3f4f6; color: #6b7280; }
+        .pill-low-stock { background: #fee2e2; color: #991b1b; }
+        .pill-in-stock { background: #dcfce7; color: #166534; }
+        .pill-out-of-stock { background: #f3f4f6; color: #4b5563; }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .rating .material-symbols-rounded {
+            color: #ffc107;
+            font-size: 16px;
+        }
+
+        .price {
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: #0066c0;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 5px 10px;
+            transition: color 0.2s;
+        }
+
+        .action-btn:hover {
+            color: #232f3e;
+            text-decoration: underline;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .pager { display: flex; align-items: center; gap: 6px; }
+
+        .pager button {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .pager button:hover {
+            background-color: #f5f5f5;
+            border-color: var(--primary);
+        }
+
+        .pager button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            display: none;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .alert.show { display: block; }
+        .alert.success { background: #dcfce7; color: #166534; }
+        .alert.error { background: #fee2e2; color: #991b1b; }
+        .alert.warning { background: #fef3c7; color: #92400e; }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: min(720px, 100%);
+            height: 100vh;
+            background: var(--panel);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .drawer.open { right: 0; }
+
+        .drawer-header {
+            padding: 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .drawer-body {
+            padding: 18px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .drawer-section { margin-bottom: 20px; }
+
+        .drawer-section h4 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .info-item label {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 5px;
+        }
+
+        .info-item p {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .gallery img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .gallery img:hover { transform: scale(1.05); }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal-backdrop.show { display: flex; }
+
+        .modal {
+            background: var(--panel);
+            border-radius: 14px;
+            padding: 20px;
+            width: min(520px, 92vw);
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+        }
+
+        .modal h3 { font-size: 18px; margin-bottom: 15px; }
+
+        .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:16px; }
+
+        .form-group { margin-bottom: 15px; }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: "Inter", Arial, sans-serif;
+            background: var(--panel);
+            color: var(--text);
+        }
+
+        .form-group textarea { resize: vertical; min-height: 80px; }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .category-tree { padding-left: 0; list-style: none; }
+
+        .category-item {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--panel);
+        }
+
+        .category-item:hover { background: #f5f5f5; }
+
+        .category-info { display: flex; align-items: center; gap: 10px; }
+
+        .category-icon { font-size: 24px; }
+
+        .attribute-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .attribute-item {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--panel);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            margin-top: 15px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--panel);
+        }
+
+        .stat-card h3 {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .stat-card p { font-size: 24px; font-weight: 700; }
+
+        .stat-card.success p { color: var(--success); }
+        .stat-card.warning p { color: var(--warning); }
+        .stat-card.danger p { color: var(--danger); }
+
+        .bulk-actions {
+            display: none;
+            padding: 12px;
+            background: #fffbeb;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .bulk-actions.show { display: flex; }
+
+        .image-preview {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .image-preview.show { display: flex; }
+
+        .image-preview img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+        }
+
+        .image-preview .close-preview {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            color: black;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            table { min-width: 1000px; }
+            .info-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 640px) {
+            .page-header { flex-direction: column; align-items: flex-start; }
+            .toolbar { flex-direction: column; align-items: flex-start; }
+            .search { min-width: 100%; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="bg-[#f9fafb] text-[#1a1a1a] min-h-screen flex flex-col">
+  <nav class="fixed top-0 w-full z-[100] glass">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-16 flex items-center justify-between gap-6">
+      <div class="flex items-center gap-3 shrink-0">
+        <button id="sidebarToggle" class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <a href="admin_dashboard.html" class="text-xl font-bold tracking-tight uppercase hover:opacity-70 transition-opacity">
+          <span class="text-gray-900">Lumina</span>
+          <span class="text-gray-400 font-normal text-xs ml-2">Admin</span>
+        </a>
+      </div>
+
+      <div class="hidden lg:flex flex-grow relative max-w-sm mx-auto">
+        <input type="text" placeholder="Search users, sellers, orders..." class="w-full bg-gray-50 border border-gray-200 focus:border-gray-400 focus:bg-white rounded-full py-2 px-4 pl-10 text-xs outline-none transition-all">
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+      </div>
+
+      <div class="flex items-center gap-3 shrink-0">
+        <button class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors group">
+          <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
+          <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          <div class="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 p-0 dropdown-hidden z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
+            <div class="px-4 py-3 border-b border-gray-100">
+              <p class="text-xs font-bold uppercase tracking-widest text-gray-600">Admin alerts</p>
+            </div>
+            <div class="max-h-80 overflow-y-auto">
+              <div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
+                <p class="text-xs font-bold text-gray-900">New seller #S422</p>
+                <p class="text-xs text-gray-500 mt-1">Request pending verification</p>
+              </div>
+              <div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
+                <p class="text-xs font-bold text-gray-900">Order #2451 flagged</p>
+                <p class="text-xs text-gray-500 mt-1">Payment discrepancy</p>
+              </div>
+              <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer">
+                <p class="text-xs font-bold text-gray-900">System update</p>
+                <p class="text-xs text-gray-500 mt-1">Analytics ready</p>
+              </div>
+            </div>
+            <div class="px-4 py-2 border-t border-gray-100 text-center">
+              <a href="#" class="text-xs font-bold text-gray-600 hover:text-black uppercase tracking-widest">View All</a>
+            </div>
+          </div>
+        </button>
+
+        <div class="relative group">
+          <button class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-full flex items-center justify-center text-white text-xs font-bold">A</div>
+            <div class="flex items-center gap-1">
+              <span class="text-xs font-bold text-gray-700 hidden sm:block">Admin</span>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-gray-600"></i>
+            </div>
+          </button>
+          <div class="absolute top-full right-0 mt-1 w-56 bg-white rounded-xl shadow-lg border border-gray-100 p-0 dropdown-hidden z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
+            <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-xs font-bold text-gray-900">Super Admin</span>
+                <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
+                  <i data-lucide="shield" class="w-3 h-3"></i>
+                  root
+                </span>
+              </div>
+              <p class="text-xs text-gray-500">full access</p>
+            </div>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+              <i data-lucide="user-cog" class="w-4 h-4 text-gray-600"></i>
+              <span class="text-sm text-gray-700">Profile</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+              <i data-lucide="settings" class="w-4 h-4 text-gray-600"></i>
+              <span class="text-sm text-gray-700">System settings</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-red-600">
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+              <span class="text-sm font-bold">Logout</span>
+            </a>
+          </div>
+        </div>
+
+        <button class="hidden sm:flex items-center gap-2 px-4 py-2 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-gray-900 transition-colors">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span class="hidden lg:block">New</span>
+        </button>
+        <button class="sm:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <i data-lucide="plus" class="w-5 h-5 text-gray-700"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <aside id="sidebar" class="hidden md:block fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-100 z-50 overflow-y-auto">
+    <nav class="p-4 space-y-2">
+      <a href="admin_dashboard.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+        Dashboard
+      </a>
+      <a href="user_management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="users" class="w-4 h-4"></i>
+        User Management
+      </a>
+      <a href="seller_management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="store" class="w-4 h-4"></i>
+        Seller Management
+      </a>
+      <a href="Order_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="package" class="w-4 h-4"></i>
+        Order Management
+      </a>
+      <a href="Product_Catalog_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg bg-gray-50 transition-all">
+        <i data-lucide="box" class="w-4 h-4"></i>
+        Product Catalog
+      </a>
+      <a href="cms.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="file-text" class="w-4 h-4"></i>
+        CMS
+      </a>
+      <a href="Reviews_Ratings_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="star" class="w-4 h-4"></i>
+        Reviews & Ratings
+      </a>
+      <a href="Logistics_Courier_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="truck" class="w-4 h-4"></i>
+        Logistics
+      </a>
+      <a href="Payment_Payout_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="credit-card" class="w-4 h-4"></i>
+        Payments
+      </a>
+      <a href="Dispute_Support_System.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="shield-alert" class="w-4 h-4"></i>
+        Dispute & Support
+      </a>
+      <a href="Reports_Analytics.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+        Reports
+      </a>
+
+      <div class="h-px bg-gray-100 my-4"></div>
+
+      <a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="settings" class="w-4 h-4"></i>
+        Settings
+      </a>
+      <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+        <i data-lucide="help-circle" class="w-4 h-4"></i>
+        Help
+      </a>
+    </nav>
+  </aside>
+
+  <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+
+    <div class="layout">
+        <main class="content">
+            <div class="page-header">
+                <div class="title">
+                    <span class="material-symbols-rounded">inventory_2</span>
+                    Product Catalog Management
+                    <span class="badge" id="totalCount">0 Products</span>
+                </div>
+                <div class="actions">
+                    <button class="btn" id="exportBtn">Export CSV</button>
+                </div>
+            </div>
+
+            <div class="action-tabs-container">
+                <button class="btn action-tab-btn active" id="addProductBtn">
+                    <span class="material-symbols-rounded">add</span>
+                    Add Product
+                </button>
+                <button class="btn action-tab-btn" id="manageCategoriesBtn">
+                    <span class="material-symbols-rounded">category</span>
+                    Categories
+                </button>
+                <button class="btn action-tab-btn" id="manageBrandsBtn">
+                    <span class="material-symbols-rounded">business</span>
+                    Brands
+                </button>
+                <button class="btn action-tab-btn" id="manageAttributesBtn">
+                    <span class="material-symbols-rounded">tune</span>
+                    Attributes
+                </button>
+            </div>
+
+            <div class="panel">
+                <div id="alertBox" class="alert"></div>
+
+                <div id="bulkActions" class="bulk-actions">
+                    <span id="selectedCount">0 selected</span>
+                    <button class="btn success" id="bulkApproveBtn">Approve</button>
+                    <button class="btn danger" id="bulkRejectBtn">Reject</button>
+                    <button class="btn secondary" id="bulkDisableBtn">Disable</button>
+                    <button class="btn danger" id="bulkDeleteBtn">Delete</button>
+                </div>
+
+                <div class="toolbar">
+                    <div class="search">
+                        <span class="material-symbols-rounded">search</span>
+                        <input type="text" id="searchInput" placeholder="Search products, sellers, SKU...">
+                    </div>
+                    <div class="filters">
+                        <select id="categoryFilter" class="select">
+                            <option value="all">All Categories</option>
+                        </select>
+                        <select id="brandFilter" class="select">
+                            <option value="all">All Brands</option>
+                        </select>
+                        <select id="statusFilter" class="select">
+                            <option value="all">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="disabled">Disabled</option>
+                        </select>
+                        <select id="stockFilter" class="select">
+                            <option value="all">All Stock</option>
+                            <option value="in-stock">In Stock</option>
+                            <option value="low-stock">Low Stock</option>
+                            <option value="out-of-stock">Out of Stock</option>
+                        </select>
+                    </div>
+                    <div class="tabs" id="tabs">
+                        <button class="tab active" data-tab="all">All Products</button>
+                        <button class="tab" data-tab="pending">Pending Approval</button>
+                        <button class="tab" data-tab="approved">Approved</button>
+                        <button class="tab" data-tab="rejected">Rejected</button>
+                        <button class="tab" data-tab="low-stock">Low Stock</button>
+                    </div>
+                </div>
+
+                <div style="overflow: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAll"></th>
+                                <th data-sort="name">Product</th>
+                                <th data-sort="seller">Seller</th>
+                                <th data-sort="category">Category</th>
+                                <th data-sort="brand">Brand</th>
+                                <th data-sort="sku">SKU</th>
+                                <th data-sort="price">Price</th>
+                                <th data-sort="stock">Stock</th>
+                                <th data-sort="status">Status</th>
+                                <th data-sort="visibility">Visibility</th>
+                                <th data-sort="rating">Rating</th>
+                                <th data-sort="dateAdded">Date Added</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productTable"></tbody>
+                    </table>
+                </div>
+
+                <div class="pagination">
+                    <div class="pager">
+                        <button id="prevPage">Previous</button>
+                        <span id="pageInfo">Page 1 of 1</span>
+                        <button id="nextPage">Next</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Product Details Drawer -->
+    <aside class="drawer" id="productDrawer">
+        <div class="drawer-header">
+            <strong>Product Details</strong>
+            <button class="btn" id="closeDrawer">Close</button>
+        </div>
+        <div class="drawer-body" id="drawerContent"></div>
+    </aside>
+
+    <!-- Category Management Drawer -->
+    <aside class="drawer" id="categoryDrawer">
+        <div class="drawer-header">
+            <strong>Category Management</strong>
+            <button class="btn" id="closeCategoryDrawer">Close</button>
+        </div>
+        <div class="drawer-body" id="categoryContent">
+            <button class="btn primary" id="addCategoryBtn" style="margin-bottom: 15px;">
+                <span class="material-symbols-rounded">add</span>
+                Add Category
+            </button>
+            <ul class="category-tree" id="categoryTree"></ul>
+        </div>
+    </aside>
+
+    <!-- Brand Management Drawer -->
+    <aside class="drawer" id="brandDrawer">
+        <div class="drawer-header">
+            <strong>Brand Management</strong>
+            <button class="btn" id="closeBrandDrawer">Close</button>
+        </div>
+        <div class="drawer-body" id="brandContent">
+            <button class="btn primary" id="addBrandBtn" style="margin-bottom: 15px;">
+                <span class="material-symbols-rounded">add</span>
+                Add Brand
+            </button>
+            <div id="brandList"></div>
+        </div>
+    </aside>
+
+    <!-- Attribute Management Drawer -->
+    <aside class="drawer" id="attributeDrawer">
+        <div class="drawer-header">
+            <strong>Attribute Management</strong>
+            <button class="btn" id="closeAttributeDrawer">Close</button>
+        </div>
+        <div class="drawer-body" id="attributeContent">
+            <button class="btn primary" id="addAttributeBtn" style="margin-bottom: 15px;">
+                <span class="material-symbols-rounded">add</span>
+                Add Attribute
+            </button>
+            <div class="attribute-list" id="attributeList"></div>
+        </div>
+    </aside>
+
+    <!-- Modal Backdrop -->
+    <div class="modal-backdrop" id="modalBackdrop">
+        <div class="modal" id="activeModal"></div>
+    </div>
+
+    <!-- Image Preview -->
+    <div class="image-preview" id="imagePreview">
+        <button class="close-preview" onclick="closeImagePreview()">×</button>
+        <img id="previewImage" src="" alt="Preview">
+    </div>
+
+    <footer class="bg-white border-t border-gray-100 mt-12 md:ml-64">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-8 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Lumina Admin</p>
+          <p class="text-sm text-gray-600 leading-relaxed">Centralized control for marketplace operations. Monitor users, sellers, and system health.</p>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Operations</p>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Moderation queue</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">System logs</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Audit trail</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Feature flags</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Help</p>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Admin guide</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Contact devops</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Status page</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">Policies</p>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Privacy</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Terms</a></li>
+            <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Admin code of conduct</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-100 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <p class="text-xs font-bold uppercase tracking-widest text-gray-500">&copy; 2026 LUMINA Marketplace. All rights reserved.</p>
+        <div class="flex gap-6">
+          <a href="#" class="text-gray-600 hover:text-gray-900 transition-colors"><i data-lucide="facebook" class="w-4 h-4"></i></a>
+          <a href="#" class="text-gray-600 hover:text-gray-900 transition-colors"><i data-lucide="instagram" class="w-4 h-4"></i></a>
+          <a href="#" class="text-gray-600 hover:text-gray-900 transition-colors"><i data-lucide="twitter" class="w-4 h-4"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module">
+        lucide.createIcons();
+        const API_BASE = '/api/admin/catalog';
+
+        const state = {
+            products: [],
+            categories: [],
+            brands: [],
+            attributes: [],
+            filtered: [],
+            selected: new Set(),
+            page: 1,
+            pageSize: 10,
+            sort: { key: 'dateAdded', dir: 'desc' },
+            activeTab: 'all',
+            currentProduct: null
+        };
+
+        // DOM Elements
+        const el = {
+            table: document.getElementById('productTable'),
+            search: document.getElementById('searchInput'),
+            categoryFilter: document.getElementById('categoryFilter'),
+            brandFilter: document.getElementById('brandFilter'),
+            statusFilter: document.getElementById('statusFilter'),
+            stockFilter: document.getElementById('stockFilter'),
+            selectAll: document.getElementById('selectAll'),
+            prevPage: document.getElementById('prevPage'),
+            nextPage: document.getElementById('nextPage'),
+            pageInfo: document.getElementById('pageInfo'),
+            totalCount: document.getElementById('totalCount'),
+            alert: document.getElementById('alertBox'),
+            drawer: document.getElementById('productDrawer'),
+            drawerContent: document.getElementById('drawerContent'),
+            closeDrawer: document.getElementById('closeDrawer'),
+            categoryDrawer: document.getElementById('categoryDrawer'),
+            brandDrawer: document.getElementById('brandDrawer'),
+            attributeDrawer: document.getElementById('attributeDrawer'),
+            modalBackdrop: document.getElementById('modalBackdrop'),
+            activeModal: document.getElementById('activeModal'),
+            bulkActions: document.getElementById('bulkActions'),
+            selectedCount: document.getElementById('selectedCount'),
+            tabs: document.getElementById('tabs')
+        };
+
+        async function api(path, options = {}) {
+            const response = await fetch(`${API_BASE}${path}`, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-id': localStorage.getItem('adminId') || localStorage.getItem('userId') || '',
+                    ...(options.headers || {})
+                }
+            });
+
+            if (response.headers.get('content-type')?.includes('text/csv')) return response.text();
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || payload.success === false) throw new Error(payload.message || payload.error || 'Request failed');
+            return payload;
+        }
+
+        // Alert System
+        function showAlert(type, message) {
+            el.alert.className = `alert ${type} show`;
+            el.alert.textContent = message;
+            setTimeout(() => el.alert.classList.remove('show'), 3000);
+        }
+
+        // Badge Helpers
+        function statusBadge(status) {
+            const badges = {
+                pending: '<span class="pill pill-pending">Pending</span>',
+                approved: '<span class="pill pill-approved">Approved</span>',
+                rejected: '<span class="pill pill-rejected">Rejected</span>',
+                disabled: '<span class="pill pill-disabled">Disabled</span>'
+            };
+            return badges[status] || status;
+        }
+
+        function visibilityBadge(visibility) {
+            const badges = {
+                live: '<span class="pill pill-live">Live</span>',
+                hidden: '<span class="pill pill-hidden">Hidden</span>'
+            };
+            return badges[visibility] || visibility;
+        }
+
+        function stockBadge(stock) {
+            if (stock === 0) return '<span class="pill pill-out-of-stock">Out of Stock</span>';
+            if (stock < 20) return '<span class="pill pill-low-stock">Low Stock</span>';
+            return '<span class="pill pill-in-stock">In Stock</span>';
+        }
+
+        // Filter & Sort
+        function applyFilters() {
+            state.filtered = [...state.products];
+            sortData();
+            state.page = 1;
+            renderTable();
+        }
+
+        function sortData() {
+            const { key, dir } = state.sort;
+            state.filtered.sort((a, b) => {
+                let aVal = a[key];
+                let bVal = b[key];
+                
+                if (key === 'price' || key === 'stock') {
+                    aVal = parseFloat(aVal);
+                    bVal = parseFloat(bVal);
+                }
+                
+                if (aVal === bVal) return 0;
+                if (dir === 'asc') return aVal > bVal ? 1 : -1;
+                return aVal < bVal ? 1 : -1;
+            });
+        }
+
+        async function fetchProducts() {
+            const query = new URLSearchParams({
+                search: el.search.value,
+                category: el.categoryFilter.value,
+                brand: el.brandFilter.value,
+                status: el.statusFilter.value,
+                stock: el.stockFilter.value,
+                tab: state.activeTab,
+                sortKey: state.sort.key,
+                sortDir: state.sort.dir,
+                page: 1,
+                pageSize: 500
+            });
+            const res = await api(`/products?${query.toString()}`);
+            state.products = res.data || [];
+            applyFilters();
+        }
+
+        async function loadMeta() {
+            const [metaRes, catRes, brandRes, attrRes] = await Promise.all([
+                api('/meta'),
+                api('/categories'),
+                api('/brands'),
+                api('/attributes')
+            ]);
+
+            state.categories = catRes.data || [];
+            state.brands = brandRes.data || [];
+            state.attributes = attrRes.data || [];
+            state.sellers = metaRes.data.sellers || [];
+
+            el.categoryFilter.innerHTML = '<option value="all">All Categories</option>' + (metaRes.data.categories || []).map(c => `<option value="${c}">${c}</option>`).join('');
+            el.brandFilter.innerHTML = '<option value="all">All Brands</option>' + (metaRes.data.brands || []).map(b => `<option value="${b}">${b}</option>`).join('');
+        }
+
+        function paginate() {
+            const start = (state.page - 1) * state.pageSize;
+            return state.filtered.slice(start, start + state.pageSize);
+        }
+
+        // Render Table
+        function renderTable() {
+            const rows = paginate();
+            el.table.innerHTML = rows.map(p => `
+                <tr>
+                    <td><input type="checkbox" data-id="${p.id}" ${state.selected.has(p.id) ? 'checked' : ''}></td>
+                    <td>
+                        <div class="product-cell">
+                            <img src="${p.images[0]}" alt="${p.name}" class="product-img" onclick="showImagePreview('${p.images[0]}')">
+                            <div class="product-details">
+                                <h4>${p.name}</h4>
+                                <p>${p.sku}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="seller-info">
+                            <img src="https://ui-avatars.com/api/?name=${p.seller}&background=random&size=40" class="seller-logo">
+                            <span>${p.seller}</span>
+                        </div>
+                    </td>
+                    <td>${p.category}</td>
+                    <td>${p.brand}</td>
+                    <td>${p.sku}</td>
+                    <td class="price">$${parseFloat(p.price).toLocaleString()}</td>
+                    <td>${p.stock} ${stockBadge(p.stock)}</td>
+                    <td>${statusBadge(p.status)}</td>
+                    <td>${visibilityBadge(p.visibility)}</td>
+                    <td>
+                        <div class="rating">
+                            <span class="material-symbols-rounded">star</span>
+                            ${p.rating}
+                        </div>
+                    </td>
+                    <td>${p.dateAdded}</td>
+                    <td>
+                        <div class="actions">
+                            <button class="action-btn" onclick="viewProduct('${p.id}')">View</button>
+                            ${p.status === 'pending' ? `<button class="action-btn" onclick="approveProduct('${p.id}')">Approve</button>` : ''}
+                            ${p.status === 'pending' ? `<button class="action-btn" onclick="rejectProduct('${p.id}')">Reject</button>` : ''}
+                            <button class="action-btn" onclick="editProduct('${p.id}')">Edit</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            const totalPages = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+            el.pageInfo.textContent = `Page ${state.page} of ${totalPages}`;
+            el.totalCount.textContent = `${state.filtered.length} Products`;
+            el.prevPage.disabled = state.page === 1;
+            el.nextPage.disabled = state.page === totalPages;
+
+            updateBulkActions();
+        }
+
+        // View Product Details
+        window.viewProduct = function(productId) {
+            const product = state.products.find(p => p.id === productId);
+            state.currentProduct = product;
+
+            el.drawerContent.innerHTML = `
+                <div class="drawer-section">
+                    <h4>Product Information</h4>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Product Name</label>
+                            <p>${product.name}</p>
+                        </div>
+                        <div class="info-item">
+                            <label>SKU</label>
+                            <p>${product.sku}</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Category</label>
+                            <p>${product.category}</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Brand</label>
+                            <p>${product.brand}</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Seller</label>
+                            <p>${product.seller}</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Status</label>
+                            <p>${statusBadge(product.status)}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="drawer-section">
+                    <h4>Product Images</h4>
+                    <div class="gallery">
+                        ${product.images.map(img => `<img src="${img}" onclick="showImagePreview('${img}')">`).join('')}
+                    </div>
+                </div>
+
+                <div class="drawer-section">
+                    <h4>Description</h4>
+                    <p>${product.description}</p>
+                </div>
+
+                <div class="drawer-section">
+                    <h4>Pricing & Inventory</h4>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Price</label>
+                            <p class="price">$${parseFloat(product.price).toLocaleString()}</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Stock Quantity</label>
+                            <p>${product.stock} units</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Date Added</label>
+                            <p>${product.dateAdded}</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Visibility</label>
+                            <p>${visibilityBadge(product.visibility)}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="drawer-section">
+                    <h4>Performance Analytics</h4>
+                    <div class="stats-grid">
+                        <div class="stat-card success">
+                            <h3>Total Sales</h3>
+                            <p>${product.sales}</p>
+                        </div>
+                        <div class="stat-card success">
+                            <h3>Revenue</h3>
+                            <p>$${parseFloat(product.revenue).toLocaleString()}</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Views</h3>
+                            <p>${product.views.toLocaleString()}</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Rating</h3>
+                            <p>${product.rating} ⭐</p>
+                        </div>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Conversion Rate</label>
+                            <p>${product.conversionRate}%</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Refund Rate</label>
+                            <p>${product.refundRate}%</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Reviews</label>
+                            <p>${product.reviews}</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Quality Score</label>
+                            <p>${product.qualityScore}/100</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="drawer-section">
+                    <h4>Product Actions</h4>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        ${product.status === 'pending' ? `
+                            <button class="btn success" onclick="approveProduct('${product.id}')">Approve Product</button>
+                            <button class="btn danger" onclick="rejectProduct('${product.id}')">Reject Product</button>
+                        ` : ''}
+                        ${product.status === 'approved' ? `
+                            <button class="btn secondary" onclick="toggleVisibility('${product.id}')">
+                                ${product.visibility === 'live' ? 'Hide Product' : 'Make Live'}
+                            </button>
+                        ` : ''}
+                        <button class="btn secondary" onclick="disableProduct('${product.id}')">Disable Product</button>
+                        <button class="btn danger" onclick="deleteProduct('${product.id}')">Delete Product</button>
+                    </div>
+                </div>
+            `;
+
+            el.drawer.classList.add('open');
+        };
+
+        // Product Actions
+        window.approveProduct = async function(productId) {
+            try {
+                await api(`/products/${productId}/approve`, { method: 'POST', body: JSON.stringify({}) });
+                el.drawer.classList.remove('open');
+                await fetchProducts();
+                showAlert('success', 'Product approved successfully!');
+            } catch (error) {
+                showAlert('error', error.message);
+            }
+        };
+
+        window.rejectProduct = function(productId) {
+            openRejectModal(productId);
+        };
+
+        window.disableProduct = async function(productId) {
+            try {
+                await api(`/products/${productId}/disable`, { method: 'POST', body: JSON.stringify({}) });
+                el.drawer.classList.remove('open');
+                await fetchProducts();
+                showAlert('warning', 'Product disabled.');
+            } catch (error) {
+                showAlert('error', error.message);
+            }
+        };
+
+        window.deleteProduct = async function(productId) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                try {
+                    await api(`/products/${productId}`, { method: 'DELETE' });
+                    el.drawer.classList.remove('open');
+                    await fetchProducts();
+                    showAlert('success', 'Product deleted successfully.');
+                } catch (error) {
+                    showAlert('error', error.message);
+                }
+            }
+        };
+
+        window.toggleVisibility = async function(productId) {
+            try {
+                await api(`/products/${productId}/toggle-visibility`, { method: 'POST', body: JSON.stringify({}) });
+                el.drawer.classList.remove('open');
+                await fetchProducts();
+                showAlert('success', 'Product visibility updated.');
+            } catch (error) {
+                showAlert('error', error.message);
+            }
+        };
+
+        window.editProduct = function(productId) {
+            const product = state.products.find(p => p.id === productId);
+            openEditModal(product);
+        };
+
+        function openAddProductModal() {
+            const categoryOptions = state.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            const brandOptions = state.brands.map(b => `<option value="${b.name}">${b.name}</option>`).join('');
+            const sellerOptions = (state.sellers || []).map(seller => `<option value="${seller}">${seller}</option>`).join('');
+            const sellerField = sellerOptions
+                ? `
+                <div class="form-group">
+                    <label>Seller Name / Store</label>
+                    <select id="newProductSeller">
+                        <option value="">Select a seller</option>
+                        ${sellerOptions}
+                    </select>
+                </div>
+            `
+                : `
+                <div class="form-group">
+                    <label>Seller Name / Store</label>
+                    <input type="text" id="newProductSeller" placeholder="Northwind Traders">
+                </div>
+            `;
+
+            el.activeModal.innerHTML = `
+                <h3>Add Product</h3>
+                <div class="form-group">
+                    <label>Product Name</label>
+                    <input type="text" id="newProductName" placeholder="Wireless Headphones">
+                </div>
+                ${sellerField}
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="newProductCategory">
+                        <option value="">Select a category</option>
+                        ${categoryOptions}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Brand</label>
+                    <select id="newProductBrand">
+                        <option value="">Select a brand</option>
+                        ${brandOptions}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>SKU</label>
+                    <input type="text" id="newProductSku" placeholder="SKU-1001">
+                </div>
+                <div class="form-group">
+                    <label>Price</label>
+                    <input type="number" id="newProductPrice" min="0" step="0.01" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>Stock</label>
+                    <input type="number" id="newProductStock" min="0" step="1" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Image URLs (comma-separated, optional)</label>
+                    <textarea id="newProductImages" placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="newProductDescription" placeholder="Short product description..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="closeModal()">Cancel</button>
+                    <button class="btn primary" onclick="addProduct()">Create Product</button>
+                </div>
+            `;
+            el.modalBackdrop.classList.add('show');
+        }
+
+        window.addProduct = async function() {
+            const name = document.getElementById('newProductName').value.trim();
+            const sellerField = document.getElementById('newProductSeller');
+            const seller = sellerField ? sellerField.value.trim() : '';
+            const category = document.getElementById('newProductCategory').value.trim();
+            const brand = document.getElementById('newProductBrand').value.trim();
+            const sku = document.getElementById('newProductSku').value.trim();
+            const price = document.getElementById('newProductPrice').value;
+            const stock = document.getElementById('newProductStock').value;
+            const description = document.getElementById('newProductDescription').value.trim();
+            const imagesText = document.getElementById('newProductImages').value.trim();
+
+            if (!name || !seller || !category || !brand || !sku) {
+                showAlert('error', 'Please fill in the required product fields.');
+                return;
+            }
+
+            try {
+                await api('/products', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name,
+                        seller,
+                        category,
+                        brand,
+                        sku,
+                        price: Number(price) || 0,
+                        stock: Number(stock) || 0,
+                        description,
+                        images: imagesText ? imagesText.split(',').map((item) => item.trim()).filter(Boolean) : [],
+                        qualityScore: 75
+                    })
+                });
+
+                closeModal();
+                await loadMeta();
+                await fetchProducts();
+                showAlert('success', 'Product created successfully.');
+            } catch (error) {
+                showAlert('error', error.message);
+            }
+        };
+
+        // Reject Modal
+        function openRejectModal(productId) {
+            const product = state.products.find(p => p.id === productId);
+            el.activeModal.innerHTML = `
+                <h3>Reject Product</h3>
+                <p>You are rejecting: <strong>${product.name}</strong></p>
+                <div class="form-group">
+                    <label>Rejection Reason</label>
+                    <textarea id="rejectReason" placeholder="Provide a detailed reason for rejection..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="closeModal()">Cancel</button>
+                    <button class="btn danger" onclick="confirmReject('${productId}')">Reject Product</button>
+                </div>
+            `;
+            el.modalBackdrop.classList.add('show');
+        }
+
+        window.confirmReject = async function(productId) {
+            const reason = document.getElementById('rejectReason').value;
+            if (!reason) {
+                showAlert('error', 'Please provide a rejection reason.');
+                return;
+            }
+            try {
+                await api(`/products/${productId}/reject`, { method: 'POST', body: JSON.stringify({ reason }) });
+                closeModal();
+                el.drawer.classList.remove('open');
+                await fetchProducts();
+                showAlert('success', 'Product rejected.');
+            } catch (error) {
+                showAlert('error', error.message);
+            }
+        };
+
+        // Edit Modal
+        function openEditModal(product) {
+            el.activeModal.innerHTML = `
+                <h3>Edit Product</h3>
+                <div class="form-group">
+                    <label>Product Name</label>
+                    <input type="text" id="editName" value="${product.name}">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="editCategory">
+                        ${state.categories.map(c => `<option value="${c.name}" ${c.name === product.category ? 'selected' : ''}>${c.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Brand</label>
+                    <select id="editBrand">
+                        ${state.brands.map(b => `<option value="${b.name}" ${b.name === product.brand ? 'selected' : ''}>${b.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Price</label>
+                    <input type="number" id="editPrice" value="${product.price}" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Stock</label>
+                    <input type="number" id="editStock" value="${product.stock}">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="editDescription">${product.description}</textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="closeModal()">Cancel</button>
+                    <button class="btn primary" onclick="saveProductEdit('${product.id}')">Save Changes</button>
+                </div>
+            `;
+            el.modalBackdrop.classList.add('show');
+        }
+
+        window.saveProductEdit = async function(productId) {
+            try {
+                await api(`/products/${productId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        name: document.getElementById('editName').value,
+                        category: document.getElementById('editCategory').value,
+                        brand: document.getElementById('editBrand').value,
+                        price: document.getElementById('editPrice').value,
+                        stock: parseInt(document.getElementById('editStock').value, 10),
+                        description: document.getElementById('editDescription').value
+                    })
+                });
+
+                closeModal();
+                el.drawer.classList.remove('open');
+                await fetchProducts();
+                showAlert('success', 'Product updated successfully!');
+            } catch (error) {
+                showAlert('error', error.message);
+            }
+        };
+
+        // Category Management
+        window.openCategoryManagement = function() {
+            renderCategoryTree();
+            el.categoryDrawer.classList.add('open');
+        };
+
+        function renderCategoryTree() {
+            const categoryTree = document.getElementById('categoryTree');
+            const rootCategories = state.categories.filter(c => !c.parent);
+            
+            categoryTree.innerHTML = rootCategories.map(cat => `
+                <li class="category-item">
+                    <div class="category-info">
+                        <span class="material-symbols-rounded category-icon">${cat.icon}</span>
+                        <div>
+                            <strong>${cat.name}</strong>
+                            <div style="font-size: 12px; color: var(--muted);">${cat.productCount} products</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <span class="pill ${cat.active ? 'pill-approved' : 'pill-disabled'}">${cat.active ? 'Active' : 'Inactive'}</span>
+                        <button class="btn" onclick="editCategory(${cat.id})">Edit</button>
+                    </div>
+                </li>
+                ${renderSubcategories(cat.id)}
+            `).join('');
+        }
+
+        function renderSubcategories(parentId) {
+            const subcategories = state.categories.filter(c => c.parent === parentId);
+            if (subcategories.length === 0) return '';
+            
+            return `<ul style="margin-left: 30px; list-style: none;">
+                ${subcategories.map(cat => `
+                    <li class="category-item">
+                        <div class="category-info">
+                            <span class="material-symbols-rounded category-icon">${cat.icon}</span>
+                            <div>
+                                <strong>${cat.name}</strong>
+                                <div style="font-size: 12px; color: var(--muted);">${cat.productCount} products</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <span class="pill ${cat.active ? 'pill-approved' : 'pill-disabled'}">${cat.active ? 'Active' : 'Inactive'}</span>
+                            <button class="btn" onclick="editCategory(${cat.id})">Edit</button>
+                        </div>
+                    </li>
+                `).join('')}
+            </ul>`;
+        }
+
+        window.editCategory = function(categoryId) {
+            const category = state.categories.find(c => c.id === categoryId);
+            el.activeModal.innerHTML = `
+                <h3>Edit Category</h3>
+                <div class="form-group">
+                    <label>Category Name</label>
+                    <input type="text" id="catName" value="${category.name}">
+                </div>
+                <div class="form-group">
+                    <label>Icon (Material Symbol)</label>
+                    <input type="text" id="catIcon" value="${category.icon}">
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="catActive">
+                        <option value="true" ${category.active ? 'selected' : ''}>Active</option>
+                        <option value="false" ${!category.active ? 'selected' : ''}>Inactive</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="closeModal()">Cancel</button>
+                    <button class="btn danger" onclick="deleteCategory(${categoryId})">Delete</button>
+                    <button class="btn primary" onclick="saveCategoryEdit(${categoryId})">Save</button>
+                </div>
+            `;
+            el.modalBackdrop.classList.add('show');
+        };
+
+        window.saveCategoryEdit = async function(categoryId) {
+            try {
+                await api(`/categories/${categoryId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        name: document.getElementById('catName').value,
+                        icon: document.getElementById('catIcon').value,
+                        active: document.getElementById('catActive').value === 'true'
+                    })
+                });
+                closeModal();
+                await loadMeta();
+                renderCategoryTree();
+                await fetchProducts();
+                showAlert('success', 'Category updated!');
+            } catch (error) {
+                showAlert('error', error.message);
+            }
+        };
+
+        window.deleteCategory = async function(categoryId) {
+            if (confirm('Delete this category?')) {
+                try {
+                    await api(`/categories/${categoryId}`, { method: 'DELETE' });
+                    closeModal();
+                    await loadMeta();
+                    renderCategoryTree();
+                    await fetchProducts();
+                    showAlert('success', 'Category deleted.');
+                } catch (error) {
+                    showAlert('error', error.message);
+                }
+            }
+        };
+
+        document.getElementById('addCategoryBtn').addEventListener('click', () => {
+            el.activeModal.innerHTML = `
+                <h3>Add New Category</h3>
+                <div class="form-group">
+                    <label>Category Name</label>
+                    <input type="text" id="newCatName" placeholder="Men">
+                </div>
+                <div class="form-group">
+                    <label>Icon (Material Symbol)</label>
+                    <input type="text" id="newCatIcon" placeholder="devices">
+                </div>
+                <div class="form-group">
+                    <label>Parent Category</label>
+                    <select id="newCatParent">
+                        <option value="">None (Root Category)</option>
+                        ${state.categories.filter(c => !c.parent).map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="closeModal()">Cancel</button>
+                    <button class="btn primary" onclick="addCategory()">Add Category</button>
+                </div>
+            `;
+            el.modalBackdrop.classList.add('show');
+        });
+
+        window.addCategory = async function() {
+            const name = document.getElementById('newCatName').value;
+            const icon = document.getElementById('newCatIcon').value;
+            const parent = document.getElementById('newCatParent').value;
+            
+            if (!name || !icon) {
+                showAlert('error', 'Please fill all fields.');
+                return;
+            }
+
+            try {
+                await api('/categories', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, icon, parent: parent || null, active: true })
+                });
+                closeModal();
+                await loadMeta();
+                renderCategoryTree();
+                showAlert('success', 'Category added!');
+            } catch (error) {
+                showAlert('error', error.message);
+            }
+        };
+
+        // Brand Management
+        window.openBrandManagement = function() {
+            renderBrandList();
+            el.brandDrawer.classList.add('open');
+        };
+
+        function renderBrandList() {
+            const brandList = document.getElementById('brandList');
+            brandList.innerHTML = state.brands.map(brand => `
+                <div class="category-item">
+                    <div class="category-info">
+                        <img src="${brand.logo}" style="width: 40px; height: 40px; border-radius: 6px;">
+                        <div>
+                            <strong>${brand.name}</strong>
+                            <div style="font-size: 12px; color: var(--muted);">${brand.productCount} products | ${brand.category}</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        ${statusBadge(brand.status)}
+                        ${brand.status === 'pending' ? `<button class="btn success" onclick="approveBrand(${brand.id})">Approve</button>` : ''}
+                        <button class="btn" onclick="editBrand(${brand.id})">Edit</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.approveBrand = async function(brandId) {
+            try {
+                await api(`/brands/${brandId}/approve`, { method: 'POST', body: JSON.stringify({}) });
+                await loadMeta();
+                renderBrandList();
+                showAlert('success', 'Brand approved!');
+            } catch (error) {
+                showAlert('error', error.message);
+            }
+        };
+
+        window.editBrand = function(brandId) {
+            const brand = state.brands.find(b => b.id === brandId);
+            el.activeModal.innerHTML = `
+                <h3>Edit Brand</h3>
+                <div class="form-group">
+                    <label>Brand Name</label>
+                    <input type="text" id="brandName" value="${brand.name}">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="brandCategory">
+                        ${state.categories.filter(c => !c.parent).map(c => `<option value="${c.name}" ${c.name === brand.category ? 'selected' : ''}>${c.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="closeModal()">Cancel</button>
+                    <button class="btn danger" onclick="deleteBrand(${brandId})">Delete</button>
+                    <button class="btn primary" onclick="saveBrandEdit(${brandId})">Save</button>
+                </div>
+            `;
+            el.modalBackdrop.classList.add('show');
+        };
+
+        window.saveBrandEdit = async function(brandId) {
+            try {
+                await api(`/brands/${brandId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        name: document.getElementById('brandName').value,
+                        category: document.getElementById('brandCategory').value
+                    })
+                });
+                closeModal();
+                await loadMeta();
+                renderBrandList();
+                await fetchProducts();
+                showAlert('success', 'Brand updated!');
+            } catch (error) {
+                showAlert('error', error.message);
+            }
+        };
+
+        window.deleteBrand = async function(brandId) {
+            if (confirm('Delete this brand?')) {
+                try {
+                    await api(`/brands/${brandId}`, { method: 'DELETE' });
+                    closeModal();
+                    await loadMeta();
+                    renderBrandList();
+                    await fetchProducts();
+                    showAlert('success', 'Brand deleted.');
+                } catch (error) {
+                    showAlert('error', error.message);
+                }
+            }
+        };
+
+        document.getElementById('addBrandBtn').addEventListener('click', () => {
+            el.activeModal.innerHTML = `
+                <h3>Add New Brand</h3>
+                <div class="form-group">
+                    <label>Brand Name</label>
+                    <input type="text" id="newBrandName" placeholder="Apple">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="newBrandCategory">
+                        ${state.categories.filter(c => !c.parent).map(c => `<option value="${c.name}">${c.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="closeModal()">Cancel</button>
+                    <button class="btn primary" onclick="addBrand()">Add Brand</button>
+                </div>
+            `;
+            el.modalBackdrop.classList.add('show');
+        });
+
+        window.addBrand = async function() {
+            const name = document.getElementById('newBrandName').value;
+            const category = document.getElementById('newBrandCategory').value;
+            
+            if (!name) {
+                showAlert('error', 'Please enter a brand name.');
+                return;
+            }
+
+            try {
+                await api('/brands', { method: 'POST', body: JSON.stringify({ name, category }) });
+                closeModal();
+                await loadMeta();
+                renderBrandList();
+                await fetchProducts();
+                showAlert('success', 'Brand added!');
+            } catch (error) {
+                showAlert('error', error.message);
+            }
+        };
+
+        // Attribute Management
+        window.openAttributeManagement = function() {
+            renderAttributeList();
+            el.attributeDrawer.classList.add('open');
+        };
+
+        function renderAttributeList() {
+            const attributeList = document.getElementById('attributeList');
+            attributeList.innerHTML = state.attributes.map(attr => `
+                <div class="attribute-item">
+                    <div>
+                        <strong>${attr.name}</strong>
+                        <div style="font-size: 12px; color: var(--muted);">Type: ${attr.type} | Categories: ${attr.categories.join(', ')}</div>
+                        ${attr.values.length > 0 ? `<div style="font-size: 12px; color: var(--muted);">Values: ${attr.values.join(', ')}</div>` : ''}
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span class="pill ${attr.active ? 'pill-approved' : 'pill-disabled'}">${attr.active ? 'Active' : 'Inactive'}</span>
+                        <button class="btn" onclick="editAttribute(${attr.id})">Edit</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.editAttribute = function(attrId) {
+            const attr = state.attributes.find(a => a.id === attrId);
+            el.activeModal.innerHTML = `
+                <h3>Edit Attribute</h3>
+                <div class="form-group">
+                    <label>Attribute Name</label>
+                    <input type="text" id="attrName" value="${attr.name}">
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="attrType">
+                        <option value="dropdown" ${attr.type === 'dropdown' ? 'selected' : ''}>Dropdown</option>
+                        <option value="multi-select" ${attr.type === 'multi-select' ? 'selected' : ''}>Multi-select</option>
+                        <option value="text" ${attr.type === 'text' ? 'selected' : ''}>Text</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Values (comma-separated)</label>
+                    <input type="text" id="attrValues" value="${attr.values.join(', ')}">
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="attrActive">
+                        <option value="true" ${attr.active ? 'selected' : ''}>Active</option>
+                        <option value="false" ${!attr.active ? 'selected' : ''}>Inactive</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="closeModal()">Cancel</button>
+                    <button class="btn danger" onclick="deleteAttribute(${attrId})">Delete</button>
+                    <button class="btn primary" onclick="saveAttributeEdit(${attrId})">Save</button>
+                </div>
+            `;
+            el.modalBackdrop.classList.add('show');
+        };
+
+        window.saveAttributeEdit = async function(attrId) {
+            try {
+                const valuesText = document.getElementById('attrValues').value;
+                await api(`/attributes/${attrId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        name: document.getElementById('attrName').value,
+                        type: document.getElementById('attrType').value,
+                        values: valuesText ? valuesText.split(',').map(v => v.trim()).filter(Boolean) : [],
+                        active: document.getElementById('attrActive').value === 'true'
+                    })
+                });
+                closeModal();
+                await loadMeta();
+                renderAttributeList();
+                showAlert('success', 'Attribute updated!');
+            } catch (error) {
+                showAlert('error', error.message);
+            }
+        };
+
+        window.deleteAttribute = async function(attrId) {
+            if (confirm('Delete this attribute?')) {
+                try {
+                    await api(`/attributes/${attrId}`, { method: 'DELETE' });
+                    closeModal();
+                    await loadMeta();
+                    renderAttributeList();
+                    showAlert('success', 'Attribute deleted.');
+                } catch (error) {
+                    showAlert('error', error.message);
+                }
+            }
+        };
+
+        document.getElementById('addAttributeBtn').addEventListener('click', () => {
+            el.activeModal.innerHTML = `
+                <h3>Add New Attribute</h3>
+                <div class="form-group">
+                    <label>Attribute Name</label>
+                    <input type="text" id="newAttrName" placeholder="Size">
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="newAttrType">
+                        <option value="dropdown">Dropdown</option>
+                        <option value="multi-select">Multi-select</option>
+                        <option value="text">Text</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Values (comma-separated, optional)</label>
+                    <input type="text" id="newAttrValues" placeholder="S, M, L, XL">
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="closeModal()">Cancel</button>
+                    <button class="btn primary" onclick="addAttribute()">Add Attribute</button>
+                </div>
+            `;
+            el.modalBackdrop.classList.add('show');
+        });
+
+        window.addAttribute = async function() {
+            const name = document.getElementById('newAttrName').value;
+            const type = document.getElementById('newAttrType').value;
+            const valuesText = document.getElementById('newAttrValues').value;
+            
+            if (!name) {
+                showAlert('error', 'Please enter an attribute name.');
+                return;
+            }
+
+            try {
+                await api('/attributes', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name,
+                        type,
+                        values: valuesText ? valuesText.split(',').map(v => v.trim()).filter(Boolean) : [],
+                        categories: [],
+                        active: true
+                    })
+                });
+
+                closeModal();
+                await loadMeta();
+                renderAttributeList();
+                showAlert('success', 'Attribute added!');
+            } catch (error) {
+                showAlert('error', error.message);
+            }
+        };
+
+        // Bulk Actions
+        function updateBulkActions() {
+            if (state.selected.size > 0) {
+                el.bulkActions.classList.add('show');
+                el.selectedCount.textContent = `${state.selected.size} selected`;
+            } else {
+                el.bulkActions.classList.remove('show');
+            }
+        }
+
+        document.getElementById('bulkApproveBtn').addEventListener('click', async () => {
+            if (confirm(`Approve ${state.selected.size} products?`)) {
+                await api('/products/bulk', { method: 'POST', body: JSON.stringify({ action: 'approve', ids: [...state.selected] }) });
+                state.selected.clear();
+                await fetchProducts();
+                showAlert('success', 'Products approved!');
+            }
+        });
+
+        document.getElementById('bulkRejectBtn').addEventListener('click', async () => {
+            if (confirm(`Reject ${state.selected.size} products?`)) {
+                await api('/products/bulk', { method: 'POST', body: JSON.stringify({ action: 'reject', ids: [...state.selected] }) });
+                state.selected.clear();
+                await fetchProducts();
+                showAlert('success', 'Products rejected!');
+            }
+        });
+
+        document.getElementById('bulkDisableBtn').addEventListener('click', async () => {
+            if (confirm(`Disable ${state.selected.size} products?`)) {
+                await api('/products/bulk', { method: 'POST', body: JSON.stringify({ action: 'disable', ids: [...state.selected] }) });
+                state.selected.clear();
+                await fetchProducts();
+                showAlert('success', 'Products disabled!');
+            }
+        });
+
+        document.getElementById('bulkDeleteBtn').addEventListener('click', async () => {
+            if (confirm(`DELETE ${state.selected.size} products? This cannot be undone!`)) {
+                await api('/products/bulk', { method: 'POST', body: JSON.stringify({ action: 'delete', ids: [...state.selected] }) });
+                state.selected.clear();
+                await fetchProducts();
+                showAlert('success', 'Products deleted!');
+            }
+        });
+
+        // Export CSV
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const query = new URLSearchParams({
+                search: el.search.value,
+                category: el.categoryFilter.value,
+                brand: el.brandFilter.value,
+                status: el.statusFilter.value,
+                stock: el.stockFilter.value,
+                tab: state.activeTab,
+                sortKey: state.sort.key,
+                sortDir: state.sort.dir
+            });
+            const a = document.createElement('a');
+            a.href = `${API_BASE}/products/export?${query.toString()}`;
+            a.click();
+            showAlert('success', 'CSV exported successfully!');
+        });
+
+        // Image Preview
+        window.showImagePreview = function(imageSrc) {
+            document.getElementById('previewImage').src = imageSrc;
+            document.getElementById('imagePreview').classList.add('show');
+        };
+
+        window.closeImagePreview = function() {
+            document.getElementById('imagePreview').classList.remove('show');
+        };
+
+        // Modal Controls
+        window.closeModal = function() {
+            el.modalBackdrop.classList.remove('show');
+        };
+
+        el.modalBackdrop.addEventListener('click', (e) => {
+            if (e.target === el.modalBackdrop) closeModal();
+        });
+
+        document.getElementById('imagePreview').addEventListener('click', (e) => {
+            if (e.target.id === 'imagePreview') closeImagePreview();
+        });
+
+        // Event Listeners
+        el.search.addEventListener('input', fetchProducts);
+        el.categoryFilter.addEventListener('change', fetchProducts);
+        el.brandFilter.addEventListener('change', fetchProducts);
+        el.statusFilter.addEventListener('change', fetchProducts);
+        el.stockFilter.addEventListener('change', fetchProducts);
+
+        el.prevPage.addEventListener('click', () => {
+            if (state.page > 1) {
+                state.page--;
+                renderTable();
+            }
+        });
+
+        el.nextPage.addEventListener('click', () => {
+            const totalPages = Math.ceil(state.filtered.length / state.pageSize);
+            if (state.page < totalPages) {
+                state.page++;
+                renderTable();
+            }
+        });
+
+        el.selectAll.addEventListener('change', (e) => {
+            const rows = paginate();
+            rows.forEach(p => e.target.checked ? state.selected.add(p.id) : state.selected.delete(p.id));
+            renderTable();
+        });
+
+        el.table.addEventListener('change', (e) => {
+            const cb = e.target.closest('input[type="checkbox"][data-id]');
+            if (cb) {
+                cb.checked ? state.selected.add(cb.dataset.id) : state.selected.delete(cb.dataset.id);
+                updateBulkActions();
+            }
+        });
+
+        el.tabs.addEventListener('click', (e) => {
+            const tab = e.target.closest('.tab');
+            if (!tab) return;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            state.activeTab = tab.dataset.tab;
+            fetchProducts();
+        });
+
+        document.querySelectorAll('thead th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => {
+                const key = th.getAttribute('data-sort');
+                state.sort.dir = state.sort.key === key && state.sort.dir === 'asc' ? 'desc' : 'asc';
+                state.sort.key = key;
+                fetchProducts();
+            });
+        });
+
+        el.closeDrawer.addEventListener('click', () => el.drawer.classList.remove('open'));
+        document.getElementById('closeCategoryDrawer').addEventListener('click', () => el.categoryDrawer.classList.remove('open'));
+        document.getElementById('closeBrandDrawer').addEventListener('click', () => el.brandDrawer.classList.remove('open'));
+        document.getElementById('closeAttributeDrawer').addEventListener('click', () => el.attributeDrawer.classList.remove('open'));
+
+        document.getElementById('manageCategoriesBtn').addEventListener('click', openCategoryManagement);
+        document.getElementById('manageBrandsBtn').addEventListener('click', openBrandManagement);
+        document.getElementById('manageAttributesBtn').addEventListener('click', openAttributeManagement);
+        document.getElementById('addProductBtn').addEventListener('click', openAddProductModal);
+
+        async function init() {
+            try {
+                await loadMeta();
+                await fetchProducts();
+            } catch (error) {
+                showAlert('error', error.message);
+            }
+        }
+
+        init();
+
+        // Sidebar toggle functionality
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        function openMobileSidebar() {
+            sidebar.classList.remove('hidden');
+            sidebarOverlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileSidebar() {
+            sidebar.classList.add('hidden');
+            sidebarOverlay.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                if (sidebar.classList.contains('hidden')) {
+                    openMobileSidebar();
+                } else {
+                    closeMobileSidebar();
+                }
+            });
+        }
+
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeMobileSidebar);
+        }
+
+        if (sidebar) {
+            const sidebarLinks = sidebar.querySelectorAll('a');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', closeMobileSidebar);
+            });
+        }
+    </script>
+</body>
+</html>
