@@ -1,4 +1,5 @@
 const API_BASE = 'http://localhost:5000/api/seller/messages';
+const SOCKET_URL = 'http://localhost:5000';
 
 function getSellerId() {
   const candidateKeys = ['sellerId', 'seller_id', 'currentSellerId', 'sellerUserId', 'userId'];
@@ -15,6 +16,8 @@ function getSellerId() {
 }
 
 const sellerId = getSellerId();
+let socket = null;
+let connectedThreadId = null;
 
 async function apiRequest(path, options = {}) {
   const url = new URL(`${API_BASE}${path}`);
@@ -24,6 +27,7 @@ async function apiRequest(path, options = {}) {
 
   const response = await fetch(url.toString(), {
     method: options.method || 'GET',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...(sellerId ? { 'x-seller-id': sellerId } : {}),
@@ -130,6 +134,57 @@ function renderAccountFlyout() {
 function avatarForName(name) {
   const encoded = encodeURIComponent(String(name || 'Seller').trim() || 'Seller');
   return `https://ui-avatars.com/api/?name=${encoded}&background=random&color=ffffff&size=80`;
+}
+
+function connectSocket() {
+  if (!window.io || socket || !sellerId) return;
+
+  socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
+
+  socket.on('connect', () => {
+    if (state.activeThreadId) {
+      joinThread(state.activeThreadId);
+    }
+  });
+
+  socket.on('message-received', (payload) => {
+    if (!payload?.threadId) return;
+    if (payload.senderId === sellerId && payload.sender === 'seller') return;
+
+    const thread = state.threads.find((item) => item.id === payload.threadId);
+    if (!thread) return;
+
+    const incomingMessage = {
+      id: payload.id,
+      sender: payload.sender === 'seller' ? 'seller' : 'customer',
+      text: payload.text || '',
+      time: payload.createdAt || payload.time,
+      createdAt: payload.createdAt || payload.time
+    };
+
+    if (state.activeThreadId === payload.threadId) {
+      const exists = state.activeMessages.some((message) => message.text === incomingMessage.text && message.time === incomingMessage.time);
+      if (!exists) {
+        state.activeMessages.push(incomingMessage);
+        renderChat();
+      }
+    }
+
+    thread.lastMessage = payload.text || 'New message';
+    if (state.activeThreadId !== payload.threadId) {
+      thread.unreadCount = Number(thread.unreadCount || 0) + 1;
+    }
+    renderSellerList();
+  });
+}
+
+function joinThread(threadId) {
+  if (!socket || !threadId) return;
+  if (connectedThreadId && connectedThreadId !== threadId) {
+    socket.emit('leave-room', { threadId: connectedThreadId });
+  }
+  connectedThreadId = threadId;
+  socket.emit('join-room', { threadId, userId: sellerId, role: 'seller' });
 }
 
 function formatTime(value) {
@@ -319,6 +374,7 @@ window.openSeller = async function openSeller(threadId) {
     thread.unreadCount = 0;
   }
   renderSellerList();
+  joinThread(threadId);
   await loadMessages(threadId);
 };
 
@@ -334,6 +390,10 @@ async function sendMessage(event) {
       method: 'POST',
       body: { message: text }
     });
+
+    if (socket) {
+      socket.emit('send-message', { threadId: thread.id, userId: sellerId, role: 'seller', message: text });
+    }
 
     if (messageInput) messageInput.value = '';
     await loadThreads(true);
@@ -357,6 +417,7 @@ function setupHandlers() {
 function bootstrap() {
   renderAccountFlyout();
   setupHandlers();
+  connectSocket();
   loadThreads(false);
 
   if (typeof lucide !== 'undefined') {

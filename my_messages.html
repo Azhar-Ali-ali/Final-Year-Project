@@ -131,9 +131,14 @@
         </div>
     </main>
 
+    <script src="https://cdn.socket.io/4.8.0/socket.io.min.js"></script>
     <script>
         const API_BASE_URL = 'http://localhost:5000/api';
+        const SOCKET_URL = 'http://localhost:5000';
         const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+        const queryParams = new URLSearchParams(location.search);
+        const initialSellerId = queryParams.get('sellerId') || queryParams.get('seller') || '';
+        let pendingThreadTarget = initialSellerId || null;
 
         function resolveCurrentUserId() {
             try {
@@ -269,7 +274,7 @@
         renderAccountFlyout();
 
         let sellers = [];
-
+        let socket = null;
         let activeSellerId = sellers[0]?.id || null;
 
         const sellerList = document.getElementById('sellerList');
@@ -288,6 +293,51 @@
             if (sellerSlug) return `sellerprofile.html?slug=${encodeURIComponent(sellerSlug)}`;
             const sellerName = String(seller?.name || 'Seller').trim();
             return `sellerprofile.html?seller=${encodeURIComponent(sellerName)}`;
+        }
+
+        function connectSocket() {
+            if (!IS_LIVE_HOST || socket || typeof io === 'undefined') return;
+
+            socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
+
+            socket.on('connect', () => {
+                if (activeSellerId) {
+                    socket.emit('join-room', { threadId: activeSellerId, userId: resolveCurrentUserId(), role: 'customer' });
+                }
+            });
+
+            socket.on('message-received', (payload) => {
+                if (!payload?.threadId) return;
+                if (payload.senderId === resolveCurrentUserId() && payload.sender === 'customer') return;
+
+                const seller = sellers.find((item) => item.id === payload.threadId);
+                if (!seller) return;
+
+                const incomingMessage = {
+                    sender: payload.sender === 'customer' ? 'customer' : 'seller',
+                    text: payload.text || '',
+                    time: formatMessageTime(payload.createdAt || payload.time)
+                };
+
+                const hasSameMessage = seller.messages.some((message) => message.text === incomingMessage.text && message.time === incomingMessage.time);
+                if (!hasSameMessage) {
+                    seller.messages.push(incomingMessage);
+                }
+
+                if (seller.id !== activeSellerId) {
+                    seller.unreadCount = Number(seller.unreadCount || 0) + 1;
+                }
+
+                renderSellerList();
+                if (seller.id === activeSellerId) {
+                    renderChat();
+                }
+            });
+        }
+
+        function joinActiveThread(threadId) {
+            if (!socket || !threadId) return;
+            socket.emit('join-room', { threadId, userId: resolveCurrentUserId(), role: 'customer' });
         }
 
         async function loadCartCount() {
@@ -343,9 +393,16 @@
             }).join('');
 
             updateUnreadSummary();
-                activeSellerName.textContent = seller.name;
-                activeSellerName.href = buildSellerProfileUrl(seller);
-                viewStoreBtn.href = buildSellerProfileUrl(seller);
+            const activeSeller = getActiveSeller();
+            if (activeSeller) {
+                activeSellerName.textContent = activeSeller.name;
+                activeSellerName.href = buildSellerProfileUrl(activeSeller);
+                viewStoreBtn.href = buildSellerProfileUrl(activeSeller);
+            } else {
+                activeSellerName.textContent = 'No conversation selected';
+                activeSellerName.removeAttribute('href');
+                viewStoreBtn.removeAttribute('href');
+            }
         }
 
         function renderChat() {
@@ -379,6 +436,7 @@
             const seller = getActiveSeller();
             if (seller) seller.unreadCount = 0;
             renderSellerList();
+            joinActiveThread(sellerId);
 
 			(async () => {
 				await loadMessagesForActiveSeller();
@@ -396,10 +454,30 @@
 
             try {
                 const userId = resolveCurrentUserId();
-                await fetchJson(`${API_BASE_URL}/customer/messages/threads/${encodeURIComponent(seller.id)}/messages?userId=${encodeURIComponent(userId)}`, {
+                const response = await fetch(`${API_BASE_URL}/customer/messages/threads/${encodeURIComponent(seller.id)}/messages?userId=${encodeURIComponent(userId)}`, {
                     method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify({ message: text })
                 });
+                const payload = await response.json().catch(() => ({}));
+
+                if (!response.ok || payload.success === false) {
+                    throw new Error(payload.message || 'Failed to send message.');
+                }
+
+                const createdThreadId = payload?.data?.conversationId || payload?.data?.id || null;
+                if (createdThreadId) {
+                    seller.id = String(createdThreadId);
+                    activeSellerId = seller.id;
+                    pendingThreadTarget = null;
+                }
+
+                if (socket) {
+                    socket.emit('send-message', { threadId: seller.id, userId, role: 'customer', message: text });
+                }
 
                 messageInput.value = '';
                 await loadMessagesForActiveSeller();
@@ -440,6 +518,7 @@
             }
 
             try {
+                joinActiveThread(seller.id);
                 const userId = resolveCurrentUserId();
                 const rows = await fetchJson(`${API_BASE_URL}/customer/messages/threads/${encodeURIComponent(seller.id)}/messages?userId=${encodeURIComponent(userId)}&limit=200`);
                 seller.messages = Array.isArray(rows) ? rows.map((row) => ({
@@ -468,15 +547,27 @@
                 const rows = await fetchJson(`${API_BASE_URL}/customer/messages/threads?userId=${encodeURIComponent(userId)}&limit=100`);
                 sellers = Array.isArray(rows) ? rows.map(mapThreadToSeller) : [];
 
+                if (pendingThreadTarget && !sellers.some((seller) => seller.sellerId === pendingThreadTarget || seller.id === pendingThreadTarget)) {
+                    sellers.unshift({
+                        id: pendingThreadTarget,
+                        name: 'New conversation',
+                        avatar: 'https://via.placeholder.com/80',
+                        sellerId: pendingThreadTarget,
+                        context: 'Start a new conversation',
+                        unreadCount: 0,
+                        messages: []
+                    });
+                }
+
                 if (!sellers.length) {
-                    activeSellerId = null;
+                    activeSellerId = pendingThreadTarget || null;
                     renderSellerList();
                     renderChat();
                     return;
                 }
 
                 if (!activeSellerId || !sellers.some((seller) => seller.id === activeSellerId)) {
-                    activeSellerId = sellers[0].id;
+                    activeSellerId = sellers.find((seller) => seller.sellerId === pendingThreadTarget || seller.id === pendingThreadTarget)?.id || sellers[0].id;
                 }
 
                 await loadMessagesForActiveSeller();
@@ -495,6 +586,7 @@
         });
 
         if (IS_LIVE_HOST) {
+            connectSocket();
             loadThreads();
             loadCartCount();
         } else {

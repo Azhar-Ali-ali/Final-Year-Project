@@ -1,9 +1,11 @@
 const express = require('express');
+const http = require('http');
 const cors = require('cors');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
 const path = require('path');
 const axios = require('axios');
+const { Server } = require('socket.io');
 const { query, testConnection, closePool } = require('../../database/postgresClient');
 const { extractToken, getActiveSession } = require('../../shared/sessionStore');
 
@@ -58,8 +60,10 @@ const customerReturnsRoutes = require('../../customer_backend/src/routes/returns
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
 const PORT = Number(process.env.PORT) || 5000;
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || '*';
+const SOCKET_CORS_ORIGIN = FRONTEND_ORIGIN === '*' ? true : FRONTEND_ORIGIN;
 const HUGGING_FACE_API_URL = process.env.HUGGING_FACE_API_URL || 'https://api-inference.huggingface.co/models/theArijitDas/distilbert-finetuned-fake-reviews';
 const HUGGING_FACE_TOKEN = process.env.HUGGING_FACE_TOKEN || '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';
 const HUGGING_FACE_HEADERS = {
@@ -90,26 +94,77 @@ app.use((req, res, next) => {
   next();
 });
 
+const io = new Server(server, {
+  cors: {
+    origin: SOCKET_CORS_ORIGIN,
+    credentials: true
+  }
+});
+
+app.locals.io = io;
+
+io.on('connection', (socket) => {
+  socket.on('join-room', ({ threadId, userId, role }) => {
+    if (!threadId) return;
+
+    socket.join(String(threadId));
+    socket.data.threadId = String(threadId);
+    socket.data.userId = String(userId || '');
+    socket.data.role = String(role || '');
+  });
+
+  socket.on('leave-room', ({ threadId }) => {
+    if (threadId) {
+      socket.leave(String(threadId));
+    }
+  });
+
+  socket.on('send-message', ({ threadId, userId, role, message, attachmentUrl }) => {
+    if (!threadId || !message) return;
+
+    const payload = {
+      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      threadId: String(threadId),
+      senderId: String(userId || ''),
+      sender: String(role || 'customer'),
+      text: String(message).trim(),
+      attachmentUrl: String(attachmentUrl || '').trim(),
+      createdAt: new Date().toISOString(),
+      time: new Date().toISOString()
+    };
+
+    io.to(String(threadId)).emit('message-received', payload);
+  });
+});
+
 function authenticateRequest(req, res, next) {
   const token = extractToken(req);
-  const sellerId = [
+  const requestedUserId = [
+    req.query?.userId,
+    req.query?.customerId,
     req.query?.sellerId,
     req.query?.sellerID,
-    req.headers['x-seller-id'],
-    req.headers['x-user-id'],
+    req.body?.userId,
+    req.body?.customerId,
     req.body?.sellerId,
-    req.body?.sellerID
+    req.body?.sellerID,
+    req.headers['x-user-id'],
+    req.headers['x-customer-id'],
+    req.headers['x-seller-id']
   ].find((value) => value !== undefined && value !== null && String(value).trim() !== '');
 
+  const requestedRole = String(req.path || '').toLowerCase().includes('/customer/') ? 'customer' : 'seller';
+
   if (!token) {
-    if (sellerId) {
+    if (requestedUserId) {
       req.auth = {
         token: null,
-        user: { id: String(sellerId).trim() },
-        session: { userId: String(sellerId).trim(), role: 'seller' }
+        user: { id: String(requestedUserId).trim() },
+        session: { userId: String(requestedUserId).trim(), role: requestedRole }
       };
-      req.headers['x-user-id'] = String(sellerId).trim();
-      req.headers['x-seller-id'] = String(sellerId).trim();
+      req.headers['x-user-id'] = String(requestedUserId).trim();
+      req.headers['x-customer-id'] = String(requestedUserId).trim();
+      req.headers['x-seller-id'] = String(requestedUserId).trim();
       return next();
     }
 
@@ -118,14 +173,15 @@ function authenticateRequest(req, res, next) {
 
   const current = getActiveSession(token);
   if (!current) {
-    if (sellerId) {
+    if (requestedUserId) {
       req.auth = {
         token,
-        user: { id: String(sellerId).trim() },
-        session: { userId: String(sellerId).trim(), role: 'seller' }
+        user: { id: String(requestedUserId).trim() },
+        session: { userId: String(requestedUserId).trim(), role: requestedRole }
       };
-      req.headers['x-user-id'] = String(sellerId).trim();
-      req.headers['x-seller-id'] = String(sellerId).trim();
+      req.headers['x-user-id'] = String(requestedUserId).trim();
+      req.headers['x-customer-id'] = String(requestedUserId).trim();
+      req.headers['x-seller-id'] = String(requestedUserId).trim();
       return next();
     }
 
@@ -140,6 +196,7 @@ function authenticateRequest(req, res, next) {
 
   // Keep compatibility with existing routes that still read user ID from headers.
   req.headers['x-user-id'] = current.session.userId;
+  req.headers['x-customer-id'] = current.session.userId;
   req.headers['x-seller-id'] = current.session.userId;
   next();
 }
@@ -430,7 +487,7 @@ async function startServer() {
     console.warn(`[Unified API] Database connection failed: ${error.message}`);
   }
 
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Unified backend running on http://localhost:${PORT}`);
   });
 }

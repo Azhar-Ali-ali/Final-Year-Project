@@ -42,23 +42,23 @@ async function getConversationThread(req, sellerId, threadId) {
         last_message.message AS last_message,
         last_message.created_at AS last_message_at,
         COALESCE(unread.unread_count, 0)::int AS unread_count
-      FROM lumina.conversations c
-      JOIN lumina.conversation_participants seller_participant
+      FROM public.conversations c
+      JOIN public.conversation_participants seller_participant
         ON seller_participant.conversation_id = c.id
        AND seller_participant.user_id = $1
       LEFT JOIN LATERAL (
         SELECT cp.user_id
-        FROM lumina.conversation_participants cp
+        FROM public.conversation_participants cp
         WHERE cp.conversation_id = c.id
           AND cp.user_id <> $1
         ORDER BY cp.joined_at ASC
         LIMIT 1
       ) counterpart ON TRUE
-      LEFT JOIN lumina.users u ON u.id = counterpart.user_id
-      LEFT JOIN lumina.seller_profiles sp ON sp.user_id = counterpart.user_id
+      LEFT JOIN public.users u ON u.id = counterpart.user_id
+      LEFT JOIN public.seller_profiles sp ON sp.user_id = counterpart.user_id
       LEFT JOIN LATERAL (
         SELECT cm.message, cm.created_at
-        FROM lumina.conversation_messages cm
+        FROM public.conversation_messages cm
         WHERE cm.conversation_id = c.id
           AND cm.is_deleted = FALSE
         ORDER BY cm.created_at DESC
@@ -66,7 +66,7 @@ async function getConversationThread(req, sellerId, threadId) {
       ) last_message ON TRUE
       LEFT JOIN LATERAL (
         SELECT COUNT(*) AS unread_count
-        FROM lumina.conversation_messages cm
+        FROM public.conversation_messages cm
         WHERE cm.conversation_id = c.id
           AND cm.sender_id <> $1
           AND cm.created_at > COALESCE(seller_participant.last_read_at, '1970-01-01'::timestamptz)
@@ -106,23 +106,23 @@ router.get('/threads', async (req, res) => {
           last_message.message AS last_message,
           last_message.created_at AS last_message_at,
           COALESCE(unread.unread_count, 0)::int AS unread_count
-        FROM lumina.conversations c
-        JOIN lumina.conversation_participants seller_participant
+        FROM public.conversations c
+        JOIN public.conversation_participants seller_participant
           ON seller_participant.conversation_id = c.id
          AND seller_participant.user_id = $1
         LEFT JOIN LATERAL (
           SELECT cp.user_id
-          FROM lumina.conversation_participants cp
+          FROM public.conversation_participants cp
           WHERE cp.conversation_id = c.id
             AND cp.user_id <> $1
           ORDER BY cp.joined_at ASC
           LIMIT 1
         ) counterpart ON TRUE
-        LEFT JOIN lumina.users u ON u.id = counterpart.user_id
-        LEFT JOIN lumina.seller_profiles sp ON sp.user_id = counterpart.user_id
+        LEFT JOIN public.users u ON u.id = counterpart.user_id
+        LEFT JOIN public.seller_profiles sp ON sp.user_id = counterpart.user_id
         LEFT JOIN LATERAL (
           SELECT cm.message, cm.created_at
-          FROM lumina.conversation_messages cm
+          FROM public.conversation_messages cm
           WHERE cm.conversation_id = c.id
             AND cm.is_deleted = FALSE
           ORDER BY cm.created_at DESC
@@ -130,7 +130,7 @@ router.get('/threads', async (req, res) => {
         ) last_message ON TRUE
         LEFT JOIN LATERAL (
           SELECT COUNT(*) AS unread_count
-          FROM lumina.conversation_messages cm
+          FROM public.conversation_messages cm
           WHERE cm.conversation_id = c.id
             AND cm.sender_id <> $1
             AND cm.created_at > COALESCE(seller_participant.last_read_at, '1970-01-01'::timestamptz)
@@ -204,8 +204,8 @@ router.get('/threads/:threadId/messages', async (req, res) => {
           cm.message,
           cm.attachments,
           cm.created_at AS "createdAt"
-        FROM lumina.conversation_messages cm
-        JOIN lumina.users u ON u.id = cm.sender_id
+        FROM public.conversation_messages cm
+        JOIN public.users u ON u.id = cm.sender_id
         WHERE cm.conversation_id = $1
           AND cm.is_deleted = FALSE
         ORDER BY cm.created_at ASC
@@ -216,7 +216,7 @@ router.get('/threads/:threadId/messages', async (req, res) => {
 
     await req.db.query(
       `
-        UPDATE lumina.conversation_participants
+        UPDATE public.conversation_participants
         SET last_read_at = NOW()
         WHERE conversation_id = $1 AND user_id = $2
       `,
@@ -262,7 +262,7 @@ router.post('/threads/:threadId/messages', async (req, res) => {
 
     const insertResult = await req.db.query(
       `
-        INSERT INTO lumina.conversation_messages (
+        INSERT INTO public.conversation_messages (
           conversation_id,
           sender_id,
           message,
@@ -283,7 +283,7 @@ router.post('/threads/:threadId/messages', async (req, res) => {
 
     await req.db.query(
       `
-        UPDATE lumina.conversation_participants
+        UPDATE public.conversation_participants
         SET last_read_at = NOW()
         WHERE conversation_id = $1 AND user_id = $2
       `,
@@ -323,7 +323,7 @@ router.patch('/threads/:threadId/read', async (req, res) => {
 
     await req.db.query(
       `
-        UPDATE lumina.conversation_participants
+        UPDATE public.conversation_participants
         SET last_read_at = NOW()
         WHERE conversation_id = $1 AND user_id = $2
       `,

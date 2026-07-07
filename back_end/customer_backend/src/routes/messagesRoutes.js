@@ -11,6 +11,27 @@ function isUuid(value) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || '').trim());
 }
 
+async function resolveUserId(req, candidate) {
+  if (!candidate) return null;
+  const raw = String(candidate).trim();
+  if (!raw) return null;
+  if (isUuid(raw)) return raw;
+
+  const lookup = await req.db.query(
+    `
+      SELECT id
+      FROM public.users
+      WHERE id::text = $1
+         OR lower(username) = lower($1)
+         OR lower(email) = lower($1)
+      LIMIT 1
+    `,
+    [raw]
+  );
+
+  return lookup.rows[0]?.id || null;
+}
+
 function normalizeLimit(value, fallback = 50, min = 1, max = 200) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
@@ -18,12 +39,28 @@ function normalizeLimit(value, fallback = 50, min = 1, max = 200) {
 }
 
 async function resolveCustomerId(req, requestedId) {
-  const sessionCustomerId = getCustomerId(req);
-  if (isUuid(sessionCustomerId)) return sessionCustomerId;
+  const candidates = [
+    requestedId,
+    req.query?.userId,
+    req.body?.userId,
+    req.headers['x-user-id'],
+    req.auth?.session?.userId,
+    req.auth?.user?.id,
+    getCustomerId(req)
+  ];
+
+  for (const candidate of candidates) {
+    const resolved = await resolveUserId(req, candidate);
+    if (resolved) return resolved;
+  }
+
   return null;
 }
 
 async function resolveConversationId(req, customerId, threadId) {
+  const normalizedThreadId = String(threadId || '').trim();
+  if (!normalizedThreadId) return null;
+
   const sql = `
     SELECT c.id
     FROM public.conversations c
@@ -34,8 +71,65 @@ async function resolveConversationId(req, customerId, threadId) {
     LIMIT 1
   `;
 
-  const result = await req.db.query(sql, [customerId, String(threadId || '').trim()]);
+  const result = await req.db.query(sql, [customerId, normalizedThreadId]);
   return result.rows[0]?.id || null;
+}
+
+async function createConversationAndMessage(req, customerId, sellerId, message, attachmentUrl) {
+  const sellerUserId = await resolveUserId(req, sellerId);
+  if (!sellerUserId) {
+    throw new Error('Seller not found');
+  }
+
+  const conversationResult = await req.db.query(
+    `
+      INSERT INTO public.conversations (topic, conversation_type, created_by, created_at, updated_at)
+      VALUES ($1, 'direct', $2, NOW(), NOW())
+      RETURNING id
+    `,
+    [`Conversation with seller ${sellerUserId}`, customerId]
+  );
+
+  const conversationId = conversationResult.rows[0]?.id;
+  if (!conversationId) {
+    throw new Error('Failed to create conversation');
+  }
+
+  await req.db.query(
+    `
+      INSERT INTO public.conversation_participants (conversation_id, user_id, role_in_conversation, joined_at, last_read_at)
+      VALUES ($1, $2, 'customer', NOW(), NOW()), ($1, $3, 'seller', NOW(), NOW())
+    `,
+    [conversationId, customerId, sellerUserId]
+  );
+
+  const insertSql = `
+    INSERT INTO public.conversation_messages (
+      conversation_id,
+      sender_id,
+      message,
+      attachments,
+      is_deleted,
+      created_at,
+      updated_at
+    )
+    VALUES ($1, $2, $3, $4::jsonb, FALSE, NOW(), NOW())
+    RETURNING
+      id,
+      conversation_id AS "conversationId",
+      sender_id AS "senderId",
+      message,
+      created_at AS "createdAt"
+  `;
+
+  const inserted = await req.db.query(insertSql, [
+    conversationId,
+    customerId,
+    message || '[Attachment]',
+    JSON.stringify(attachmentUrl ? [{ url: attachmentUrl }] : [])
+  ]);
+
+  return inserted.rows[0];
 }
 
 router.get('/threads', async (req, res) => {
@@ -179,9 +273,21 @@ router.post('/threads/:threadId/messages', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Customer not found' });
     }
 
-    const conversationId = await resolveConversationId(req, customerId, threadId);
+    let conversationId = await resolveConversationId(req, customerId, threadId);
     if (!conversationId) {
-      return res.status(404).json({ success: false, message: 'Conversation not found' });
+      const created = await createConversationAndMessage(req, customerId, threadId, message, attachmentUrl);
+      const payload = {
+        id: created?.id,
+        conversationId: created?.conversationId || conversationId,
+        senderId: customerId,
+        sender: 'customer',
+        text: created?.message || message,
+        attachmentUrl,
+        createdAt: created?.createdAt,
+        time: created?.createdAt
+      };
+      req.app.locals.io?.to(String(created?.conversationId || threadId)).emit('message-received', payload);
+      return res.status(201).json({ success: true, data: created });
     }
 
     const insertSql = `
@@ -227,6 +333,18 @@ router.post('/threads/:threadId/messages', async (req, res) => {
       `,
       [conversationId]
     );
+
+    const payload = {
+      id: inserted.rows[0]?.id,
+      conversationId: inserted.rows[0]?.conversationId || conversationId,
+      senderId: customerId,
+      sender: 'customer',
+      text: inserted.rows[0]?.message || message,
+      attachmentUrl,
+      createdAt: inserted.rows[0]?.createdAt,
+      time: inserted.rows[0]?.createdAt
+    };
+    req.app.locals.io?.to(String(conversationId)).emit('message-received', payload);
 
     return res.status(201).json({ success: true, data: inserted.rows[0] });
   } catch (error) {
