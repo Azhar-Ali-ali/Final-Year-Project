@@ -6,6 +6,8 @@
 	<title>Admin | User Management</title>
 	<script src="https://cdn.tailwindcss.com"></script>
 	<script src="https://unpkg.com/lucide@latest"></script>
+	<script src="../js/adminAccess.js"></script>
+	<script src="../js/notificationsUI.js"></script>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" />
 	<style>
 		:root {
@@ -331,6 +333,10 @@
 		}
 
 		.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+		.table-wrap {
+			overflow-x: auto;
+			-webkit-overflow-scrolling: touch;
+		}
 		.action-btn {
 			background: none;
 			border: none;
@@ -626,14 +632,38 @@
 		}
 
 		@media (max-width: 640px) {
+			.content { padding: 16px; }
+			.panel { padding: 16px; }
 			.page-header { flex-direction: column; align-items: flex-start; }
-			.toolbar { flex-direction: column; align-items: flex-start; }
+			.page-header .actions {
+				width: 100%;
+				justify-content: stretch;
+			}
+			.page-header .actions .btn {
+				flex: 1 1 calc(50% - 4px);
+				justify-content: center;
+			}
+			.toolbar { flex-direction: column; align-items: stretch; padding: 12px; }
 			.grid-2 { grid-template-columns: 1fr; }
 			.kyc-grid { grid-template-columns: 1fr; }
 			.search { min-width: 100%; }
+			.filters {
+				width: 100%;
+				display: grid;
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+			.select { min-width: 0; width: 100%; }
+			.tabs {
+				width: 100%;
+				display: grid;
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+			.tab { width: 100%; text-align: center; padding: 10px 8px; }
 			.drawer { width: 100%; max-width: 100%; }
 			.drawer-header { padding: 14px 16px; }
 			.drawer-body { padding: 14px 16px 24px; }
+			table { min-width: 980px; font-size: 12px; }
+			thead th, tbody td { padding: 10px 8px; white-space: normal; }
 		}
 	</style>
 </head>
@@ -656,32 +686,22 @@
       </div>
 
       <div class="flex items-center gap-3 shrink-0">
-        <button class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors group">
-          <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
-          <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          <div class="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 p-0 dropdown-hidden z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
-            <div class="px-4 py-3 border-b border-gray-100">
+        <div class="relative group">
+          <button id="bellButton" class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors" type="button">
+            <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
+            <span id="notificationDot" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          <div class="notification-dropdown absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 p-0 dropdown-hidden z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
+            <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
               <p class="text-xs font-bold uppercase tracking-widest text-gray-600">Admin alerts</p>
+              <span id="notificationCount" class="text-[11px] font-semibold text-gray-500">0 new</span>
             </div>
-            <div class="max-h-80 overflow-y-auto">
-              <div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
-                <p class="text-xs font-bold text-gray-900">New seller #S422</p>
-                <p class="text-xs text-gray-500 mt-1">Request pending verification</p>
-              </div>
-              <div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
-                <p class="text-xs font-bold text-gray-900">Order #2451 flagged</p>
-                <p class="text-xs text-gray-500 mt-1">Payment discrepancy</p>
-              </div>
-              <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer">
-                <p class="text-xs font-bold text-gray-900">System update</p>
-                <p class="text-xs text-gray-500 mt-1">Analytics ready</p>
-              </div>
-            </div>
+            <div id="notificationList" class="max-h-80 overflow-y-auto"></div>
             <div class="px-4 py-2 border-t border-gray-100 text-center">
-              <a href="#" class="text-xs font-bold text-gray-600 hover:text-black uppercase tracking-widest">View All</a>
+              <button id="viewAllNotifications" type="button" class="text-xs font-bold text-gray-600 hover:text-black uppercase tracking-widest">View All</button>
             </div>
           </div>
-        </button>
+        </div>
 
         <div class="relative group">
           <button class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -694,36 +714,29 @@
           <div class="absolute top-full right-0 mt-1 w-56 bg-white rounded-xl shadow-lg border border-gray-100 p-0 dropdown-hidden z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
             <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
               <div class="flex items-center gap-2 mb-1">
-                <span class="text-xs font-bold text-gray-900">Super Admin</span>
+                <span class="text-xs font-bold text-gray-900" data-admin-role-label>Super Admin</span>
                 <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
                   <i data-lucide="shield" class="w-3 h-3"></i>
                   root
                 </span>
               </div>
-              <p class="text-xs text-gray-500">full access</p>
+              <p class="text-xs text-gray-500" data-admin-role-meta>full access</p>
             </div>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+            <a id="headerProfileLink" href="setting.html#admin-profile" class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors">
               <i data-lucide="user-cog" class="w-4 h-4 text-gray-600"></i>
               <span class="text-sm text-gray-700">Profile</span>
             </a>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+            <a id="headerSettingsLink" href="setting.html" class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors">
               <i data-lucide="settings" class="w-4 h-4 text-gray-600"></i>
               <span class="text-sm text-gray-700">System settings</span>
             </a>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-red-600">
+            <a id="headerLogoutLink" href="#" data-admin-logout-link="true" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-red-600">
               <i data-lucide="log-out" class="w-4 h-4"></i>
               <span class="text-sm font-bold">Logout</span>
             </a>
           </div>
         </div>
 
-        <button class="hidden sm:flex items-center gap-2 px-4 py-2 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-gray-900 transition-colors">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          <span class="hidden lg:block">New</span>
-        </button>
-        <button class="sm:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          <i data-lucide="plus" class="w-5 h-5 text-gray-700"></i>
-        </button>
       </div>
     </div>
   </nav>
@@ -734,7 +747,7 @@
         <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
         Dashboard
       </a>
-      <a href="user_management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg bg-gray-50 transition-all">
+      <a href="user_management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
         <i data-lucide="users" class="w-4 h-4"></i>
         User Management
       </a>
@@ -766,7 +779,7 @@
         <i data-lucide="credit-card" class="w-4 h-4"></i>
         Payments
       </a>
-      <a href="Dispute_Support_System.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+      <a href="dispute&support.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
         <i data-lucide="shield-alert" class="w-4 h-4"></i>
         Dispute & Support
       </a>
@@ -777,13 +790,9 @@
 
       <div class="h-px bg-gray-100 my-4"></div>
 
-      <a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+      <a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-lg transition-all">
         <i data-lucide="settings" class="w-4 h-4"></i>
         Settings
-      </a>
-      <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
-        <i data-lucide="help-circle" class="w-4 h-4"></i>
-        Help
       </a>
     </nav>
   </aside>
@@ -845,7 +854,7 @@
 					Loading users...
 				</div>
 
-				<div style="overflow:auto;">
+				<div class="table-wrap">
 					<table>
 						<thead>
 							<tr>
@@ -939,7 +948,8 @@
 	</div>
 
 	<script type="module">
-		const API_BASE = 'http://localhost:5000/api/admin/users';
+		const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+		const API_BASE = `${API_BASE_URL}/admin/users`;
 		const adminRole = 'super_admin';
 		const state = {
 			users: [],
@@ -1147,11 +1157,6 @@
 						<div>Sales: <strong>${user.sales}</strong></div>
 						<div>Commission: <strong>$${Number(user.commission || 0).toLocaleString()}</strong></div>
 						<div>KYC: ${kycBadge(user.kyc)}</div>
-					</div>
-					<div style="margin-top:10px;">
-						<button class="btn" data-action="kyc">View KYC</button>
-						<button class="btn" data-action="freeze">Freeze Payouts</button>
-						<button class="btn" data-action="products">View Products</button>
 					</div>
 				</div>
 			` : `
@@ -1474,8 +1479,15 @@
 		bindEvents();
 		init();
 
+		if (!requireAdminAccess('customers.view', '../../403.html')) {
+			throw new Error('Access denied');
+		}
+
 		// Sidebar toggle functionality
 		lucide.createIcons();
+		if (window.lucide && typeof window.lucide.createIcons === 'function') {
+			window.lucide.createIcons();
+		}
 		const sidebarToggle = document.getElementById('sidebarToggle');
 		const sidebar = document.getElementById('sidebar');
 		const sidebarOverlay = document.getElementById('sidebarOverlay');
@@ -1512,6 +1524,23 @@
 				link.addEventListener('click', closeMobileSidebar);
 			});
 		}
+
+		function refreshHeaderIdentity() {
+			const profileLabel = document.querySelector('[data-admin-role-label]');
+			const profileMeta = document.querySelector('[data-admin-role-meta]');
+			const roleName = localStorage.getItem('lumina.admin.roleName') || 'Co-Admin';
+			const adminType = localStorage.getItem('lumina.admin.type') || 'CO_ADMIN';
+
+			if (profileLabel) {
+				profileLabel.textContent = adminType === 'SUPER_ADMIN' ? 'Super Admin' : roleName;
+			}
+			if (profileMeta) {
+				profileMeta.textContent = adminType === 'SUPER_ADMIN' ? 'full access' : `${roleName} access`;
+			}
+		}
+
+		refreshHeaderIdentity();
+		window.addEventListener('admin-profile-updated', refreshHeaderIdentity);
 	</script>
 
   <footer class="bg-white border-t border-gray-100 mt-12 md:ml-64">
@@ -1558,5 +1587,6 @@
       </div>
     </div>
   </footer>
+
 </body>
 </html>

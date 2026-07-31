@@ -175,18 +175,18 @@
 
 		/* Tabs */
 		.tabs {
-			display: flex;
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 			gap: 10px;
 			margin-bottom: 20px;
 			background: white;
 			padding: 10px;
 			border-radius: 10px;
 			box-shadow: var(--shadow);
-			flex-wrap: wrap;
 		}
 
 		.tab {
-			padding: 10px 20px;
+			padding: 10px 16px;
 			cursor: pointer;
 			border: 2px solid transparent;
 			background-color: #f3f4f6;
@@ -195,6 +195,11 @@
 			font-size: 13px;
 			font-weight: 600;
 			transition: all 0.3s ease;
+			white-space: nowrap;
+			width: 100%;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
 		}
 
 		.tab.active {
@@ -205,6 +210,35 @@
 
 		.tab-content { display: none; }
 		.tab-content.active { display: block; }
+
+		.panel-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 10px;
+			flex-wrap: wrap;
+			margin-bottom: 16px;
+		}
+
+		.panel-title {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-weight: 700;
+			font-size: 16px;
+		}
+
+		.panel-grid {
+			display: grid;
+			grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+			gap: 20px;
+		}
+
+		.panel-grid-2 {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 20px;
+		}
 
 		/* KPI Stats */
 		.stats-grid {
@@ -535,14 +569,35 @@
 			table { min-width: 900px; }
 		}
 
+		@media (max-width: 900px) {
+			.panel-grid,
+			.panel-grid-2 {
+				grid-template-columns: 1fr;
+			}
+		}
+
 		@media (max-width: 768px) {
+			.content { padding: 16px 12px; }
 			.toolbar { flex-direction: column; align-items: stretch; }
-			.filters { width: 100%; }
-			.search { width: 100%; }
+			.filters { width: 100%; gap: 8px; }
+			.search { width: 100%; min-width: 0; }
 			.page-header { flex-direction: column; align-items: flex-start; }
+			.page-header .actions { width: 100%; }
+			.page-header .actions .btn { width: 100%; justify-content: center; }
 			.modal-card { max-width: 95vw; }
-			.stats-grid { grid-template-columns: 1fr; }
+			.stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 			.form-row { grid-template-columns: 1fr; }
+			.tabs { padding: 8px; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+			.tab { padding: 10px 12px; font-size: 12px; }
+			.panel { padding: 16px; }
+			.panel-header { align-items: flex-start; }
+			.panel-header .btn { width: auto; }
+		}
+
+		@media (min-width: 1024px) {
+			.stats-grid {
+				grid-template-columns: repeat(4, minmax(0, 1fr));
+			}
 		}
 	</style>
 </head>
@@ -565,32 +620,22 @@
       </div>
 
       <div class="flex items-center gap-3 shrink-0">
-        <button class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors group">
-          <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
-          <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          <div class="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 p-0 dropdown-hidden z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
-            <div class="px-4 py-3 border-b border-gray-100">
+        <div class="relative group">
+          <button id="bellButton" class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors" type="button">
+            <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
+            <span id="notificationDot" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          <div class="notification-dropdown absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 p-0 z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
+            <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
               <p class="text-xs font-bold uppercase tracking-widest text-gray-600">Admin alerts</p>
+              <span id="notificationCount" class="text-[11px] font-semibold text-gray-500">0 new</span>
             </div>
-            <div class="max-h-80 overflow-y-auto">
-              <div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
-                <p class="text-xs font-bold text-gray-900">New seller #S422</p>
-                <p class="text-xs text-gray-500 mt-1">Request pending verification</p>
-              </div>
-              <div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
-                <p class="text-xs font-bold text-gray-900">Order #2451 flagged</p>
-                <p class="text-xs text-gray-500 mt-1">Payment discrepancy</p>
-              </div>
-              <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer">
-                <p class="text-xs font-bold text-gray-900">System update</p>
-                <p class="text-xs text-gray-500 mt-1">Analytics ready</p>
-              </div>
-            </div>
+            <div id="notificationList" class="max-h-80 overflow-y-auto"></div>
             <div class="px-4 py-2 border-t border-gray-100 text-center">
-              <a href="#" class="text-xs font-bold text-gray-600 hover:text-black uppercase tracking-widest">View All</a>
+              <button id="viewAllNotifications" type="button" class="text-xs font-bold text-gray-600 hover:text-black uppercase tracking-widest">View All</button>
             </div>
           </div>
-        </button>
+        </div>
 
         <div class="relative group">
           <button class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -626,16 +671,24 @@
           </div>
         </div>
 
-        <button class="hidden sm:flex items-center gap-2 px-4 py-2 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-gray-900 transition-colors">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          <span class="hidden lg:block">New</span>
-        </button>
-        <button class="sm:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          <i data-lucide="plus" class="w-5 h-5 text-gray-700"></i>
-        </button>
       </div>
     </div>
   </nav>
+
+  <div id="notificationsModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200] p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900">All notifications</h3>
+          <p class="text-sm text-gray-500">Recent admin activity and important alerts</p>
+        </div>
+        <button id="closeNotificationsModal" type="button" class="p-2 rounded-lg hover:bg-gray-100">
+          <i data-lucide="x" class="w-5 h-5 text-gray-700"></i>
+        </button>
+      </div>
+      <div id="notificationsModalBody" class="p-5 overflow-y-auto max-h-[60vh]"></div>
+    </div>
+  </div>
 
   <aside id="sidebar" class="hidden md:block fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-100 z-50 overflow-y-auto">
     <nav class="p-4 space-y-2">
@@ -675,24 +728,20 @@
         <i data-lucide="credit-card" class="w-4 h-4"></i>
         Payments
       </a>
-      <a href="Dispute_Support_System.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+      <a href="dispute&support.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
         <i data-lucide="shield-alert" class="w-4 h-4"></i>
         Dispute & Support
       </a>
-      <a href="Reports_Analytics.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg bg-gray-50 transition-all">
+      <a href="Reports_Analytics.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
         <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
         Reports
       </a>
 
       <div class="h-px bg-gray-100 my-4"></div>
 
-      <a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+      <a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-lg transition-all">
         <i data-lucide="settings" class="w-4 h-4"></i>
         Settings
-      </a>
-      <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
-        <i data-lucide="help-circle" class="w-4 h-4"></i>
-        Help
       </a>
     </nav>
   </aside>
@@ -746,17 +795,12 @@
 					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">inventory_2</span>
 					Product Performance
 				</button>
-				<button class="tab" data-tab="custom">
-					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">settings</span>
-					Custom Reports
-				</button>
 			</div>
 
-			<!-- Overview Tab -->
 			<div class="tab-content active" id="overview">
 				<section class="panel">
-					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; justify-content: space-between;">
-						<div style="display: flex; align-items: center; gap: 8px;">
+					<div class="panel-header">
+						<div class="panel-title">
 							<span class="material-symbols-rounded">dashboard</span>
 							Dashboard Overview
 						</div>
@@ -771,7 +815,7 @@
 							<select class="select" id="filter-overview-period">
 								<option value="today">Today</option>
 								<option value="week">This Week</option>
-								<option value="month">This Month</option>
+								<option value="month" selected>This Month</option>
 								<option value="quarter">This Quarter</option>
 								<option value="year">This Year</option>
 								<option value="custom">Custom Period</option>
@@ -786,10 +830,10 @@
 						</div>
 					</div>
 
-					<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+					<div class="panel-grid">
 						<div>
 							<h4 style="margin-bottom: 12px; font-weight: 600;">Revenue Trend</h4>
-							<div style="height: 300px; background: #f9fafb; border-radius: 6px; display: flex; align-items: flex-end; justify-content: space-around; padding: 20px; gap: 8px;">
+							<div id="overview-trend" style="height: 300px; background: #f9fafb; border-radius: 6px; display: flex; align-items: flex-end; justify-content: space-around; padding: 20px; gap: 8px;">
 								<!-- Rendered by JS -->
 							</div>
 						</div>
@@ -917,9 +961,11 @@
 			<!-- Users Report Tab -->
 			<div class="tab-content" id="users">
 				<section class="panel">
-					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-						<span class="material-symbols-rounded">people</span>
-						User Analytics
+					<div class="panel-header">
+						<div class="panel-title">
+							<span class="material-symbols-rounded">people</span>
+							User Analytics
+						</div>
 					</div>
 
 					<div class="toolbar">
@@ -939,7 +985,7 @@
 						</div>
 					</div>
 
-					<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+					<div class="panel-grid-2">
 						<div>
 							<h4 style="margin-bottom: 12px; font-weight: 600;">User Growth</h4>
 							<div id="analytics-user-growth" style="font-size: 12px; display: flex; align-items: flex-end; justify-content: space-around; height: 200px; gap: 4px; padding: 20px; background: #f9fafb; border-radius: 6px;">
@@ -1028,34 +1074,6 @@
 				</section>
 			</div>
 
-			<!-- Custom Reports Tab -->
-			<div class="tab-content" id="custom">
-				<section class="panel">
-					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; justify-content: space-between;">
-						<div style="display: flex; align-items: center; gap: 8px;">
-							<span class="material-symbols-rounded">settings</span>
-							Custom Reports
-						</div>
-						<button class="btn primary sm" id="btn-create-custom">
-							<span class="material-symbols-rounded">add</span>
-							Create New
-						</button>
-					</div>
-
-					<div class="toolbar">
-						<div class="search">
-							<span class="material-symbols-rounded">search</span>
-							<input type="text" placeholder="Search custom reports..." id="search-custom">
-						</div>
-					</div>
-
-					<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
-						<div id="custom-reports-grid">
-							<!-- Rendered by JS -->
-						</div>
-					</div>
-				</section>
-			</div>
 		</main>
 	</div>
 
@@ -1206,7 +1224,12 @@
   </footer>
 
 	<!-- Scripts -->
+	<script src="../js/adminAccess.js"></script>
 	<script>
+		if (!requireAdminAccess('reports.view', '../../403.html')) {
+			throw new Error('Access denied');
+		}
+
 		lucide.createIcons();
 
 		// Sidebar toggle functionality
@@ -1248,5 +1271,6 @@
 		}
 	</script>
 	<script src="../js/Reports-Analytics.js"></script>
+<script src="../js/notificationsUI.js"></script>
 </body>
 </html>

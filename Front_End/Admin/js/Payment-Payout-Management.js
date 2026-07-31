@@ -1,9 +1,11 @@
 // Payment & Payout Management System
 // ==================================
 
-const ADMIN_API_BASE = (typeof window !== 'undefined' && window.location && window.location.protocol !== 'file:')
-	? `${window.location.origin}/api/admin`
-	: 'http://localhost:5000/api/admin';
+const DEFAULT_ADMIN_API_BASE_URL = (typeof window !== 'undefined' && (window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`))
+	? (window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`)
+	: `${window.location.origin}/api`;
+
+const ADMIN_API_BASE = `${String(DEFAULT_ADMIN_API_BASE_URL).replace(/\/$/, '')}/admin`;
 const API_BASE = `${ADMIN_API_BASE}/payments`;
 
 function getAdminToken() {
@@ -38,11 +40,19 @@ let currentState = {
 
 function updateBulkActions() {
 	const selectAll = document.getElementById('select-all-payout');
+	const batchApproveBtn = document.getElementById('btn-batch-approve');
+	const enabledCheckboxes = document.querySelectorAll('.seller-checkbox:not(:disabled)');
+	const checkedCount = document.querySelectorAll('.seller-checkbox:checked').length;
+	const totalCount = enabledCheckboxes.length;
+
 	if (selectAll) {
-		const checkedCount = document.querySelectorAll('.seller-checkbox:checked').length;
-		const totalCount = document.querySelectorAll('.seller-checkbox').length;
 		selectAll.checked = totalCount > 0 && checkedCount === totalCount;
 		selectAll.indeterminate = checkedCount > 0 && checkedCount < totalCount;
+	}
+
+	if (batchApproveBtn) {
+		batchApproveBtn.disabled = checkedCount === 0;
+		batchApproveBtn.classList.toggle('disabled', checkedCount === 0);
 	}
 }
 
@@ -61,6 +71,7 @@ async function api(path, options = {}) {
 
 	const response = await fetch(`${API_BASE}${path}`, {
 		...options,
+		credentials: 'include',
 		headers
 	});
 
@@ -87,12 +98,33 @@ async function ensureAdminSession() {
 		});
 
 		if (!response.ok) {
-			throw new Error('Session expired');
+			// If the server explicitly rejects the session (401/403), clear tokens and force login.
+			if (response.status === 401 || response.status === 403) {
+				console.warn('Session check failed with status', response.status);
+				localStorage.removeItem('lumina.admin.authToken');
+				localStorage.removeItem('lumina.auth.token');
+				window.location.href = 'admin_login.html';
+				return false;
+			}
+
+			// For other server errors, log and allow the page to continue (transient issue).
+			console.error('Session check returned non-auth status', response.status);
+			return true;
 		}
 
 		const payload = await response.json().catch(() => ({}));
 		if (!payload.success) {
-			throw new Error(payload.message || 'Session expired');
+			// If payload explicitly indicates session expired, clear tokens and redirect.
+			if (payload.message && /session/i.test(payload.message)) {
+				localStorage.removeItem('lumina.admin.authToken');
+				localStorage.removeItem('lumina.auth.token');
+				window.location.href = 'admin_login.html';
+				return false;
+			}
+
+			console.warn('Session check returned unsuccessful payload:', payload);
+			// don't force logout for unexpected payloads — treat as transient
+			return true;
 		}
 
 		if (payload.data?.admin?.id) {
@@ -100,10 +132,9 @@ async function ensureAdminSession() {
 		}
 		return true;
 	} catch (error) {
-		localStorage.removeItem('lumina.admin.authToken');
-		localStorage.removeItem('lumina.auth.token');
-		window.location.href = 'admin_login.html';
-		return false;
+		// Network or unexpected error — log and allow user to remain logged in instead of immediate logout
+		console.error('Session verification failed:', error);
+		return true;
 	}
 }
 
@@ -677,13 +708,20 @@ function renderPayoutQueue() {
 		const isEligible = seller.kycStatus === 'verified' && seller.bankStatus === 'verified' && seller.riskLevel === 'clear';
 		const eligibleOrders = seller.eligibleOrders || 0;
 		const availableBalance = seller.availableBalance ?? seller.available_balance ?? 0;
+		const paymentRequestAmount = seller.paymentRequestAmount ?? seller.payment_request_amount ?? 0;
+		const paymentRequestStatus = String(seller.pendingRequestStatus ?? seller.pending_request_status ?? (paymentRequestAmount > 0 ? 'pending' : 'none')).toLowerCase();
 		const totalWithdrawal = seller.paidAmount ?? seller.paid_amount ?? 0;
+		const requestLabel = paymentRequestAmount > 0 ? 'Pending Request' : 'No Request';
 		
 		return `
 			<tr>
-				<td><input type="checkbox" class="seller-checkbox" data-seller-id="${seller.id}" /></td>
+				<td><input type="checkbox" class="seller-checkbox" data-seller-id="${seller.id}" ${isEligible ? '' : 'disabled'} /></td>
 				<td>${seller.name}</td>
 				<td>${formatCurrency(availableBalance)}</td>
+				<td>
+					<div>${formatCurrency(paymentRequestAmount)}</div>
+					<div class="pill ${paymentRequestStatus === 'pending' ? 'pill-pending' : 'pill-completed'}" style="margin-top: 4px; display: inline-block;">${requestLabel}</div>
+				</td>
 				<td><span class="pill ${getStatusBadgeClass(seller.kycStatus)}">${seller.kycStatus}</span></td>
 				<td><span class="pill ${getStatusBadgeClass(seller.bankStatus)}">${seller.bankStatus}</span></td>
 				<td><span class="pill ${getStatusBadgeClass(seller.riskLevel)}">${seller.riskLevel}</span></td>
@@ -693,15 +731,15 @@ function renderPayoutQueue() {
 		`;
 	}).join('');
 
-	tbody.innerHTML = rows || '<tr><td colspan="8" style="text-align: center; padding: 20px;">No sellers found</td></tr>';
+	tbody.innerHTML = rows || '<tr><td colspan="9" style="text-align: center; padding: 20px;">No sellers found</td></tr>';
 
 	// Add batch selection logic
 	const selectAll = document.getElementById('select-all-payout');
 	selectAll?.addEventListener('change', (e) => {
-		document.querySelectorAll('.seller-checkbox').forEach(cb => cb.checked = e.target.checked);
+		document.querySelectorAll('.seller-checkbox:not(:disabled)').forEach(cb => cb.checked = e.target.checked);
 		updateBulkActions();
 	});
-	document.querySelectorAll('.seller-checkbox').forEach((checkbox) => {
+	document.querySelectorAll('.seller-checkbox:not(:disabled)').forEach((checkbox) => {
 		checkbox.addEventListener('change', updateBulkActions);
 	});
 	updateBulkActions();
@@ -802,7 +840,11 @@ function openAppovePayoutModal(sellerId) {
 				<div class="value">${seller.name}</div>
 			</div>
 			<div class="info-item">
-				<div class="label">Payout Amount</div>
+				<div class="label">Payment Request</div>
+				<div class="value">${formatCurrency(seller.paymentRequestAmount ?? seller.payment_request_amount ?? 0)}</div>
+			</div>
+			<div class="info-item">
+				<div class="label">Withdrawable Balance</div>
 				<div class="value">${formatCurrency(seller.availableBalance ?? seller.available_balance ?? 0)}</div>
 			</div>
 			<div class="info-item">
@@ -814,6 +856,13 @@ function openAppovePayoutModal(sellerId) {
 				<div class="value">${seller.accountNumber}</div>
 			</div>
 		</div>
+
+		${(seller.paymentRequestAmount ?? seller.payment_request_amount ?? 0) > 0 ? `
+			<div class="alert alert-info">
+				<span class="material-symbols-rounded" style="font-size: 16px; margin-right: 4px;">payments</span>
+				A pending payout request exists for this seller and will be marked paid after approval.
+			</div>
+		` : ''}
 
 		<div class="form-group">
 			<label>Transaction Reference</label>
@@ -1215,6 +1264,14 @@ function filterFailedPayments() {
 
 // ==================== TAB MANAGEMENT ====================
 
+function activateTab(tabId) {
+	const tabs = document.querySelectorAll('.tab');
+	tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
+	document.querySelectorAll('.tab-content').forEach(content => {
+		content.classList.toggle('active', content.id === tabId);
+	});
+}
+
 function setupTabs() {
 	const tabs = document.querySelectorAll('.tab');
 	
@@ -1230,8 +1287,19 @@ function setupTabs() {
 			tab.classList.add('active');
 			const tabId = tab.dataset.tab;
 			document.getElementById(tabId).classList.add('active');
+			history.replaceState(null, '', `#${tabId}`);
 		});
 	});
+}
+
+function openInitialTab() {
+	const targetTab = window.location.hash ? window.location.hash.slice(1) : '';
+	const validTab = document.querySelector(`.tab[data-tab="${targetTab}"]`);
+	if (validTab) {
+		activateTab(targetTab);
+	} else {
+		activateTab('online-payments');
+	}
 }
 
 // ==================== INITIALIZATION ====================
@@ -1248,6 +1316,7 @@ async function initializeDashboard() {
 		renderPayoutQueue();
 		renderFailedPayments();
 		setupTabs();
+		openInitialTab();
 		setupFilters();
 		setupEventListeners();
 	} catch (error) {
@@ -1288,6 +1357,18 @@ function setupEventListeners() {
 			showToast('Please select sellers to approve', 'warning');
 			return;
 		}
+
+		const hasPendingRequests = Array.from(selected).some((item) => {
+			const seller = db.sellers?.find((entry) => entry.id === item.dataset.sellerId);
+			const requestAmount = seller?.paymentRequestAmount ?? seller?.payment_request_amount ?? 0;
+			return Number(requestAmount) > 0;
+		});
+
+		if (!hasPendingRequests) {
+			showToast('No payment requests available for the selected sellers', 'warning');
+			return;
+		}
+
 		try {
 			await api('/payouts/batch-approve', {
 				method: 'POST',

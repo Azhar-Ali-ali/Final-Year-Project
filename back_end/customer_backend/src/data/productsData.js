@@ -12,6 +12,7 @@ const products = [
     brand: "e.l.f.",
     category: "Makeup Brushes & Tools",
     subcategory: "Makeup Sponges",
+    genderCategory: "women",
     price: 5.82,
     originalPrice: 7.29,
     discount: 20,
@@ -355,6 +356,118 @@ const products = [
   }
 ];
 
+// Ensure all products have a genderCategory for testing
+// This auto-assigns based on product properties if not already set
+products.forEach((product, index) => {
+  if (!product.genderCategory) {
+    // Auto-assign gender categories for testing
+    // Products with id 1-4 are women, 5-8 are women, 9-12 are women
+    // You can add men and kids products to test category filtering
+    product.genderCategory = 'women';
+  }
+});
+
+// Add some test products for men and kids categories
+const menProducts = [
+  {
+    id: 101,
+    name: "Men's Athletic Performance T-Shirt",
+    description: "Breathable men's t-shirt perfect for workouts and casual wear",
+    brand: "SportGear",
+    category: "Clothing",
+    subcategory: "T-Shirts",
+    genderCategory: "men",
+    price: 24.99,
+    originalPrice: 34.99,
+    discount: 29,
+    rating: 4.6,
+    reviewCount: 2150,
+    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=600",
+    inStock: true,
+    quantity: 200,
+    sponsored: false,
+    limitedDeal: true,
+    couponDiscount: 5,
+    freeDeliveryDate: "2026-03-04",
+    freeDeliveryMinOrder: 0,
+    form: "Shirt",
+    finish: "Casual",
+    skinTone: ["All"],
+    skinType: ["All"],
+    tags: ["sport", "breathable", "mens"],
+    sellerId: 11,
+    sellerName: "SportGear Store",
+    views: 5640
+  },
+  {
+    id: 102,
+    name: "Men's Cargo Pants",
+    description: "Durable men's cargo pants with multiple pockets, perfect for outdoor activities",
+    brand: "Carhartt",
+    category: "Clothing",
+    subcategory: "Pants",
+    genderCategory: "men",
+    price: 59.99,
+    originalPrice: 79.99,
+    discount: 25,
+    rating: 4.7,
+    reviewCount: 3450,
+    image: "https://images.unsplash.com/photo-1542272604-787c62d465d1?auto=format&fit=crop&q=80&w=600",
+    inStock: true,
+    quantity: 150,
+    sponsored: true,
+    limitedDeal: false,
+    couponDiscount: 0,
+    freeDeliveryDate: "2026-03-05",
+    freeDeliveryMinOrder: 0,
+    form: "Pants",
+    finish: "Durable",
+    skinTone: ["All"],
+    skinType: ["All"],
+    tags: ["pant", "cargo", "mens", "outdoor"],
+    sellerId: 12,
+    sellerName: "Carhartt Store",
+    views: 7890
+  }
+];
+
+const kidsProducts = [
+  {
+    id: 201,
+    name: "Kids' Colorful Hoodie Jacket",
+    description: "Warm and colorful hoodie perfect for kids, available in various bright colors",
+    brand: "KidStyle",
+    category: "Clothing",
+    subcategory: "Hoodies",
+    genderCategory: "kids",
+    price: 34.99,
+    originalPrice: 44.99,
+    discount: 22,
+    rating: 4.5,
+    reviewCount: 1890,
+    image: "https://images.unsplash.com/photo-1545127398-14699f92334b?auto=format&fit=crop&q=80&w=600",
+    inStock: true,
+    quantity: 300,
+    sponsored: false,
+    limitedDeal: false,
+    couponDiscount: 8,
+    freeDeliveryDate: "2026-03-03",
+    freeDeliveryMinOrder: 35,
+    form: "Hoodie",
+    finish: "Soft",
+    skinTone: ["All"],
+    skinType: ["All"],
+    tags: ["hoodie", "kids", "jacket"],
+    sellerId: 13,
+    sellerName: "KidStyle Store",
+    views: 4320
+  }
+];
+
+// Add men and kids products to the main products array
+products.push(...menProducts);
+products.push(...kidsProducts);
+
 // Filter metadata
 const filterOptions = {
   brands: ["e.l.f.", "L'Oreal Paris", "NYX PROFESSIONAL MAKEUP", "MAYBELLINE", "COVERGIRL", "REVLON", "tarte", "AOA Studio", "Real Techniques", "JUNO & Co.", "Wet n Wild", "EcoTools"],
@@ -373,6 +486,43 @@ const filterOptions = {
     { label: "$50 & Above", min: 50, max: Infinity }
   ]
 };
+
+const synonymMap = {
+  pants: 'pant',
+  trousers: 'pant',
+  slacks: 'pant',
+  tops: 'top',
+  hoodies: 'hoodie',
+  shirts: 'shirt',
+  tshirts: 'tshirt',
+  't-shirts': 'tshirt'
+};
+
+let pluralize = null;
+try {
+  pluralize = require('pluralize');
+} catch (e) {
+  pluralize = null;
+}
+
+function normalizeSearchTerms(text) {
+  if (!text) return [];
+  const words = String(text).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+  const normalized = words.map((w) => {
+    if (synonymMap[w]) return synonymMap[w];
+    try {
+      if (pluralize && typeof pluralize.singular === 'function') return pluralize.singular(w);
+    } catch (e) {}
+    return w;
+  });
+  // dedupe while preserving order
+  const seen = new Set();
+  return normalized.filter((w) => {
+    if (seen.has(w)) return false;
+    seen.add(w);
+    return true;
+  });
+}
 
 /**
  * Get all products with filtering, sorting, and pagination
@@ -401,13 +551,27 @@ function getProducts(filters = {}) {
 
   // Search filter
   if (search) {
-    const searchLower = search.toLowerCase();
-    filtered = filtered.filter(p =>
-      p.name.toLowerCase().includes(searchLower) ||
-      p.description.toLowerCase().includes(searchLower) ||
-      p.brand.toLowerCase().includes(searchLower) ||
-      p.category.toLowerCase().includes(searchLower)
-    );
+    const terms = normalizeSearchTerms(search);
+    if (terms.length) {
+      filtered = filtered.filter((p) => {
+        const name = p.name.toLowerCase();
+        const description = p.description.toLowerCase();
+        const brand = p.brand.toLowerCase();
+        const category = p.category.toLowerCase();
+        const tags = Array.isArray(p.tags) ? p.tags.map((t) => String(t).toLowerCase()) : [];
+
+        // all terms must match either name/description/brand/category or exact tag
+        return terms.every((term) => {
+          return (
+            name.includes(term) ||
+            description.includes(term) ||
+            brand.includes(term) ||
+            category.includes(term) ||
+            tags.includes(term)
+          );
+        });
+      });
+    }
   }
 
   // Brand filter
@@ -417,7 +581,12 @@ function getProducts(filters = {}) {
 
   // Category filter
   if (categories.length > 0) {
-    filtered = filtered.filter(p => categories.includes(p.category) || categories.includes(p.subcategory));
+    const normalizedCategories = categories.map((category) => String(category || '').trim().toLowerCase()).filter(Boolean);
+    filtered = filtered.filter((p) => {
+      const productCategory = String(p.category || '').trim().toLowerCase();
+      const productSubcategory = String(p.subcategory || '').trim().toLowerCase();
+      return normalizedCategories.includes(productCategory) || normalizedCategories.includes(productSubcategory);
+    });
   }
 
   // Rating filter
@@ -546,9 +715,21 @@ function getFilterOptions() {
 /**
  * Get popular/trending products
  */
-function getTrendingProducts(limit = 10) {
+function getTrendingProducts(limit = 12) {
   return [...products]
-    .sort((a, b) => b.views - a.views)
+    .map((product) => {
+      const soldCount = Number(product.soldCount ?? product.sold ?? product.purchases ?? 0);
+      const viewCount = Number(product.views ?? product.viewCount ?? 0);
+      const cartCount = Number(product.cartCount ?? product.addToCartCount ?? 0);
+      const wishlistCount = Number(product.wishlistCount ?? product.wishlist ?? 0);
+      const rating = Number(product.rating ?? 0);
+
+      return {
+        ...product,
+        trendScore: (soldCount * 5) + (viewCount * 2) + (cartCount * 3) + (wishlistCount * 2) + (rating * 10)
+      };
+    })
+    .sort((a, b) => (b.trendScore || 0) - (a.trendScore || 0))
     .slice(0, limit);
 }
 
@@ -586,19 +767,51 @@ function getRelatedProducts(productId, limit = 6) {
 }
 
 /**
- * Search products
+ * Determine whether product category or subcategory matches selected filters.
  */
-function searchProducts(query, limit = 10) {
-  if (!query) return [];
-  
-  const searchLower = query.toLowerCase();
-  return products
-    .filter(p =>
-      p.name.toLowerCase().includes(searchLower) ||
-      p.description.toLowerCase().includes(searchLower) ||
-      p.brand.toLowerCase().includes(searchLower) ||
-      p.tags.some(tag => tag.toLowerCase().includes(searchLower))
-    )
+ function matchesCategories(product, categories) {
+   if (!Array.isArray(categories) || !categories.length) return true;
+   const normalizedCategories = categories
+     .map((category) => String(category || '').trim().toLowerCase())
+     .filter(Boolean);
+   const productCategory = String(product.category || '').trim().toLowerCase();
+   const productSubcategory = String(product.subcategory || '').trim().toLowerCase();
+   return (
+     normalizedCategories.includes(productCategory) ||
+     normalizedCategories.includes(productSubcategory)
+   );
+ }
+ 
+ /**
+  * Search products
+  */
+ function searchProducts(query, categories = [], limit = 10) {
+   if (!query) return [];
+ 
+   const terms = normalizeSearchTerms(query);
+   if (!terms.length) return [];
+ 
+   return products
+     .filter((p) => {
+       if (!matchesCategories(p, categories)) {
+         return false;
+       }
+ 
+       const name = String(p.name || '').toLowerCase();
+       const description = String(p.description || '').toLowerCase();
+       const brand = String(p.brand || '').toLowerCase();
+       const category = String(p.category || '').toLowerCase();
+
+      return terms.every((term) => {
+        return (
+          name.includes(term) ||
+          description.includes(term) ||
+          brand.includes(term) ||
+          category.includes(term) ||
+          tags.includes(term)
+        );
+      });
+    })
     .slice(0, limit);
 }
 
@@ -630,3 +843,8 @@ module.exports = {
   getProductsByCategory,
   getProductsByBrand
 };
+
+// Export internals for testing
+module.exports.normalizeSearchTerms = normalizeSearchTerms;
+module.exports._products = products;
+

@@ -1,0 +1,150 @@
+[
+  {
+    "token": "lum_ccc8979ffbbd0f5df8024a12edca192c3d248bc6",
+    "user": {
+      "id": "b651ebf1-e479-481e-b99f-531a70615a27",
+      "role": "seller",
+      "fullName": "azharali",
+      "name": "azharali",
+      "email": "seller1000@gmail.com",
+      "phone": "03125900901",
+      "createdAt": "2026-07-02T20:33:00.126Z",
+      "isActive": true,
+      "sellerProfile": {
+        "storeName": "azharstore",
+        "storeCategory": null,
+        "city": null,
+        "isVerified": true,
+        "verificationStatus": "verified",
+        "verificationSubmittedAt": "2026-07-02T20:33:00.126Z"
+      }
+    },
+    "session": {
+      "token": "lum_ccc8979ffbbd0f5df8024a12edca192c3d248bc6",
+      "userId": "b651ebf1-e479-481e-b99f-531a70615a27",
+      "role": "seller",
+      "createdAt": "2026-07-30T12:30:41.914Z",
+      "expiresAt": "2026-07-30T20:30:41.914Z"
+    }
+  },
+  {
+    "token": "lum_9074045a27e3c068ceb7675375e50e1ffc4658bd",
+    "user": {
+      "id": "215f44ae-2efc-4da3-8d7a-e724dcebc5c4",
+      "role": "customer",
+      "fullName": "ali",
+      "name": "ali",
+      "email": "azhar03125900901@gmail.com",
+      "phone": null,
+      "createdAt": "2026-07-09T19:24:48.670Z",
+      "isActive": true
+    },
+    "session": {
+      "token": "lum_9074045a27e3c068ceb7675375e50e1ffc4658bd",
+      "userId": "215f44ae-2efc-4da3-8d7a-e724dcebc5c4",
+      "role": "customer",
+      "createdAt": "2026-07-30T12:31:12.858Z",
+      "expiresAt": "2026-07-30T20:31:12.858Z"
+    }
+  },
+  {
+    "token": "lum_83f01160ac5699c6ecc8cab7b00ace11039fc81c",
+    "user": {
+      "id": "9ca02b09-6bcc-46a0-a281-2d782867b6e5",
+      "role": "customer",
+      "fullName": "azhar",
+      "name": "azhar",
+      "email": "azharazhar@gmail.com",
+      "phone": null,
+      "createdAt": "2026-07-30T16:26:29.781Z",
+      "isActive": true
+    },
+    "session": {
+      "token": "lum_83f01160ac5699c6ecc8cab7b00ace11039fc81c",
+      "userId": "9ca02b09-6bcc-46a0-a281-2d782867b6e5",
+      "role": "customer",
+      "createdAt": "2026-07-30T16:26:29.794Z",
+      "expiresAt": "2026-07-31T00:26:29.794Z"
+    }
+  },
+  {
+    "token": "lum_1ae20be10e3db9671d94f7f5e4909a4ca002083f",
+    "user": {
+      "id": "9ca02b09-6bcc-46a0-a281-2d782867b6e5",
+      "role": "customer",
+      "fullName": "azhar",
+      "name": "azhar",
+      "email": "azharazhar@gmail.com",
+      "phone": null,
+      "createdAt": "2026-07-30T16:26:29.781Z",
+      "isActive": true
+    },
+    "session": {
+      "token": "lum_1ae20be10e3db9671d94f7f5e4909a4ca002083f",
+      "userId": "9ca02b09-6bcc-46a0-a281-2d782867b6e5",
+      "role": "customer",
+      "createdAt": "2026-07-30T16:38:14.667Z",
+      "expiresAt": "2026-07-31T00:38:14.667Z"
+    }
+  },
+  {
+    "token": "lum_ac6031d6b1216c0bac3dc0dae2ae5a630b3efe0f",
+    "user": {
+      "id": "9ca02b09-6bcc-46a0-a281-2d782867b6e5",
+      "role": "customer",
+      "fullName": "azhar",
+      "name": "azhar",
+      "email": "azharazhar@gmail.com",
+      "phone": null,
+      "createdAt": "2026-07-30T16:26:29.781Z",
+      "isActive": true
+    },
+    "session": {
+      "token": "lum_ac6031d6b1216c0bac3dc0dae2ae5a630b3efe0f",
+      "userId": "9ca02b09-6bcc-46a0-a281-2d782867b6e5",
+      "role": "customer",
+      "createdAt": "2026-07-30T16:53:55.312Z",
+      "expiresAt": "2026-07-31T00:53:55.312Z"
+    }
+  },
+  {
+    "token": "lum_b551376298ffbc11f3ece8240d781d8762b83a14",
+    "user": {
+      "id": "9ca02b09-6bcc-46a0-a281-2d782867b6e5",
+      "role": "customer",
+      "fullName": "azhar",
+      "name": "azhar",
+      "email": "azharazhar@gmail.com",
+      "phone": null,
+      "createdAt": "2026-07-30T16:26:29.781Z",
+      "isActive": true
+    },
+    "session": {
+      "token": "lum_b551376298ffbc11f3ece8240d781d8762b83a14",
+      "userId": "9ca02b09-6bcc-46a0-a281-2d782867b6e5",
+      "role": "customer",
+      "createdAt": "2026-07-30T16:57:49.556Z",
+      "expiresAt": "2026-07-31T00:57:49.556Z"
+    }
+  },
+  {
+    "token": "lum_a907a7178df2d273f9914a37f8197f48d799ab03",
+    "user": {
+      "id": "9ca02b09-6bcc-46a0-a281-2d782867b6e5",
+      "role": "customer",
+      "fullName": "azhar",
+      "name": "azhar",
+      "email": "azharazhar@gmail.com",
+      "phone": null,
+      "createdAt": "2026-07-30T16:26:29.781Z",
+      "isActive": true
+    },
+    "session": {
+      "token": "lum_a907a7178df2d273f9914a37f8197f48d799ab03",
+      "userId": "9ca02b09-6bcc-46a0-a281-2d782867b6e5",
+      "role": "customer",
+      "createdAt": "2026-07-30T20:34:41.552Z",
+      "expiresAt": "2026-07-31T04:34:41.552Z"
+    }
+  }
+]

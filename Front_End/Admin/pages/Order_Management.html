@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -191,6 +191,11 @@
       flex-wrap: wrap;
       gap: 20px;
       margin-bottom: 10px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .stat-card {
@@ -421,10 +426,20 @@
     }
 
     @media (max-width: 768px) {
-      .toolbar { flex-direction: column; align-items: stretch; }
-      .filters { width: 100%; }
+      .content { padding: 16px; }
+      .panel { padding: 16px; }
+      .toolbar { flex-direction: column; align-items: stretch; padding: 12px; }
+      .filters {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .select, .input, textarea { width: 100%; min-width: 0; }
       .search { width: 100%; min-width: 100%; }
       .page-header { flex-direction: column; align-items: flex-start; }
+      .page-header .btn { width: 100%; justify-content: center; }
+      table { min-width: 980px; font-size: 12px; }
+      thead th, tbody td { padding: 10px 8px; white-space: normal; }
     }
 
     .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
@@ -466,32 +481,22 @@
       </div>
 
       <div class="flex items-center gap-3 shrink-0">
-        <button class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors group">
-          <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
-          <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          <div class="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 p-0 dropdown-hidden z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
-            <div class="px-4 py-3 border-b border-gray-100">
+        <div class="relative group">
+          <button id="bellButton" class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors" type="button">
+            <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
+            <span id="notificationDot" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          <div class="notification-dropdown absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 p-0 z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
+            <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
               <p class="text-xs font-bold uppercase tracking-widest text-gray-600">Admin alerts</p>
+              <span id="notificationCount" class="text-[11px] font-semibold text-gray-500">0 new</span>
             </div>
-            <div class="max-h-80 overflow-y-auto">
-              <div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
-                <p class="text-xs font-bold text-gray-900">New seller #S422</p>
-                <p class="text-xs text-gray-500 mt-1">Request pending verification</p>
-              </div>
-              <div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
-                <p class="text-xs font-bold text-gray-900">Order #2451 flagged</p>
-                <p class="text-xs text-gray-500 mt-1">Payment discrepancy</p>
-              </div>
-              <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer">
-                <p class="text-xs font-bold text-gray-900">System update</p>
-                <p class="text-xs text-gray-500 mt-1">Analytics ready</p>
-              </div>
-            </div>
+            <div id="notificationList" class="max-h-80 overflow-y-auto"></div>
             <div class="px-4 py-2 border-t border-gray-100 text-center">
-              <a href="#" class="text-xs font-bold text-gray-600 hover:text-black uppercase tracking-widest">View All</a>
+              <button id="viewAllNotifications" type="button" class="text-xs font-bold text-gray-600 hover:text-black uppercase tracking-widest">View All</button>
             </div>
           </div>
-        </button>
+        </div>
 
         <div class="relative group">
           <button class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -527,13 +532,6 @@
           </div>
         </div>
 
-        <button class="hidden sm:flex items-center gap-2 px-4 py-2 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-gray-900 transition-colors">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          <span class="hidden lg:block">New</span>
-        </button>
-        <button class="sm:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          <i data-lucide="plus" class="w-5 h-5 text-gray-700"></i>
-        </button>
       </div>
     </div>
   </nav>
@@ -576,7 +574,7 @@
         <i data-lucide="credit-card" class="w-4 h-4"></i>
         Payments
       </a>
-      <a href="Dispute_Support_System.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+      <a href="dispute&support.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
         <i data-lucide="shield-alert" class="w-4 h-4"></i>
         Dispute & Support
       </a>
@@ -587,13 +585,9 @@
 
       <div class="h-px bg-gray-100 my-4"></div>
 
-      <a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+      <a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-lg transition-all">
         <i data-lucide="settings" class="w-4 h-4"></i>
         Settings
-      </a>
-      <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
-        <i data-lucide="help-circle" class="w-4 h-4"></i>
-        Help
       </a>
     </nav>
   </aside>
@@ -613,10 +607,7 @@
           <button class="btn secondary" id="btn-refresh"><span class="material-symbols-rounded">refresh</span>Refresh</button>
         </div>
       </div>
-
-      <div class="notice">
-        <strong>Payment-first workflow:</strong> This page is focused on order visibility, payment verification, and controlled status updates while payment integration is being finalized.
-      </div>
+      <!-- notice removed to match dashboard layout -->
 
       <section class="stats-grid" id="stats-grid"></section>
 
@@ -639,7 +630,7 @@
           <select class="select" id="filter-city"></select>
         </div>
 
-        <div style="overflow:auto; margin-top:10px;">
+        <div class="table-wrap" style="margin-top:10px;">
           <table>
             <thead>
               <tr>
@@ -750,7 +741,7 @@
 
         <section class="box">
           <h4><span class="material-symbols-rounded">shopping_bag</span>Ordered Products</h4>
-          <div style="overflow:auto; margin-top:8px;">
+          <div class="table-wrap" style="margin-top:8px;">
             <table>
               <thead>
                 <tr>
@@ -785,7 +776,13 @@
   </div>
 
   <script src="../js/order-management.js"></script>
+  <script src="../js/adminAccess.js"></script>
+  <script src="../js/notificationsUI.js"></script>
   <script>
+    if (!requireAdminAccess('orders.view', '../../403.html')) {
+      throw new Error('Access denied');
+    }
+
     lucide.createIcons();
 
     const sidebarToggle = document.getElementById('sidebarToggle');
@@ -831,7 +828,6 @@
       }
     });
   </script>
-
 </body>
 </html>
 

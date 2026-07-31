@@ -532,6 +532,7 @@ async function getSecuritySettings(db, sellerId) {
 async function changeEmail(db, sellerId, currentEmail, newEmail) {
   await ensureSupportTables(db);
   const usersTableRef = await resolveUsersTableRef(db);
+  const profilesTableRef = await resolveSellerProfilesTableRef(db);
   const security = await getSecuritySettings(db, sellerId);
   if (!security) throw new Error('Seller not found');
   if (normalizeText(currentEmail) !== normalizeText(security.email)) {
@@ -541,21 +542,42 @@ async function changeEmail(db, sellerId, currentEmail, newEmail) {
     throw new Error('Invalid email format');
   }
 
-  await db.query(
-    `
-      UPDATE ${usersTableRef}
-      SET email = $2,
+  await db.query('BEGIN');
+  try {
+    await db.query(
+      `
+        UPDATE ${usersTableRef}
+        SET email = $2,
+            updated_at = NOW()
+        WHERE id = $1
+      `,
+      [sellerId, newEmail]
+    );
+
+    await db.query(
+      `
+        INSERT INTO ${profilesTableRef} (user_id, store_name, store_slug, business_email, business_phone, tax_number, rating, total_reviews)
+        VALUES ($1, '', LOWER(REGEXP_REPLACE($2, '[^a-zA-Z0-9]+', '-', 'g')), $3, NULL, NULL, 0, 0)
+        ON CONFLICT (user_id) DO UPDATE SET
+          business_email = EXCLUDED.business_email,
           updated_at = NOW()
-      WHERE id = $1
-    `,
-    [sellerId, newEmail]
-  );
+      `,
+      [sellerId, newEmail, newEmail]
+    );
+
+    await db.query('COMMIT');
+  } catch (error) {
+    await db.query('ROLLBACK');
+    throw error;
+  }
 
   return { success: true, message: 'Email changed successfully. Verification email sent.', newEmail };
 }
 
 async function changePassword(db, sellerId, currentPassword, newPassword) {
-  void currentPassword;
+  if (!currentPassword) {
+    throw new Error('Current password is required');
+  }
   if (!newPassword || newPassword.length < 8) {
     throw new Error('Password must be at least 8 characters');
   }
@@ -563,29 +585,66 @@ async function changePassword(db, sellerId, currentPassword, newPassword) {
     throw new Error('Password must include uppercase, lowercase, and numbers');
   }
 
-  const passwordHash = crypto.createHash('sha256').update(newPassword).digest('hex');
   const usersTableRef = await resolveUsersTableRef(db);
   const hasPasswordHash = await tableHasColumn(db, usersTableRef, 'password_hash');
   const passwordColumn = hasPasswordHash ? 'password_hash' : 'password';
 
-  await db.query(
+  const currentPasswordCheck = await db.query(
     `
-      INSERT INTO lumina.user_security_settings (user_id, password_changed_at)
-      VALUES ($1, NOW())
-      ON CONFLICT (user_id) DO UPDATE SET password_changed_at = NOW(), updated_at = NOW()
+      SELECT id
+      FROM ${usersTableRef}
+      WHERE id = $1
+        AND (
+          ${passwordColumn} = $2
+          OR ${passwordColumn} = crypt($2, ${passwordColumn})
+        )
+      LIMIT 1
     `,
-    [sellerId]
+    [sellerId, currentPassword]
   );
 
-  await db.query(
-    `
-      UPDATE ${usersTableRef}
-      SET ${passwordColumn} = $2,
-          updated_at = NOW()
-      WHERE id = $1
-    `,
-    [sellerId, passwordHash]
-  );
+  if (!currentPasswordCheck.rows[0]) {
+    throw new Error('Current password is incorrect');
+  }
+
+  await db.query('BEGIN');
+  try {
+    if (hasPasswordHash) {
+      await db.query(
+        `
+          UPDATE ${usersTableRef}
+          SET password_hash = crypt($2, gen_salt('bf')),
+              updated_at = NOW()
+          WHERE id = $1
+        `,
+        [sellerId, newPassword]
+      );
+    } else {
+      await db.query(
+        `
+          UPDATE ${usersTableRef}
+          SET password = $2,
+              updated_at = NOW()
+          WHERE id = $1
+        `,
+        [sellerId, newPassword]
+      );
+    }
+
+    await db.query(
+      `
+        INSERT INTO lumina.user_security_settings (user_id, password_changed_at)
+        VALUES ($1, NOW())
+        ON CONFLICT (user_id) DO UPDATE SET password_changed_at = NOW(), updated_at = NOW()
+      `,
+      [sellerId]
+    );
+
+    await db.query('COMMIT');
+  } catch (error) {
+    await db.query('ROLLBACK');
+    throw error;
+  }
 
   return { success: true, message: 'Password updated successfully' };
 }
@@ -721,6 +780,8 @@ async function updateStoreSettings(db, sellerId, updates = {}) {
 
   const [line1, ...rest] = address ? address.split(',') : [''];
   const line2 = rest.join(',').trim();
+  const hasBusinessCategoryColumn = await tableHasColumn(db, profilesTableRef, 'business_category');
+  const hasCategoryColumn = await tableHasColumn(db, profilesTableRef, 'category');
 
   await db.query('BEGIN');
   try {
@@ -742,27 +803,111 @@ async function updateStoreSettings(db, sellerId, updates = {}) {
       [sellerId, storeEmail || null, storePhone || null, description || null, updates.shippingPolicy || existing.shippingPolicy || null, banner, logo]
     );
 
+    const profileColumns = [
+      'user_id',
+      'store_name',
+      'store_slug',
+      'business_email',
+      'business_phone',
+      'tax_number',
+      'rating',
+      'total_reviews'
+    ];
+    const profileValues = [
+      sellerId,
+      businessName || existing.businessName,
+      String(businessName || existing.businessName).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+      storeEmail || null,
+      storePhone || null,
+      null,
+      0,
+      0
+    ];
+    let categoryClause = '';
+    let categoryParams = [];
+
+    if (hasBusinessCategoryColumn) {
+      profileColumns.push('business_category');
+      profileValues.push(category || 'Other');
+      categoryClause = ', business_category = EXCLUDED.business_category';
+    } else if (hasCategoryColumn) {
+      profileColumns.push('category');
+      profileValues.push(category || 'Other');
+      categoryClause = ', category = EXCLUDED.category';
+    }
+
+    const profileColumnsSql = profileColumns.join(', ');
+    const profilePlaceholders = profileValues.map((_, index) => `$${index + 1}`).join(', ');
+
     await db.query(
       `
-        UPDATE ${profilesTableRef}
-        SET store_name = $2,
-            updated_at = NOW()
-        WHERE user_id = $1
+        INSERT INTO ${profilesTableRef} (${profileColumnsSql})
+        VALUES (${profilePlaceholders})
+        ON CONFLICT (user_id) DO UPDATE SET
+          store_name = EXCLUDED.store_name,
+          store_slug = EXCLUDED.store_slug,
+          business_email = COALESCE(${profilesTableRef}.business_email, EXCLUDED.business_email),
+          business_phone = COALESCE(${profilesTableRef}.business_phone, EXCLUDED.business_phone),
+          tax_number = COALESCE(${profilesTableRef}.tax_number, EXCLUDED.tax_number)${categoryClause},
+          updated_at = NOW()
       `,
-      [sellerId, businessName || existing.businessName]
+      profileValues
     );
 
     if (line1.trim()) {
-      await db.query(
+      const existingAddressResult = await db.query(
         `
-          INSERT INTO lumina.user_addresses (
-            user_id, label, receiver_name, phone, line1, line2, city, state, postal_code, country, is_default
-          )
-          VALUES ($1, 'Store', $2, $3, $4, $5, $6, $7, $8, $9, TRUE)
-          ON CONFLICT DO NOTHING
+          SELECT id
+          FROM lumina.user_addresses
+          WHERE user_id = $1 AND label = $2
+          ORDER BY created_at DESC
+          LIMIT 1
         `,
-        [sellerId, businessName || existing.businessName, storePhone || '', line1.trim(), line2 || null, city || null, state || null, postalCode || '', country || 'Bangladesh']
+        [sellerId, 'Store']
       );
+
+      const addressValues = [
+        sellerId,
+        'Store',
+        businessName || existing.businessName,
+        storePhone || '',
+        line1.trim(),
+        line2 || null,
+        city || null,
+        state || null,
+        postalCode || '',
+        country || 'Bangladesh'
+      ];
+
+      if (existingAddressResult.rows[0]?.id) {
+        await db.query(
+          `
+            UPDATE lumina.user_addresses
+            SET receiver_name = $2,
+                phone = $3,
+                line1 = $4,
+                line2 = $5,
+                city = $6,
+                state = $7,
+                postal_code = $8,
+                country = $9,
+                is_default = TRUE,
+                updated_at = NOW()
+            WHERE id = $1
+          `,
+          [existingAddressResult.rows[0].id, ...addressValues.slice(2, 10)]
+        );
+      } else {
+        await db.query(
+          `
+            INSERT INTO lumina.user_addresses (
+              user_id, label, receiver_name, phone, line1, line2, city, state, postal_code, country, is_default
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, TRUE)
+          `,
+          addressValues
+        );
+      }
     }
 
     await db.query('COMMIT');

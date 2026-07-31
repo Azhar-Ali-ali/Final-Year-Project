@@ -366,7 +366,7 @@
 				<i data-lucide="credit-card" class="w-4 h-4"></i>
 				Payments
 			</a>
-			<a href="suport_control.html" class="flex items-center gap-3 px-4 py-3 text-sm font-bold uppercase tracking-widest text-gray-900 bg-gray-100 rounded-lg transition-all hover:bg-gray-200">
+			<a href="suport_control.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
 				<i data-lucide="shield-alert" class="w-4 h-4"></i>
 				Dispute & Support
 			</a>
@@ -377,13 +377,9 @@
 
 			<div class="h-px bg-gray-100 my-4"></div>
 
-			<a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+			<a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-lg transition-all">
 				<i data-lucide="settings" class="w-4 h-4"></i>
 				Settings
-			</a>
-			<a href="#" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
-				<i data-lucide="help-circle" class="w-4 h-4"></i>
-				Help
 			</a>
 		</nav>
 	</aside>
@@ -598,7 +594,8 @@
 			sidebar.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMobileSidebar));
 		}
 
-		const API_BASE = 'http://localhost:5000/api/admin/support';
+		const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+		const API_BASE = `${API_BASE_URL}/admin/support`;
 
 		const customerBody = document.getElementById('customerTicketsBody');
 		const sellerBody = document.getElementById('sellerTicketsBody');
@@ -985,5 +982,6 @@
 				sellerBody.innerHTML = '';
 			});
 	</script>
+<script src="../js/notificationsUI.js"></script>
 </body>
 </html>

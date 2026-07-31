@@ -4,6 +4,7 @@
  */
 
 const express = require('express');
+const { randomUUID } = require('crypto');
 const router = express.Router();
 
 const {
@@ -16,13 +17,14 @@ const {
   getTestimonials,
   getTrustHighlights
 } = require('../data/homepageData');
+const { isDiscountActive } = require('../utils/limitedDeals');
 
 function resolveCustomerId(req) {
   return String(req.auth?.session?.userId || req.headers['x-user-id'] || req.query.userId || req.body.userId || '').trim();
 }
 
 function normalizeProductImageUrl(rawUrl) {
-  const uploadHost = process.env.PUBLIC_UPLOAD_BASE_URL || 'http://localhost:5000';
+  const uploadHost = process.env.PUBLIC_UPLOAD_BASE_URL || process.env.PUBLIC_APP_URL || process.env.FRONTEND_ORIGIN || 'http://localhost:5000';
   const fallback = `${uploadHost}/uploads/products/default-product.svg`;
   const value = String(rawUrl || '').trim();
   if (!value) return fallback;
@@ -58,6 +60,10 @@ function mapDbProduct(row) {
 }
 
 function mapHomepageProduct(row) {
+  const createdAt = row.created_at ? new Date(row.created_at) : new Date(0);
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const isNew = createdAt >= sevenDaysAgo;
+
   return {
     id: row.productId,
     name: row.productName,
@@ -73,8 +79,165 @@ function mapHomepageProduct(row) {
     sellerName: row.sellerName || 'Store',
     inStock: true,
     limitedDeal: Boolean(Number(row.discount) > 0),
-    isFeatured: Boolean(row.isFeatured)
+    isFeatured: Boolean(row.isFeatured),
+    isNew: isNew
   };
+}
+
+function isUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || '').trim());
+}
+
+async function ensureBrowsingHistoryTable(req) {
+  if (!req.db || typeof req.db.query !== 'function') {
+    return;
+  }
+
+  await req.db.query(`
+    CREATE TABLE IF NOT EXISTS public.user_browsing_history (
+      id UUID PRIMARY KEY,
+      user_id UUID NOT NULL,
+      product_id UUID NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
+      viewed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await req.db.query(`
+    CREATE INDEX IF NOT EXISTS idx_user_browsing_history_user_viewed_at
+    ON public.user_browsing_history (user_id, viewed_at DESC)
+  `);
+}
+
+async function recordProductView(req, customerId, productId) {
+  if (!req.db || typeof req.db.query !== 'function') {
+    return;
+  }
+
+  if (!customerId || !isUuid(customerId) || !productId || !isUuid(productId)) {
+    return;
+  }
+
+  try {
+    await ensureBrowsingHistoryTable(req);
+    const historyId = randomUUID();
+    await req.db.query(
+      `INSERT INTO public.user_browsing_history (id, user_id, product_id, viewed_at)
+       VALUES ($1, $2, $3, NOW())`,
+      [historyId, customerId, productId]
+    );
+  } catch (error) {
+    console.warn('Failed to record browsing history:', error.message || error);
+  }
+}
+
+async function queryRecommendedProductsForUser(req, limit) {
+  const customerId = resolveCustomerId(req);
+  if (!customerId || !isUuid(customerId) || !req.db || typeof req.db.query !== 'function') {
+    return [];
+  }
+
+  try {
+    await ensureBrowsingHistoryTable(req);
+
+    const sql = `
+      WITH recent_views AS (
+        SELECT product_id
+        FROM public.user_browsing_history
+        WHERE user_id = $1
+        ORDER BY viewed_at DESC, id DESC
+        LIMIT 12
+      ),
+      viewed_products AS (
+        SELECT
+          p.id,
+          p.category_id,
+          p.brand_id,
+          p.base_price
+        FROM public.products p
+        JOIN recent_views rv ON rv.product_id = p.id
+      ),
+      viewed_product_tags AS (
+        SELECT DISTINCT unnest(COALESCE(p.tags, ARRAY[]::text[])) AS tag
+        FROM public.products p
+        JOIN recent_views rv ON rv.product_id = p.id
+      ),
+      price_stats AS (
+        SELECT
+          MIN(base_price) AS min_price,
+          MAX(base_price) AS max_price,
+          AVG(base_price) AS avg_price
+        FROM viewed_products
+      )
+      SELECT
+        p.id AS "productId",
+        p.slug,
+        p.name AS "productName",
+        p.base_price AS price,
+        p.compare_price AS "originalPrice",
+        CASE
+          WHEN COALESCE(p.compare_price, 0) > p.base_price
+            THEN ROUND(((p.compare_price - p.base_price) / p.compare_price) * 100)
+          ELSE 0
+        END AS discount,
+        COALESCE(p.average_rating, 0) AS rating,
+        COALESCE(p.total_reviews, 0) AS "reviewCount",
+        COALESCE(c.name, '') AS "categoryName",
+        COALESCE(b.name, '') AS brand,
+        COALESCE(sp.store_name, 'Store') AS "sellerName",
+        COALESCE(pm.image_url, '') AS "productImage",
+        p.is_featured AS "isFeatured",
+        p.created_at,
+        (
+          CASE WHEN EXISTS (SELECT 1 FROM viewed_products vp WHERE vp.category_id IS NOT NULL AND vp.category_id = p.category_id) THEN 3 ELSE 0 END +
+          CASE WHEN EXISTS (SELECT 1 FROM viewed_products vp WHERE vp.brand_id IS NOT NULL AND vp.brand_id = p.brand_id) THEN 2 ELSE 0 END +
+          CASE WHEN EXISTS (
+            SELECT 1
+            FROM viewed_product_tags vpt
+            WHERE EXISTS (
+              SELECT 1
+              FROM unnest(COALESCE(p.tags, ARRAY[]::text[])) AS tag
+              WHERE tag = vpt.tag
+            )
+          ) THEN 2 ELSE 0 END +
+          CASE WHEN ps.min_price IS NOT NULL AND ps.max_price IS NOT NULL AND p.base_price BETWEEN ps.min_price AND ps.max_price THEN 1 ELSE 0 END
+        )::int AS "matchScore"
+      FROM public.products p
+      LEFT JOIN public.categories c ON c.id = p.category_id
+      LEFT JOIN public.brands b ON b.id = p.brand_id
+      LEFT JOIN public.seller_profiles sp ON sp.user_id = p.seller_id
+      LEFT JOIN LATERAL (
+        SELECT image_url
+        FROM public.product_images
+        WHERE product_id = p.id
+        ORDER BY is_primary DESC, sort_order ASC, id ASC
+        LIMIT 1
+      ) pm ON TRUE
+      LEFT JOIN price_stats ps ON TRUE
+      WHERE p.status = 'active'
+        AND p.id NOT IN (SELECT product_id FROM recent_views)
+        AND (
+          EXISTS (SELECT 1 FROM viewed_products vp WHERE vp.category_id IS NOT NULL AND vp.category_id = p.category_id)
+          OR EXISTS (SELECT 1 FROM viewed_products vp WHERE vp.brand_id IS NOT NULL AND vp.brand_id = p.brand_id)
+          OR EXISTS (
+            SELECT 1
+            FROM viewed_product_tags vpt
+            WHERE EXISTS (
+              SELECT 1
+              FROM unnest(COALESCE(p.tags, ARRAY[]::text[])) AS tag
+              WHERE tag = vpt.tag
+            )
+          )
+        )
+      ORDER BY "matchScore" DESC, COALESCE(p.average_rating, 0) DESC, COALESCE(p.total_reviews, 0) DESC, p.created_at DESC
+      LIMIT $2
+    `;
+
+    const result = await req.db.query(sql, [customerId, Math.max(limit, 1)]);
+    return result.rows.length ? result.rows.map(mapHomepageProduct) : [];
+  } catch (error) {
+    console.warn('Failed to load personalized recommendations:', error.message || error);
+    return [];
+  }
 }
 
 async function queryHomepageProducts(req, limit, whereClause, orderBy) {
@@ -119,6 +282,79 @@ async function queryHomepageProducts(req, limit, whereClause, orderBy) {
   return result.rows.map(mapHomepageProduct);
 }
 
+async function queryTrendingProducts(req, limit) {
+  const sql = `
+    SELECT
+      p.id AS "productId",
+      p.slug,
+      p.name AS "productName",
+      p.base_price AS price,
+      p.compare_price AS "originalPrice",
+      CASE
+        WHEN COALESCE(p.compare_price, 0) > p.base_price
+          THEN ROUND(((p.compare_price - p.base_price) / p.compare_price) * 100)
+        ELSE 0
+      END AS discount,
+      COALESCE(review_stats.avg_rating, p.average_rating, 0) AS rating,
+      COALESCE(review_stats.review_count, p.total_reviews, 0) AS "reviewCount",
+      COALESCE(c.name, '') AS "categoryName",
+      COALESCE(b.name, '') AS brand,
+      COALESCE(sp.store_name, 'Store') AS "sellerName",
+      COALESCE(pm.image_url, '') AS "productImage",
+      p.is_featured AS "isFeatured",
+      p.created_at,
+      (
+        (COALESCE(sales.units_sold, 0) * 5) +
+        (COALESCE(view_stats.view_count, 0) * 2) +
+        (COALESCE(cart_stats.cart_count, 0) * 3) +
+        (COALESCE(wishlist_stats.wishlist_count, 0) * 2) +
+        (COALESCE(review_stats.avg_rating, p.average_rating, 0) * 10)
+      )::numeric AS "trendScore"
+    FROM public.products p
+    LEFT JOIN public.categories c ON c.id = p.category_id
+    LEFT JOIN public.brands b ON b.id = p.brand_id
+    LEFT JOIN public.seller_profiles sp ON sp.user_id = p.seller_id
+    LEFT JOIN LATERAL (
+      SELECT image_url
+      FROM public.product_images
+      WHERE product_id = p.id
+      ORDER BY is_primary DESC, sort_order ASC, id ASC
+      LIMIT 1
+    ) pm ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT COALESCE(SUM(oi.quantity), 0)::int AS units_sold
+      FROM public.order_items oi
+      WHERE oi.product_id = p.id
+    ) sales ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT 0::int AS view_count
+    ) view_stats ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT COALESCE(SUM(ci.quantity), 0)::int AS cart_count
+      FROM public.cart_items ci
+      WHERE ci.product_id = p.id
+    ) cart_stats ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT COUNT(*)::int AS wishlist_count
+      FROM public.wishlists w
+      WHERE w.product_id = p.id
+    ) wishlist_stats ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT
+        COUNT(*)::int AS review_count,
+        COALESCE(AVG(pr.rating), 0)::numeric(3,2) AS avg_rating
+      FROM public.product_reviews pr
+      WHERE pr.product_id = p.id AND pr.is_hidden IS NOT TRUE
+    ) review_stats ON TRUE
+    WHERE p.status = 'active'
+    ORDER BY "trendScore" DESC, COALESCE(review_stats.review_count, 0) DESC, COALESCE(review_stats.avg_rating, p.average_rating, 0) DESC, p.created_at DESC
+    LIMIT $1
+  `;
+
+  const result = await req.db.query(sql, [Math.max(limit, 1)]);
+  return result.rows.map(mapHomepageProduct);
+}
+
 async function queryBestSellingProducts(req, limit) {
   const sql = `
     SELECT
@@ -153,12 +389,16 @@ async function queryBestSellingProducts(req, limit) {
       LIMIT 1
     ) pm ON TRUE
     LEFT JOIN LATERAL (
-      SELECT COALESCE(SUM(oi.quantity), 0)::int AS units_sold
+      SELECT
+        COALESCE(SUM(oi.quantity), 0)::int AS units_sold,
+        MAX(o.updated_at) AS last_sale_at
       FROM public.order_items oi
+      JOIN public.orders o ON o.id = oi.order_id
       WHERE oi.product_id = p.id
+        AND LOWER(COALESCE(o.status::text, '')) = 'delivered'
     ) sales ON TRUE
     WHERE p.status = 'active'
-    ORDER BY COALESCE(sales.units_sold, 0) DESC, COALESCE(p.total_reviews, 0) DESC, COALESCE(p.average_rating, 0) DESC, p.created_at DESC
+    ORDER BY COALESCE(sales.units_sold, 0) DESC, COALESCE(p.average_rating, 0) DESC, COALESCE(p.total_reviews, 0) DESC, sales.last_sale_at DESC NULLS LAST, p.created_at DESC
     LIMIT $1
   `;
 
@@ -171,7 +411,20 @@ async function queryBestSellingProducts(req, limit) {
 }
 
 async function querySeasonalProducts(req, limit) {
-  const seasonalTerms = ['%summer%', '%winter%', '%spring%', '%autumn%', '%fall%', '%seasonal%', '%holiday%', '%festive%', '%resort%', '%monsoon%', '%beach%', '%vacation%'];
+  // Determine current season based on month
+  const month = new Date().getMonth() + 1; // 1-12
+  let currentSeason = 'summer';
+  if (month >= 6 && month <= 8) {
+    currentSeason = 'summer';
+  } else if (month >= 9 && month <= 11) {
+    currentSeason = 'autumn';
+  } else if (month === 12 || month <= 2) {
+    currentSeason = 'winter';
+  } else if (month >= 3 && month <= 5) {
+    currentSeason = 'spring';
+  }
+
+  // Query products with current season tag
   const sql = `
     SELECT
       p.id AS "productId",
@@ -204,13 +457,14 @@ async function querySeasonalProducts(req, limit) {
       LIMIT 1
     ) pm ON TRUE
     WHERE p.status = 'active'
-      AND LOWER(CONCAT_WS(' ', COALESCE(p.name, ''), COALESCE(p.description, ''), COALESCE(c.name, ''), COALESCE(b.name, ''))) LIKE ANY ($2::text[])
+      AND p.tags && ARRAY[$2]::text[]
     ORDER BY p.is_featured DESC, COALESCE(p.total_reviews, 0) DESC, COALESCE(p.average_rating, 0) DESC, p.created_at DESC
     LIMIT $1
   `;
 
-  const result = await req.db.query(sql, [Math.max(limit, 1), seasonalTerms]);
+  const result = await req.db.query(sql, [Math.max(limit, 1), currentSeason]);
   if (!result.rows.length) {
+    // Fallback to featured products if no seasonal products found
     return queryHomepageProducts(req, limit, '', 'p.is_featured DESC, p.created_at DESC');
   }
 
@@ -382,21 +636,27 @@ async function getHomeRowsForHomepage(req, limit) {
     ];
   }
 
-  const [newArrivals, trendingProducts, bestSellers, seasonalCollection, recentlyAdded] = await Promise.all([
+  const [newArrivals, trendingProducts, bestSellers, seasonalCollection, recentlyAdded, recommendedProducts, limitedDeals] = await Promise.all([
     queryHomepageProducts(req, limit, '', 'p.created_at DESC'),
-    queryHomepageProducts(req, limit, '', 'p.total_reviews DESC, p.average_rating DESC, p.created_at DESC'),
+    queryTrendingProducts(req, limit),
     queryBestSellingProducts(req, limit),
     querySeasonalProducts(req, limit),
-    queryHomepageProducts(req, limit, "AND p.created_at >= NOW() - INTERVAL '30 days'", 'p.created_at DESC')
+    queryHomepageProducts(req, limit, "AND p.created_at >= NOW() - INTERVAL '30 days'", 'p.created_at DESC'),
+    queryRecommendedProductsForUser(req, limit),
+    getLimitedDealsRows(req, limit)
   ]);
 
-  return [
+  const rows = [
     { id: 'new-arrivals', title: 'New Arrivals', products: newArrivals },
+    ...(recommendedProducts.length ? [{ id: 'recommended-for-you', title: 'Recommended For You', subtitle: 'Based on your recent browsing', products: recommendedProducts }] : []),
     { id: 'trending-products', title: 'Trending Products', products: trendingProducts },
     { id: 'best-sellers', title: 'Best Sellers', products: bestSellers },
     { id: 'seasonal-collection', title: 'Seasonal Collection', products: seasonalCollection },
+    ...(limitedDeals.length ? [{ id: 'limited-time-deals', title: 'Limited Time Deals', subtitle: 'Active discounts', products: limitedDeals }] : []),
     { id: 'recently-added', title: 'Recently Added', products: recentlyAdded }
   ];
+
+  return rows;
 }
 
 async function getFeaturedSellersForHomepage(req, limit) {
@@ -448,6 +708,7 @@ async function getFlashDealsForHomepage(req, limit) {
   const sql = `
     SELECT
       p.id,
+      p.slug,
       p.name,
       p.base_price AS "salePrice",
       COALESCE(p.compare_price, p.base_price) AS "originalPrice",
@@ -456,7 +717,12 @@ async function getFlashDealsForHomepage(req, limit) {
           THEN ROUND(((p.compare_price - p.base_price) / p.compare_price) * 100)
         ELSE 0
       END AS discount,
-      COALESCE(pm.image_url, '') AS image
+      p.discount_percent AS "discountPercent",
+      p.discount_start_date AS "discountStartDate",
+      p.discount_end_date AS "discountEndDate",
+      COALESCE(pm.image_url, '') AS image,
+      COALESCE(p.average_rating, 0) AS rating,
+      COALESCE(p.total_reviews, 0) AS "reviewCount"
     FROM public.products p
     LEFT JOIN LATERAL (
       SELECT image_url
@@ -472,22 +738,98 @@ async function getFlashDealsForHomepage(req, limit) {
 
   const result = await req.db.query(sql, [Math.max(limit, 1)]);
   const now = new Date();
-  const endsAt = new Date(now.getTime() + 2 * 60 * 60 * 1000 + 15 * 60 * 1000 + 10 * 1000);
+  const activeItems = result.rows.filter((row) => isDiscountActive({
+    discountPercent: row.discountPercent,
+    discountStartDate: row.discountStartDate,
+    discountEndDate: row.discountEndDate,
+    now
+  }));
+
+  const items = activeItems.length
+    ? activeItems
+    : result.rows.filter((row) => Number(row.discount) > 0);
+
+  const fallbackEndsAt = new Date(now.getTime() + 2 * 60 * 60 * 1000 + 15 * 60 * 1000 + 10 * 1000);
+  const endsAt = items.length ? fallbackEndsAt : fallbackEndsAt;
 
   return {
-    title: 'Flash Deals',
-    subtitle: 'Limited Stock Available',
+    title: 'Limited Time Deals',
+    subtitle: 'Active discounts and special offers',
     startsAt: now.toISOString(),
     endsAt: endsAt.toISOString(),
-    items: result.rows.map((row) => ({
+    items: items.slice(0, Math.max(limit, 1)).map((row) => ({
       id: row.id,
+      slug: row.slug,
       name: row.name,
       salePrice: Number(row.salePrice) || 0,
       originalPrice: Number(row.originalPrice) || 0,
-      discount: Number(row.discount) || 0,
-      image: normalizeProductImageUrl(row.image)
+      discount: Number(row.discount) || Number(row.discountPercent) || 0,
+      image: normalizeProductImageUrl(row.image),
+      rating: Number(row.rating) || 0,
+      reviewCount: Number(row.reviewCount) || 0
     }))
   };
+}
+
+async function getLimitedDealsRows(req, limit) {
+  if (!req.db || typeof req.db.query !== 'function') {
+    return [];
+  }
+
+  const sql = `
+    SELECT
+      p.id AS "productId",
+      p.slug,
+      p.name AS "productName",
+      p.base_price AS price,
+      p.compare_price AS "originalPrice",
+      CASE
+        WHEN COALESCE(p.compare_price, 0) > p.base_price
+          THEN ROUND(((p.compare_price - p.base_price) / p.compare_price) * 100)
+        ELSE 0
+      END AS discount,
+      p.discount_percent AS "discountPercent",
+      p.discount_start_date AS "discountStartDate",
+      p.discount_end_date AS "discountEndDate",
+      COALESCE(p.average_rating, 0) AS rating,
+      COALESCE(p.total_reviews, 0) AS "reviewCount",
+      COALESCE(c.name, '') AS "categoryName",
+      COALESCE(b.name, '') AS brand,
+      COALESCE(sp.store_name, 'Store') AS "sellerName",
+      COALESCE(pm.image_url, '') AS "productImage",
+      p.is_featured AS "isFeatured",
+      p.created_at
+    FROM public.products p
+    LEFT JOIN public.categories c ON c.id = p.category_id
+    LEFT JOIN public.brands b ON b.id = p.brand_id
+    LEFT JOIN public.seller_profiles sp ON sp.user_id = p.seller_id
+    LEFT JOIN LATERAL (
+      SELECT image_url
+      FROM public.product_images
+      WHERE product_id = p.id
+      ORDER BY is_primary DESC, sort_order ASC, id ASC
+      LIMIT 1
+    ) pm ON TRUE
+    WHERE p.status = 'active'
+    ORDER BY discount DESC, p.created_at DESC
+    LIMIT $1
+  `;
+
+  const result = await req.db.query(sql, [Math.max(limit, 1)]);
+  const now = new Date();
+
+  const rows = result.rows.filter((row) => isDiscountActive({
+    discountPercent: row.discountPercent,
+    discountStartDate: row.discountStartDate,
+    discountEndDate: row.discountEndDate,
+    now
+  }));
+
+  if (!rows.length) {
+    return result.rows.filter((row) => Number(row.discount) > 0).map(mapHomepageProduct);
+  }
+
+  return rows.map(mapHomepageProduct);
 }
 
 /**

@@ -18,6 +18,39 @@ async function getAdminName(req) {
   }
 }
 
+function permissionAllows(userPermission, requiredPermission) {
+  const normalizedUser = String(userPermission || '').trim().toLowerCase();
+  const normalizedRequired = String(requiredPermission || '').trim().toLowerCase();
+
+  if (!normalizedRequired) return true;
+  if (!normalizedUser) return false;
+  if (normalizedUser === '*' || normalizedUser === normalizedRequired) return true;
+
+  const [userModule, userAction] = normalizedUser.split('.');
+  const [requiredModule, requiredAction] = normalizedRequired.split('.');
+  if (!userModule || !requiredModule || userModule !== requiredModule) {
+    return false;
+  }
+
+  if (userAction === 'manage' || userAction === '*') {
+    return true;
+  }
+
+  return false;
+}
+
+function authorizePermission(permission) {
+  return (req, res, next) => {
+    const permissions = Array.isArray(req.auth?.user?.permissions) ? req.auth.user.permissions : [];
+    const hasAccess = permissions.some((entry) => permissionAllows(entry, String(permission || '').trim().toLowerCase()));
+
+    if (hasAccess) {
+      return next();
+    }
+    return res.status(403).json({ success: false, message: 'Forbidden: insufficient permissions' });
+  };
+}
+
 router.get('/', async (req, res) => {
   try {
     const [settings, history] = await Promise.all([
@@ -30,7 +63,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.put('/', async (req, res) => {
+router.put('/', authorizePermission('settings.manage'), async (req, res) => {
   try {
     const adminId = getAdminId(req);
     const adminName = await getAdminName(req);

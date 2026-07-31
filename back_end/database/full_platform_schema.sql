@@ -37,6 +37,9 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) NOT NULL UNIQUE,
     phone VARCHAR(30),
     password_hash TEXT NOT NULL,
+    google_id VARCHAR(255),
+    auth_provider VARCHAR(50),
+    avatar_url TEXT,
     reset_token TEXT,
     reset_token_expiry TIMESTAMP,
     status user_status NOT NULL DEFAULT 'active',
@@ -97,6 +100,31 @@ CREATE TABLE IF NOT EXISTS admin_profiles (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS admin_roles (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    admin_type VARCHAR(40) NOT NULL DEFAULT 'CO_ADMIN',
+    role_name VARCHAR(80) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id)
+);
+
+CREATE TABLE IF NOT EXISTS permissions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    key VARCHAR(100) NOT NULL UNIQUE,
+    label VARCHAR(120) NOT NULL,
+    module_name VARCHAR(80) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS role_permissions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    role_name VARCHAR(80) NOT NULL,
+    permission_key VARCHAR(100) NOT NULL REFERENCES permissions(key) ON DELETE CASCADE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (role_name, permission_key)
+);
 
 CREATE TABLE IF NOT EXISTS user_addresses (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -781,7 +809,8 @@ CREATE TABLE IF NOT EXISTS cms_assets (
     mime_type VARCHAR(120),
     file_size BIGINT,
     uploaded_by UUID REFERENCES users(id) ON DELETE SET NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 

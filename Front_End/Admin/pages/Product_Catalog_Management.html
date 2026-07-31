@@ -30,6 +30,7 @@
             font-family: "Inter", Arial, sans-serif;
             background: var(--bg);
             color: var(--text);
+            overflow-x: hidden;
         }
 
         body.dark {
@@ -94,6 +95,7 @@
             align-items: center;
             gap: 10px;
             flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .btn {
@@ -163,25 +165,23 @@
             background: var(--panel);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            padding: 25px;
+            padding: 20px;
         }
 
         .toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: minmax(220px, 1.2fr) minmax(0, 1fr);
             gap: 12px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             background: white;
-            padding: 10px;
+            padding: 12px;
             border-radius: 10px;
             box-shadow: var(--shadow);
         }
 
         .search {
             position: relative;
-            min-width: 260px;
+            min-width: 0;
         }
 
         .search input {
@@ -211,9 +211,9 @@
         }
 
         .filters {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(120px, 1fr));
             gap: 10px;
-            flex-wrap: wrap;
         }
 
         .select {
@@ -223,7 +223,8 @@
             font-size: 13px;
             background-color: white;
             cursor: pointer;
-            min-width: 140px;
+            min-width: 0;
+            width: 100%;
         }
 
         .select:focus {
@@ -235,6 +236,8 @@
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
+            grid-column: 1 / -1;
+            margin-top: 4px;
         }
 
         .tab {
@@ -259,13 +262,13 @@
         }
 
         .action-tabs-container {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 10px;
             background: white;
             padding: 10px;
             border-radius: 10px;
             box-shadow: var(--shadow);
-            flex-wrap: wrap;
             margin-bottom: 20px;
         }
 
@@ -279,6 +282,8 @@
             font-weight: 600;
             transition: all 0.3s ease;
             font-size: 12px;
+            width: 100%;
+            justify-content: center;
         }
 
         .btn.action-tab-btn:hover {
@@ -704,13 +709,25 @@
         @media (max-width: 1024px) {
             table { min-width: 1000px; }
             .info-grid { grid-template-columns: 1fr; }
+            .toolbar { grid-template-columns: 1fr; }
+            .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .action-tabs-container { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
 
         @media (max-width: 640px) {
+            .content { padding: 14px; }
             .page-header { flex-direction: column; align-items: flex-start; }
-            .toolbar { flex-direction: column; align-items: flex-start; }
+            .page-header .actions { width: 100%; justify-content: stretch; }
+            .page-header .actions .btn { width: 100%; justify-content: center; }
+            .toolbar { padding: 10px; }
             .search { min-width: 100%; }
+            .filters { grid-template-columns: 1fr; }
+            .tabs { gap: 8px; }
+            .tab { padding: 8px 12px; font-size: 11px; }
+            .panel { padding: 12px; }
             .stats-grid { grid-template-columns: 1fr; }
+            .bulk-actions { flex-wrap: wrap; }
+            .action-tabs-container { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -733,32 +750,22 @@
       </div>
 
       <div class="flex items-center gap-3 shrink-0">
-        <button class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors group">
-          <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
-          <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          <div class="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 p-0 dropdown-hidden z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
-            <div class="px-4 py-3 border-b border-gray-100">
+        <div class="relative group">
+          <button id="bellButton" class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors" type="button">
+            <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
+            <span id="notificationDot" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          <div class="notification-dropdown absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 p-0 z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
+            <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
               <p class="text-xs font-bold uppercase tracking-widest text-gray-600">Admin alerts</p>
+              <span id="notificationCount" class="text-[11px] font-semibold text-gray-500">0 new</span>
             </div>
-            <div class="max-h-80 overflow-y-auto">
-              <div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
-                <p class="text-xs font-bold text-gray-900">New seller #S422</p>
-                <p class="text-xs text-gray-500 mt-1">Request pending verification</p>
-              </div>
-              <div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
-                <p class="text-xs font-bold text-gray-900">Order #2451 flagged</p>
-                <p class="text-xs text-gray-500 mt-1">Payment discrepancy</p>
-              </div>
-              <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer">
-                <p class="text-xs font-bold text-gray-900">System update</p>
-                <p class="text-xs text-gray-500 mt-1">Analytics ready</p>
-              </div>
-            </div>
+            <div id="notificationList" class="max-h-80 overflow-y-auto"></div>
             <div class="px-4 py-2 border-t border-gray-100 text-center">
-              <a href="#" class="text-xs font-bold text-gray-600 hover:text-black uppercase tracking-widest">View All</a>
+              <button id="viewAllNotifications" type="button" class="text-xs font-bold text-gray-600 hover:text-black uppercase tracking-widest">View All</button>
             </div>
           </div>
-        </button>
+        </div>
 
         <div class="relative group">
           <button class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -794,13 +801,6 @@
           </div>
         </div>
 
-        <button class="hidden sm:flex items-center gap-2 px-4 py-2 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-gray-900 transition-colors">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          <span class="hidden lg:block">New</span>
-        </button>
-        <button class="sm:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          <i data-lucide="plus" class="w-5 h-5 text-gray-700"></i>
-        </button>
       </div>
     </div>
   </nav>
@@ -823,7 +823,7 @@
         <i data-lucide="package" class="w-4 h-4"></i>
         Order Management
       </a>
-      <a href="Product_Catalog_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg bg-gray-50 transition-all">
+      <a href="Product_Catalog_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
         <i data-lucide="box" class="w-4 h-4"></i>
         Product Catalog
       </a>
@@ -843,7 +843,7 @@
         <i data-lucide="credit-card" class="w-4 h-4"></i>
         Payments
       </a>
-      <a href="Dispute_Support_System.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+      <a href="dispute&support.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
         <i data-lucide="shield-alert" class="w-4 h-4"></i>
         Dispute & Support
       </a>
@@ -854,13 +854,9 @@
 
       <div class="h-px bg-gray-100 my-4"></div>
 
-      <a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+      <a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-lg transition-all">
         <i data-lucide="settings" class="w-4 h-4"></i>
         Settings
-      </a>
-      <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
-        <i data-lucide="help-circle" class="w-4 h-4"></i>
-        Help
       </a>
     </nav>
   </aside>
@@ -1092,7 +1088,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module">
         lucide.createIcons();
-        const API_BASE = '/api/admin/catalog';
+        const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+        const API_BASE = `${API_BASE_URL}/admin/catalog`;
 
         const state = {
             products: [],
@@ -1272,7 +1269,12 @@
                     <td>${p.category}</td>
                     <td>${p.brand}</td>
                     <td>${p.sku}</td>
-                    <td class="price">$${parseFloat(p.price).toLocaleString()}</td>
+                    <td class="price">$${(p.originalPrice && p.originalPrice > p.price) ? `
+                        <div style="display:flex;flex-direction:column;gap:4px;">
+                            <span style="text-decoration:line-through;color:#888;font-weight:600;">$${parseFloat(p.originalPrice).toLocaleString()}</span>
+                            <span style="font-weight:700;color:var(--success);">$${parseFloat(p.price).toLocaleString()} <span class="badge">${p.discountPercent}% off</span></span>
+                        </div>
+                    ` : parseFloat(p.price).toLocaleString()}</td>
                     <td>${p.stock} ${stockBadge(p.stock)}</td>
                     <td>${statusBadge(p.status)}</td>
                     <td>${visibilityBadge(p.visibility)}</td>
@@ -1357,6 +1359,14 @@
                         <div class="info-item">
                             <label>Price</label>
                             <p class="price">$${parseFloat(product.price).toLocaleString()}</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Original Price</label>
+                            <p>${product.originalPrice ? `<span style="text-decoration:line-through;color:#888;">$${parseFloat(product.originalPrice).toLocaleString()}</span>` : '-'}</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Discount</label>
+                            <p>${product.discountPercent ? `${product.discountPercent}%` : '0%'}</p>
                         </div>
                         <div class="info-item">
                             <label>Stock Quantity</label>
@@ -2315,6 +2325,10 @@
 
         init();
 
+        if (!requireAdminAccess('products.view', '../../403.html')) {
+            throw new Error('Access denied');
+        }
+
         // Sidebar toggle functionality
         const sidebarToggle = document.getElementById('sidebarToggle');
         const sidebar = document.getElementById('sidebar');
@@ -2353,5 +2367,20 @@
             });
         }
     </script>
+  <div id="notificationsModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200] p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900">All notifications</h3>
+          <p class="text-sm text-gray-500">Recent admin activity and important alerts</p>
+        </div>
+        <button id="closeNotificationsModal" type="button" class="p-2 rounded-lg hover:bg-gray-100">
+          <i data-lucide="x" class="w-5 h-5 text-gray-700"></i>
+        </button>
+      </div>
+      <div id="notificationsModalBody" class="p-5 overflow-y-auto max-h-[60vh]"></div>
+    </div>
+  </div>
+<script src="../js/notificationsUI.js"></script>
 </body>
 </html>

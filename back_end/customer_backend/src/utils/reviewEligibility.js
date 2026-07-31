@@ -1,5 +1,16 @@
-function isDeliveredOrderStatus(status) {
-  return String(status || '').trim().toLowerCase() === 'delivered';
+function isDeliveredOrderStatus(statusOrContext) {
+  if (statusOrContext && typeof statusOrContext === 'object') {
+    const orderStatus = String(statusOrContext.orderStatus || statusOrContext.status || '').trim().toLowerCase();
+    const shipmentStatus = String(statusOrContext.shipmentStatus || '').trim().toLowerCase();
+    const deliveredAt = statusOrContext.deliveredAt || statusOrContext.delivered_at;
+
+    return orderStatus === 'delivered'
+      || shipmentStatus === 'delivered'
+      || shipmentStatus === 'completed'
+      || Boolean(deliveredAt);
+  }
+
+  return String(statusOrContext || '').trim().toLowerCase() === 'delivered';
 }
 
 function canEditReview(review, now = new Date()) {

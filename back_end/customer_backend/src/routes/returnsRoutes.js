@@ -57,6 +57,7 @@ async function getReturnRecordById(req, customerId, returnRequestId) {
       oi.unit_price AS "productPrice",
       COALESCE(pm.image_url, '') AS "productImage",
       COALESCE(sp.store_name, su.full_name, 'Seller') AS "sellerName"
+      , rf.amount AS "refundAmount", rf.transaction_ref AS "refundTransactionRef", c.code AS "couponCode", c.ends_at AS "couponExpiry"
     FROM public.return_requests rr
     JOIN public.orders o ON o.id = rr.order_id
     LEFT JOIN LATERAL (
@@ -66,6 +67,19 @@ async function getReturnRecordById(req, customerId, returnRequestId) {
       ORDER BY oi1.id ASC
       LIMIT 1
     ) oi ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT r.amount, r.transaction_ref
+      FROM public.refunds r
+      WHERE r.return_request_id = rr.id
+      ORDER BY r.created_at DESC
+      LIMIT 1
+    ) rf ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT co.code, co.ends_at
+      FROM public.coupons co
+      WHERE co.code = rf.transaction_ref
+      LIMIT 1
+    ) c ON TRUE
     LEFT JOIN LATERAL (
       SELECT pi.image_url
       FROM public.product_images pi
@@ -305,7 +319,9 @@ router.get('/requests/by-order/:orderId', async (req, res) => {
         ...data,
         status: mapStatusForUi(data.status),
         selectedReason: normalizeReason(data.reason),
-        canCancel: canCancelReturn(data.status)
+        canCancel: canCancelReturn(data.status),
+        voucherCode: data.couponCode || data.refundTransactionRef || null,
+        voucherExpiry: data.couponExpiry || null
       }
     });
   } catch (error) {
@@ -331,10 +347,12 @@ router.get('/requests/:returnRequestId', async (req, res) => {
     return res.json({
       success: true,
       data: {
-        ...data,
-        status: mapStatusForUi(data.status),
-        selectedReason: normalizeReason(data.reason),
-        canCancel: canCancelReturn(data.status)
+          ...data,
+          status: mapStatusForUi(data.status),
+          selectedReason: normalizeReason(data.reason),
+          canCancel: canCancelReturn(data.status),
+          voucherCode: data.couponCode || data.refundTransactionRef || null,
+          voucherExpiry: data.couponExpiry || null
       }
     });
   } catch (error) {

@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 function getSellerId(req) {
-  const raw = req.auth?.session?.userId || req.headers['x-seller-id'] || '';
+  const raw = req.auth?.session?.userId || req.auth?.session?.sellerId || req.auth?.user?.id || req.auth?.user?.sellerId || req.headers['x-seller-id'] || req.query?.sellerId || req.body?.sellerId || '';
   return String(raw).trim();
 }
 
@@ -45,8 +45,13 @@ function parseDescriptionPayload(description, fallbackCategory) {
     return { orderId: '', issueType: fallbackCategory || 'Other', message: '' };
   }
 
+  const raw = String(description).trim();
+  if (!raw) {
+    return { orderId: '', issueType: fallbackCategory || 'Other', message: '', attachments: [] };
+  }
+
   try {
-    const parsed = JSON.parse(description);
+    const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object') {
       return {
         orderId: String(parsed.orderId || ''),
@@ -62,22 +67,22 @@ function parseDescriptionPayload(description, fallbackCategory) {
   return {
     orderId: '',
     issueType: String(fallbackCategory || 'Other'),
-    message: String(description || ''),
+    message: raw,
     attachments: []
   };
 }
 
 function mapTicketRow(row) {
-  const payload = parseDescriptionPayload(row.description, row.category);
+  const payload = parseDescriptionPayload(row.description || row.message || row.latest_message || '', row.category || row.issue_type || row.issueType);
   const initialAttachments = safeArray(row.initial_attachments || payload.attachments || []);
 
   return {
     id: row.ticket_number,
     ticketId: row.id,
     orderId: payload.orderId,
-    issueType: payload.issueType,
-    subject: row.subject,
-    message: payload.message || row.latest_message || '',
+    issueType: String(row.category || row.issue_type || row.issueType || payload.issueType || 'Other'),
+    subject: row.subject || '',
+    message: payload.message || row.latest_message || row.message || '',
     attachments: initialAttachments,
     status: statusLabel(row.status),
     createdAt: row.created_at
@@ -85,6 +90,8 @@ function mapTicketRow(row) {
 }
 
 async function getSellerProfileUserId(req, sellerId) {
+  if (!sellerId) return null;
+
   const result = await req.db.query(
     `
       SELECT sp.user_id
@@ -95,14 +102,26 @@ async function getSellerProfileUserId(req, sellerId) {
     [sellerId]
   );
 
-  return result.rows[0]?.user_id || null;
+  if (result.rows[0]?.user_id) return result.rows[0].user_id;
+
+  const fallback = await req.db.query(
+    `
+      SELECT id
+      FROM public.users
+      WHERE id::text = $1 AND role = 'seller'
+      LIMIT 1
+    `,
+    [sellerId]
+  );
+
+  return fallback.rows[0]?.id || null;
 }
 
 async function fetchTickets(req, sellerId, { status = '', search = '' } = {}) {
   const params = [sellerId];
   const where = [
-    'st.requester_id::text = $1',
-    'EXISTS (SELECT 1 FROM lumina.seller_profiles sp WHERE sp.user_id = st.requester_id)'
+    'st.seller_id::text = $1',
+    'EXISTS (SELECT 1 FROM public.seller_profiles sp WHERE sp.user_id = st.seller_id)'
   ];
 
   const normalizedStatus = statusDbValue(status);
@@ -114,7 +133,7 @@ async function fetchTickets(req, sellerId, { status = '', search = '' } = {}) {
   const searchTerm = String(search || '').trim();
   if (searchTerm) {
     params.push(`%${searchTerm}%`);
-    where.push(`(st.ticket_number ILIKE $${params.length} OR st.subject ILIKE $${params.length} OR st.description ILIKE $${params.length})`);
+    where.push(`(st.ticket_number ILIKE $${params.length} OR st.subject ILIKE $${params.length} OR COALESCE(last_msg.message, '') ILIKE $${params.length})`);
   }
 
   const result = await req.db.query(
@@ -123,23 +142,22 @@ async function fetchTickets(req, sellerId, { status = '', search = '' } = {}) {
         st.id,
         st.ticket_number,
         st.subject,
-        st.description,
-        st.category,
+        st.issue_type AS category,
         st.status,
         st.created_at,
         last_msg.message AS latest_message,
-        first_msg.attachments AS initial_attachments
-      FROM lumina.support_tickets st
+        first_msg.attachment_url AS initial_attachments
+      FROM public.support_tickets st
       LEFT JOIN LATERAL (
         SELECT sm.message
-        FROM lumina.support_messages sm
+        FROM public.support_messages sm
         WHERE sm.ticket_id = st.id
         ORDER BY sm.created_at DESC
         LIMIT 1
       ) last_msg ON true
       LEFT JOIN LATERAL (
-        SELECT sm.attachments
-        FROM lumina.support_messages sm
+        SELECT sm.attachment_url
+        FROM public.support_messages sm
         WHERE sm.ticket_id = st.id
         ORDER BY sm.created_at ASC
         LIMIT 1
@@ -170,9 +188,9 @@ router.get('/overview', async (req, res) => {
           COUNT(*)::int AS total,
           COUNT(*) FILTER (WHERE status = 'open')::int AS open,
           COUNT(*) FILTER (WHERE status = 'in_progress')::int AS in_progress
-        FROM lumina.support_tickets st
-        WHERE st.requester_id::text = $1
-          AND EXISTS (SELECT 1 FROM lumina.seller_profiles sp WHERE sp.user_id = st.requester_id)
+        FROM public.support_tickets st
+        WHERE st.seller_id::text = $1
+          AND EXISTS (SELECT 1 FROM public.seller_profiles sp WHERE sp.user_id = st.seller_id)
       `,
       [sellerId]
     );
@@ -228,49 +246,43 @@ router.post('/tickets', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Seller account not found' });
     }
 
-    const payload = JSON.stringify({ orderId, issueType, message, attachments });
-
     const ticketResult = await req.db.query(
       `
-        INSERT INTO lumina.support_tickets (
+        INSERT INTO public.support_tickets (
           ticket_number,
-          requester_id,
+          ticket_type,
+          seller_id,
           subject,
-          description,
-          category,
-          source,
+          issue_type,
           priority,
           status,
-          last_reply_at,
-          last_reply_by,
+          created_by,
           created_at,
           updated_at
         )
         VALUES (
           CONCAT('TK-', UPPER(SUBSTRING(REPLACE(gen_random_uuid()::text, '-', ''), 1, 6))),
+          'seller',
           $1,
           $2,
           $3,
-          $4,
-          'seller_dispute_page',
           'normal',
           'open',
-          NOW(),
           $1,
           NOW(),
           NOW()
         )
-        RETURNING id, ticket_number, subject, description, category, status, created_at
+        RETURNING id, ticket_number, subject, issue_type AS category, status, created_at
       `,
-      [requesterId, subject, payload, issueType]
+      [requesterId, subject, issueType]
     );
 
     const createdTicket = ticketResult.rows[0];
 
     await req.db.query(
       `
-        INSERT INTO lumina.support_messages (ticket_id, sender_id, message, attachments, created_at)
-        VALUES ($1, $2, $3, $4::jsonb, NOW())
+        INSERT INTO public.support_messages (ticket_id, sender_id, sender_role, message, attachment_url, is_internal_note, created_at)
+        VALUES ($1, $2, 'seller', $3, $4, FALSE, NOW())
       `,
       [createdTicket.id, requesterId, message, JSON.stringify(attachments)]
     );
@@ -278,7 +290,7 @@ router.post('/tickets', async (req, res) => {
     return res.status(201).json({
       success: true,
       message: 'Ticket created successfully',
-      data: mapTicketRow({ ...createdTicket, latest_message: message, initial_attachments: attachments })
+      data: mapTicketRow({ ...createdTicket, latest_message: message, initial_attachments: attachments, category: issueType })
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to create ticket', error: error.message });
@@ -292,10 +304,24 @@ router.get('/tickets/:ticketId', async (req, res) => {
   try {
     const result = await req.db.query(
       `
-        SELECT id, ticket_number, subject, description, category, status, created_at
-        FROM lumina.support_tickets
-        WHERE requester_id::text = $1
-          AND (id::text = $2 OR ticket_number = $2)
+        SELECT
+          st.id,
+          st.ticket_number,
+          st.subject,
+          st.issue_type AS category,
+          st.status,
+          st.created_at,
+          last_msg.message AS latest_message
+        FROM public.support_tickets st
+        LEFT JOIN LATERAL (
+          SELECT sm.message
+          FROM public.support_messages sm
+          WHERE sm.ticket_id = st.id
+          ORDER BY sm.created_at DESC
+          LIMIT 1
+        ) last_msg ON true
+        WHERE st.seller_id::text = $1
+          AND (st.id::text = $2 OR st.ticket_number = $2)
         LIMIT 1
       `,
       [sellerId, ticketId]
@@ -319,8 +345,8 @@ router.get('/tickets/:ticketId/messages', async (req, res) => {
     const ticketResult = await req.db.query(
       `
         SELECT id
-        FROM lumina.support_tickets
-        WHERE requester_id::text = $1
+        FROM public.support_tickets
+        WHERE seller_id::text = $1
           AND (id::text = $2 OR ticket_number = $2)
         LIMIT 1
       `,
@@ -338,14 +364,14 @@ router.get('/tickets/:ticketId/messages', async (req, res) => {
         SELECT
           sm.id,
           sm.message,
-          sm.attachments,
+          sm.attachment_url AS attachments,
           sm.created_at,
           CASE
             WHEN u.role = 'admin' THEN 'admin'
             ELSE 'seller'
           END AS sender_type
-        FROM lumina.support_messages sm
-        JOIN lumina.users u ON u.id = sm.sender_id
+        FROM public.support_messages sm
+        JOIN public.users u ON u.id = sm.sender_id
         WHERE sm.ticket_id = $1
         ORDER BY sm.created_at ASC
       `,
@@ -380,25 +406,23 @@ router.post('/tickets/:ticketId/messages', async (req, res) => {
     const insertResult = await req.db.query(
       `
         WITH target AS (
-          SELECT id, requester_id
-          FROM lumina.support_tickets
-          WHERE requester_id::text = $1
+          SELECT id, seller_id AS sender_id
+          FROM public.support_tickets
+          WHERE seller_id::text = $1
             AND (id::text = $2 OR ticket_number = $2)
           LIMIT 1
         ),
         inserted AS (
-          INSERT INTO lumina.support_messages (ticket_id, sender_id, message, attachments, created_at)
-          SELECT id, requester_id, $3, $4::jsonb, NOW()
+          INSERT INTO public.support_messages (ticket_id, sender_id, sender_role, message, attachment_url, is_internal_note, created_at)
+          SELECT id, sender_id, 'seller', $3, $4, FALSE, NOW()
           FROM target
-          RETURNING id, ticket_id, message, attachments, created_at
+          RETURNING id, ticket_id, message, attachment_url AS attachments, created_at
         )
-        UPDATE lumina.support_tickets st
-        SET last_reply_at = NOW(),
-            last_reply_by = st.requester_id,
-            updated_at = NOW()
+        UPDATE public.support_tickets st
+        SET updated_at = NOW()
         FROM inserted i
         WHERE st.id = i.ticket_id
-        RETURNING i.id, i.message, i.attachments, i.created_at
+        RETURNING i.id, i.ticket_id AS "ticketDbId", i.message, i.attachments, i.created_at
       `,
       [sellerId, ticketId, message, JSON.stringify(attachments)]
     );
@@ -408,6 +432,22 @@ router.post('/tickets/:ticketId/messages', async (req, res) => {
     }
 
     const row = insertResult.rows[0];
+
+    const io = req.app.locals.io;
+    if (io) {
+      const payload = {
+        id: row.id,
+        ticketId: ticketId,
+        ticketDbId: row.ticketDbId || null,
+        senderRole: 'seller',
+        senderName: 'Seller',
+        message: row.message,
+        attachments: safeArray(row.attachments),
+        createdAt: row.created_at
+      };
+      io.to(String(ticketId)).emit('support-message-received', payload);
+      io.to(String(row.ticketDbId || ticketId)).emit('support-message-received', payload);
+    }
 
     return res.status(201).json({
       success: true,
@@ -482,49 +522,43 @@ router.post('/', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Seller account not found' });
     }
 
-    const payload = JSON.stringify({ orderId, issueType, message, attachments });
-
     const ticketResult = await req.db.query(
       `
-        INSERT INTO lumina.support_tickets (
+        INSERT INTO public.support_tickets (
           ticket_number,
-          requester_id,
+          ticket_type,
+          seller_id,
           subject,
-          description,
-          category,
-          source,
+          issue_type,
           priority,
           status,
-          last_reply_at,
-          last_reply_by,
+          created_by,
           created_at,
           updated_at
         )
         VALUES (
           CONCAT('TK-', UPPER(SUBSTRING(REPLACE(gen_random_uuid()::text, '-', ''), 1, 6))),
+          'seller',
           $1,
           $2,
           $3,
-          $4,
-          'seller_dispute_page',
           'normal',
           'open',
-          NOW(),
           $1,
           NOW(),
           NOW()
         )
-        RETURNING id, ticket_number, subject, description, category, status, created_at
+        RETURNING id, ticket_number, subject, issue_type AS category, status, created_at
       `,
-      [requesterId, subject, payload, issueType]
+      [requesterId, subject, issueType]
     );
 
     const createdTicket = ticketResult.rows[0];
 
     await req.db.query(
       `
-        INSERT INTO lumina.support_messages (ticket_id, sender_id, message, attachments, created_at)
-        VALUES ($1, $2, $3, $4::jsonb, NOW())
+        INSERT INTO public.support_messages (ticket_id, sender_id, sender_role, message, attachment_url, is_internal_note, created_at)
+        VALUES ($1, $2, 'seller', $3, $4, FALSE, NOW())
       `,
       [createdTicket.id, requesterId, message, JSON.stringify(attachments)]
     );
@@ -532,7 +566,7 @@ router.post('/', async (req, res) => {
     return res.status(201).json({
       success: true,
       message: 'Dispute created successfully',
-      data: mapTicketRow({ ...createdTicket, latest_message: message, initial_attachments: attachments })
+      data: mapTicketRow({ ...createdTicket, latest_message: message, initial_attachments: attachments, category: issueType })
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to create dispute', error: error.message });
@@ -554,9 +588,9 @@ router.get('/notifications/list', async (req, res) => {
           st.subject,
           st.status,
           st.updated_at
-        FROM lumina.support_tickets st
-        WHERE st.requester_id::text = $1
-          AND EXISTS (SELECT 1 FROM lumina.seller_profiles sp WHERE sp.user_id = st.requester_id)
+        FROM public.support_tickets st
+        WHERE st.seller_id::text = $1
+          AND EXISTS (SELECT 1 FROM public.seller_profiles sp WHERE sp.user_id = st.seller_id)
         ORDER BY st.updated_at DESC
         LIMIT 20
       `,
@@ -595,10 +629,24 @@ router.get('/:disputeId', async (req, res) => {
   try {
     const result = await req.db.query(
       `
-        SELECT id, ticket_number, subject, description, category, status, created_at
-        FROM lumina.support_tickets
-        WHERE requester_id::text = $1
-          AND (id::text = $2 OR ticket_number = $2)
+        SELECT
+          st.id,
+          st.ticket_number,
+          st.subject,
+          st.issue_type AS category,
+          st.status,
+          st.created_at,
+          last_msg.message AS latest_message
+        FROM public.support_tickets st
+        LEFT JOIN LATERAL (
+          SELECT sm.message
+          FROM public.support_messages sm
+          WHERE sm.ticket_id = st.id
+          ORDER BY sm.created_at DESC
+          LIMIT 1
+        ) last_msg ON true
+        WHERE st.seller_id::text = $1
+          AND (st.id::text = $2 OR st.ticket_number = $2)
         LIMIT 1
       `,
       [sellerId, disputeId]

@@ -1,5 +1,6 @@
-const API_BASE = 'http://localhost:5000/api/seller/messages';
-const SOCKET_URL = 'http://localhost:5000';
+const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+const API_BASE = `${API_BASE_URL}/seller/messages`;
+const SOCKET_URL = window.location.origin;
 
 function getSellerId() {
   const candidateKeys = ['sellerId', 'seller_id', 'currentSellerId', 'sellerUserId', 'userId'];
@@ -123,7 +124,7 @@ function renderAccountFlyout() {
           <a href="my_addresses.html" class="account-link">My Addresses</a>
           <a href="my_messages.html" class="account-link">Messages</a>
           <a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
-          <a href="security_settings.html" class="account-link">Security Settings</a>
+
           <a href="help_support.html" class="account-link">Help & Support</a>
         </div>
       </div>
@@ -194,10 +195,31 @@ function formatTime(value) {
   return date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
+const isMobileView = () => window.innerWidth < 768;
+
+function updateMobileLayout() {
+  const contactListPanel = document.getElementById('contactListPanel');
+  const chatPanel = document.getElementById('chatPanel');
+  if (!contactListPanel || !chatPanel) return;
+
+  if (!isMobileView()) {
+    contactListPanel.classList.remove('is-hidden');
+    chatPanel.classList.remove('is-open');
+    return;
+  }
+
+  const shouldShowChat = state.mobileChatOpen && Boolean(state.activeThreadId);
+  contactListPanel.classList.toggle('is-hidden', shouldShowChat);
+  chatPanel.classList.toggle('is-open', shouldShowChat);
+}
+
 const state = {
   threads: [],
   activeThreadId: null,
-  activeMessages: []
+  activeMessages: [],
+  mobileChatOpen: false,
+  contactQuery: '',
+  contactFilter: 'all'
 };
 
 const sellerList = document.getElementById('sellerList');
@@ -209,6 +231,8 @@ const totalUnreadBadge = document.getElementById('totalUnreadBadge');
 const messageInput = document.getElementById('messageInput');
 const chatForm = document.getElementById('chatForm');
 const attachButton = document.getElementById('attachButton');
+const contactSearchInput = document.getElementById('contactSearchInput');
+const contactFilterSelect = document.getElementById('contactFilterSelect');
 
 function getActiveThread() {
   return state.threads.find((thread) => thread.id === state.activeThreadId) || null;
@@ -238,8 +262,20 @@ function renderEmptyState() {
   }
 }
 
+function getFilteredThreads() {
+  const query = state.contactQuery.trim().toLowerCase();
+
+  return state.threads.filter((thread) => {
+    const matchesQuery = !query || [thread.name, thread.lastMessage, thread.context].some((value) => String(value || '').toLowerCase().includes(query));
+    const matchesFilter = state.contactFilter !== 'unread' || Number(thread.unreadCount || 0) > 0;
+    return matchesQuery && matchesFilter;
+  });
+}
+
 function renderSellerList() {
   if (!sellerList) return;
+
+  const visibleThreads = getFilteredThreads();
 
   if (!state.threads.length) {
     sellerList.innerHTML = `
@@ -251,7 +287,17 @@ function renderSellerList() {
     return;
   }
 
-  sellerList.innerHTML = state.threads.map((thread) => {
+  if (!visibleThreads.length) {
+    sellerList.innerHTML = `
+      <div class="p-4 text-center text-sm text-gray-500">
+        No contacts match your search.
+      </div>
+    `;
+    updateUnreadSummary();
+    return;
+  }
+
+  sellerList.innerHTML = visibleThreads.map((thread) => {
     const isActive = thread.id === state.activeThreadId;
     const preview = thread.lastMessage || 'No messages yet';
 
@@ -272,6 +318,7 @@ function renderSellerList() {
   }).join('');
 
   updateUnreadSummary();
+  updateMobileLayout();
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
   }
@@ -313,6 +360,7 @@ function renderChat() {
   `).join('');
 
   chatHistory.scrollTop = chatHistory.scrollHeight;
+  updateMobileLayout();
 }
 
 async function loadThreads(preserveActive = true) {
@@ -320,8 +368,13 @@ async function loadThreads(preserveActive = true) {
     const response = await apiRequest('/threads');
     state.threads = Array.isArray(response.data) ? response.data : [];
 
-    if (!preserveActive || !state.threads.some((thread) => thread.id === state.activeThreadId)) {
-      state.activeThreadId = state.threads[0]?.id || null;
+    const hasExistingActive = state.threads.some((thread) => thread.id === state.activeThreadId);
+    if (!preserveActive || !hasExistingActive) {
+      if (isMobileView()) {
+        state.activeThreadId = hasExistingActive ? state.activeThreadId : null;
+      } else {
+        state.activeThreadId = state.threads[0]?.id || null;
+      }
     }
 
     renderSellerList();
@@ -369,6 +422,7 @@ async function loadMessages(threadId, renderAfter = true) {
 
 window.openSeller = async function openSeller(threadId) {
   state.activeThreadId = threadId;
+  state.mobileChatOpen = isMobileView();
   const thread = getActiveThread();
   if (thread) {
     thread.unreadCount = 0;
@@ -412,6 +466,30 @@ function setupHandlers() {
       alert('Attachment upload can be connected to backend storage in the next step.');
     });
   }
+
+  const mobileBackToContacts = document.getElementById('mobileBackToContacts');
+  if (mobileBackToContacts) {
+    mobileBackToContacts.addEventListener('click', () => {
+      state.mobileChatOpen = false;
+      updateMobileLayout();
+    });
+  }
+
+  if (contactSearchInput) {
+    contactSearchInput.addEventListener('input', (event) => {
+      state.contactQuery = event.target.value;
+      renderSellerList();
+    });
+  }
+
+  if (contactFilterSelect) {
+    contactFilterSelect.addEventListener('change', (event) => {
+      state.contactFilter = event.target.value;
+      renderSellerList();
+    });
+  }
+
+  window.addEventListener('resize', updateMobileLayout);
 }
 
 function bootstrap() {
@@ -419,6 +497,7 @@ function bootstrap() {
   setupHandlers();
   connectSocket();
   loadThreads(false);
+  updateMobileLayout();
 
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();

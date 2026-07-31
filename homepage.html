@@ -18,7 +18,7 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .timer-box { background: #ef4444; color: white; padding: 4px 8px; border-radius: 6px; font-weight: bold; min-width: 40px; text-align: center; }
         .slider-dot.active { width: 24px; background: white; }
-        .account-flyout { width: 360px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
+        .account-flyout { width: min(360px, calc(100vw - 1rem)); background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
         .signin-btn { display: inline-block; width: 130px; text-align: center; background: #facc15; border: 1px solid #f59e0b; color: #111827; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 7px; }
         .signin-btn:hover { background: #fbbf24; }
         .account-col-title { font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
@@ -27,13 +27,40 @@
         .product-card {
             transition: transform 0.25s ease, box-shadow 0.3s ease;
         }
+        .home-product-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.75rem;
+        }
+        .home-product-card {
+            width: 100%;
+            min-width: 0;
+            max-width: none;
+        }
+        @media (min-width: 640px) {
+            .home-product-row {
+                display: flex;
+                gap: 1rem;
+                overflow-x: auto;
+                overflow-y: hidden;
+                padding-bottom: 0.5rem;
+                white-space: nowrap;
+            }
+            .home-product-card {
+                min-width: 250px;
+                max-width: 270px;
+                width: 100%;
+            }
+        }
         .product-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.15);
         }
         .line-clamp-2 {
             display: -webkit-box;
+            display: box;
             -webkit-line-clamp: 2;
+            line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
@@ -54,8 +81,10 @@
     <nav class="fixed top-0 w-full z-[100] glass">
         <div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
             <!-- Left Nav Controls -->
-            <div class="flex items-center gap-2 shrink-0">
-                <button class="p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
+                <div class="flex items-center gap-2 shrink-0">
+                <button id="mobileSearchBtn" class="md:hidden p-2" aria-label="Search" type="button">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                </button>
                 <a href="homepage.html" class="text-2xl font-bold tracking-tighter uppercase shrink-0">Lumina</a>
             </div>
 
@@ -67,12 +96,12 @@
 
             <!-- Actions -->
             <div class="flex items-center gap-2 lg:gap-6 shrink-0">
-                <div id="accountMenuWrap" class="relative group">
-                    <button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
+                <div id="accountMenuWrap" class="relative group max-sm:w-full">
+                    <button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors max-sm:justify-center max-sm:px-3">
                         <i data-lucide="user" class="w-5 h-5"></i>
                         <span id="accountMenuLabel" class="hidden sm:block text-xs font-bold uppercase tracking-widest">Account</span>
                     </button>
-                    <div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block">
+                    <div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block max-sm:fixed max-sm:inset-x-2 max-sm:top-20 max-sm:bottom-auto max-sm:rounded-2xl max-sm:shadow-2xl max-sm:max-h-[calc(100vh-5rem)] max-sm:overflow-y-auto">
                         <div id="accountMenuContent" class="account-flyout"></div>
                     </div>
                 </div>
@@ -83,7 +112,7 @@
                 <a href="wishlist.html" class="relative p-2">
                     <i data-lucide="heart" class="w-5 h-5"></i>
                 </a>
-                <button class="md:hidden p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
+                
             </div>
         </div>
     </nav>
@@ -191,23 +220,41 @@
                     <p class="text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-2">Latest drops</p>
                     <h2 class="serif text-3xl md:text-4xl">New Arrivals</h2>
                 </div>
+                <a href="all_product_spages.html?sortBy=newest" class="text-xs font-bold uppercase tracking-[0.25em] text-gray-600 hover:text-black transition-colors">View All</a>
             </div>
-            <div id="scroll-new-arrivals" class="flex gap-4 overflow-x-auto no-scrollbar pb-2 whitespace-nowrap">
+            <div id="scroll-new-arrivals" class="home-product-row no-scrollbar pb-2">
                 <!-- Product cards will be inserted here -->
             </div>
         </div>
     </section>
 
-    <!-- 5. Trending Products -->
-    <section class="py-12 bg-[#f3f4f6]">
+    <!-- 5. Recommended For You -->
+    <section id="recommended-for-you-section" class="py-12 bg-[#f3f4f6] hidden">
+        <div class="max-w-[1440px] mx-auto px-6">
+            <div class="flex items-center justify-between gap-6 mb-5">
+                <div>
+                    <p class="text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-2">Tailored for you</p>
+                    <h2 class="serif text-3xl md:text-4xl">Recommended For You</h2>
+                </div>
+                <a href="all_product_spages.html?filter=recommended" class="text-xs font-bold uppercase tracking-[0.25em] text-gray-600 hover:text-black transition-colors">View All</a>
+            </div>
+            <div id="scroll-recommended-for-you" class="home-product-row no-scrollbar pb-2">
+                <!-- Product cards will be inserted here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. Trending Products -->
+    <section class="py-12 bg-white">
         <div class="max-w-[1440px] mx-auto px-6">
             <div class="flex items-center justify-between gap-6 mb-5">
                 <div>
                     <p class="text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-2">Popular picks</p>
                     <h2 class="serif text-3xl md:text-4xl">Trending Products</h2>
                 </div>
+                <a href="all_product_spages.html?filter=trending" class="text-xs font-bold uppercase tracking-[0.25em] text-gray-600 hover:text-black transition-colors">View All</a>
             </div>
-            <div id="scroll-trending-products" class="flex gap-4 overflow-x-auto no-scrollbar pb-2 whitespace-nowrap">
+            <div id="scroll-trending-products" class="home-product-row no-scrollbar pb-2">
                 <!-- Product cards will be inserted here -->
             </div>
         </div>
@@ -221,8 +268,9 @@
                     <p class="text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-2">Top performers</p>
                     <h2 class="serif text-3xl md:text-4xl">Best Sellers</h2>
                 </div>
+                <a href="all_product_spages.html?filter=best-sellers" class="text-xs font-bold uppercase tracking-[0.25em] text-gray-600 hover:text-black transition-colors">View All</a>
             </div>
-            <div id="scroll-best-sellers" class="flex gap-4 overflow-x-auto no-scrollbar pb-2 whitespace-nowrap">
+            <div id="scroll-best-sellers" class="home-product-row no-scrollbar pb-2">
                 <!-- Product cards will be inserted here -->
             </div>
         </div>
@@ -236,36 +284,47 @@
                     <p class="text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-2">Fresh looks</p>
                     <h2 class="serif text-3xl md:text-4xl">Seasonal Collection</h2>
                 </div>
+                <a href="all_product_spages.html?filter=seasonal" class="text-xs font-bold uppercase tracking-[0.25em] text-gray-600 hover:text-black transition-colors">View All</a>
             </div>
-            <div id="scroll-seasonal-collection" class="flex gap-4 overflow-x-auto no-scrollbar pb-2 whitespace-nowrap">
+            <div id="scroll-seasonal-collection" class="home-product-row no-scrollbar pb-2">
                 <!-- Product cards will be inserted here -->
             </div>
         </div>
     </section>
 
-    <!-- 8. Sale / Discount Section -->
+    <!-- 8. Limited Time Deals -->
+    <section class="py-12 bg-[#f3f4f6]">
+        <div class="max-w-[1440px] mx-auto px-6">
+            <div class="flex items-center justify-between gap-6 mb-5">
+                <div>
+                    <p class="text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-2">Active discounts</p>
+                    <h2 class="serif text-3xl md:text-4xl">Limited Time Deals</h2>
+                </div>
+                <a href="all_product_spages.html?filter=limited-time-deals" class="text-xs font-bold uppercase tracking-[0.25em] text-gray-600 hover:text-black transition-colors">View All</a>
+            </div>
+            <div id="scroll-limited-time-deals" class="home-product-row no-scrollbar pb-2"></div>
+        </div>
+    </section>
+
+    <!-- 9. Sale / Discount Section -->
     <section class="py-12 bg-white">
         <div class="max-w-[1440px] mx-auto px-6">
             <div class="rounded-[2rem] bg-red-600 text-white overflow-hidden shadow-lg">
-                <div class="px-6 py-8 md:px-10 md:py-10 flex flex-col lg:flex-row items-center justify-between gap-8">
-                    <div class="flex flex-col md:flex-row items-center gap-6">
-                        <div class="text-center md:text-left">
+                <div class="px-6 py-8 md:px-10 md:py-10">
+                    <div class="flex items-center justify-between gap-6 mb-5">
+                        <div>
                             <p class="text-[10px] uppercase tracking-[0.35em] opacity-70 mb-2">Special Offers / Sale</p>
                             <h2 class="serif text-3xl md:text-5xl">Limited Time Deals</h2>
                         </div>
-                        <div class="flex gap-3">
-                            <div id="h" class="timer-box">00</div>
-                            <div id="m" class="timer-box">00</div>
-                            <div id="s" class="timer-box">00</div>
-                        </div>
+                        <a href="all_product_spages.html?filter=limited-time-deals" class="text-xs font-bold uppercase tracking-[0.25em] text-white hover:text-gray-200 transition-colors whitespace-nowrap">View All</a>
                     </div>
-                    <div id="flashDealItems" class="flex gap-4 overflow-x-auto no-scrollbar max-w-2xl pb-1"></div>
+                    <div id="flashDealItems" class="flex gap-4 overflow-x-auto no-scrollbar pb-1 w-full"></div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- 9. Featured Sellers -->
+    <!-- 10. Featured Sellers -->
     <section class="py-12 bg-[#f3f4f6]">
         <div class="max-w-[1440px] mx-auto px-6">
             <div class="flex items-center justify-between gap-6 mb-5">
@@ -274,20 +333,7 @@
                     <h2 class="serif text-3xl md:text-4xl">Featured Sellers</h2>
                 </div>
             </div>
-            <div id="featured-sellerItems" class="flex gap-4 overflow-x-auto no-scrollbar pb-2 whitespace-nowrap"></div>
-        </div>
-    </section>
-
-    <!-- 10. Recently Added -->
-    <section class="py-12 bg-white">
-        <div class="max-w-[1440px] mx-auto px-6">
-            <div class="flex items-center justify-between gap-6 mb-5">
-                <div>
-                    <p class="text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-2">Fresh uploads</p>
-                    <h2 class="serif text-3xl md:text-4xl">Recently Added</h2>
-                </div>
-            </div>
-            <div id="scroll-recently-added" class="flex gap-4 overflow-x-auto no-scrollbar pb-2 whitespace-nowrap"></div>
+            <div id="featured-sellerItems" class="home-product-row no-scrollbar pb-2"></div>
         </div>
     </section>
 
@@ -366,15 +412,52 @@
         </div>
     </footer>
 
+    <!-- Mobile Search Modal -->
+    <div id="mobileSearchModal" class="hidden fixed inset-0 z-[110] bg-black/50 flex items-start justify-center pt-20 md:hidden">
+        <div class="bg-white rounded-lg shadow-lg w-11/12 max-w-md">
+            <div class="p-4 border-b flex items-center justify-between">
+                <h3 class="font-bold text-sm">Search Products</h3>
+                <button id="closeMobileSearch" type="button" class="p-1 hover:bg-gray-100 rounded">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <div class="relative">
+                    <input id="mobileSearchInput" type="text" placeholder="Search for products..." class="w-full bg-gray-100 border border-gray-300 rounded-lg py-2.5 px-4 pl-10 text-sm outline-none focus:border-black focus:bg-white transition-all">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                </div>
+                <button id="submitMobileSearch" type="button" class="w-full mt-3 bg-black text-white py-2 rounded-lg font-bold text-sm uppercase tracking-wider hover:bg-gray-900">
+                    Search
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function getCookie(name) {
+            if (!name) return '';
+            const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
+            return match ? decodeURIComponent(match[1]) : '';
+        }
+
+        function parseJson(value) {
+            if (!value) return null;
+            try {
+                return JSON.parse(value);
+            } catch (_) {
+                return null;
+            }
+        }
+
         function resolveAuthState() {
             const state = { isLoggedIn: false, fullName: '' };
 
             try {
-                const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
-                const isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+                const cookieUser = parseJson(getCookie('lumina.auth.user'));
+                const rawUser = cookieUser ? JSON.stringify(cookieUser) : (localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session'));
+                const isLoggedIn = getCookie('lumina.isLoggedIn') === 'true' || localStorage.getItem('lumina.isLoggedIn') === 'true';
                 if (rawUser) {
-                    const parsed = JSON.parse(rawUser);
+                    const parsed = typeof rawUser === 'string' ? JSON.parse(rawUser) : rawUser;
                     const name = String(parsed.fullName || parsed.name || '').trim();
                     state.isLoggedIn = Boolean(name) || isLoggedIn;
                     state.fullName = name;
@@ -382,7 +465,11 @@
                     state.isLoggedIn = isLoggedIn;
                 }
             } catch (_) {
-                state.isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+                state.isLoggedIn = getCookie('lumina.isLoggedIn') === 'true' || localStorage.getItem('lumina.isLoggedIn') === 'true';
+            }
+
+            if (!state.isLoggedIn) {
+                state.fullName = '';
             }
 
             return state;
@@ -416,7 +503,7 @@
                             <a href="login_register.html" class="account-link">My Addresses</a>
                             <a href="login_register.html" class="account-link">Messages</a>
                             <a href="login_register.html" class="account-link">Returns & Refunds</a>
-                            <a href="login_register.html" class="account-link">Security Settings</a>
+
                             <a href="login_register.html" class="account-link">Help & Support</a>
                         </div>
                     </div>
@@ -445,7 +532,7 @@
                             <a href="my_addresses.html" class="account-link">My Addresses</a>
                             <a href="my_messages.html" class="account-link">Messages</a>
                             <a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
-                            <a href="security_settings.html" class="account-link">Security Settings</a>
+
                             <a href="help_support.html" class="account-link">Help & Support</a>
                         </div>
                     </div>
@@ -460,7 +547,11 @@
 
         if (accountMenuButton && accountMenuDropdown) {
             accountMenuButton.addEventListener('click', () => {
-                accountMenuDropdown.classList.toggle('hidden');
+                const isHidden = accountMenuDropdown.classList.contains('hidden');
+                accountMenuDropdown.classList.toggle('hidden', !isHidden);
+                if (!isHidden) {
+                    accountMenuDropdown.classList.add('hidden');
+                }
             });
 
             document.addEventListener('click', (event) => {
@@ -470,8 +561,20 @@
             });
         }
 
-        renderAccountFlyout();
-        lucide.createIcons();
+        function refreshAuthUi() {
+            renderAccountFlyout();
+            lucide.createIcons();
+        }
+
+        refreshAuthUi();
+
+        window.addEventListener('storage', function () {
+            refreshAuthUi();
+        });
+
+        window.addEventListener('focus', function () {
+            refreshAuthUi();
+        });
 
         function goToCatalogWithSearch() {
             if (!homepageSearchInput) return;
@@ -501,17 +604,99 @@
             }
         }
 
-        const API_BASE_URL = 'http://localhost:5000/api';
+        // Mobile Search Handler
+        const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+        const mobileSearchModal = document.getElementById('mobileSearchModal');
+        const closeMobileSearchBtn = document.getElementById('closeMobileSearch');
+        const mobileSearchInput = document.getElementById('mobileSearchInput');
+        const submitMobileSearchBtn = document.getElementById('submitMobileSearch');
+
+        if (mobileSearchBtn) {
+            mobileSearchBtn.addEventListener('click', () => {
+                mobileSearchModal.classList.remove('hidden');
+                setTimeout(() => mobileSearchInput.focus(), 100);
+            });
+        }
+
+        if (closeMobileSearchBtn) {
+            closeMobileSearchBtn.addEventListener('click', () => {
+                mobileSearchModal.classList.add('hidden');
+                mobileSearchInput.value = '';
+            });
+        }
+
+        if (submitMobileSearchBtn) {
+            submitMobileSearchBtn.addEventListener('click', () => {
+                const searchValue = String(mobileSearchInput.value || '').trim();
+                if (searchValue) {
+                    const url = `all_product_spages.html?search=${encodeURIComponent(searchValue)}`;
+                    window.location.href = url;
+                }
+            });
+        }
+
+        if (mobileSearchInput) {
+            mobileSearchInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    const searchValue = String(mobileSearchInput.value || '').trim();
+                    if (searchValue) {
+                        const url = `all_product_spages.html?search=${encodeURIComponent(searchValue)}`;
+                        window.location.href = url;
+                    }
+                }
+            });
+        }
+
+        if (mobileSearchModal) {
+            mobileSearchModal.addEventListener('click', (event) => {
+                if (event.target === mobileSearchModal) {
+                    mobileSearchModal.classList.add('hidden');
+                    mobileSearchInput.value = '';
+                }
+            });
+        }
+
+        const API_BASE_URL = `${window.location.origin}/api`;
+
+        function getCookie(name) {
+            if (!name) return '';
+            const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&') + '=([^;]*)'));
+            return match ? decodeURIComponent(match[1]) : '';
+        }
 
         function resolveCurrentUserId() {
-            try {
-                const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
-                if (rawUser) {
-                    const parsed = JSON.parse(rawUser);
-                    return String(parsed.id || parsed.userId || parsed.customerId || '').trim();
+            const candidates = [
+                localStorage.getItem('lumina.auth.user'),
+                localStorage.getItem('lumina.customer.session'),
+                localStorage.getItem('lumina.user.id'),
+                localStorage.getItem('lumina.customer.id'),
+                getCookie('lumina.auth.user')
+            ];
+
+            for (const rawValue of candidates) {
+                if (!rawValue) continue;
+                try {
+                    const parsed = typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue;
+                    const userId = String(parsed?.id || parsed?.userId || parsed?.customerId || parsed?.customer_id || parsed?.user_id || '').trim();
+                    if (userId) return userId;
+                } catch (_) {
+                    const trimmed = String(rawValue).trim();
+                    if (trimmed) return trimmed;
                 }
-            } catch (_) {}
+            }
+
             return '';
+        }
+
+        function getCartBadgeCount(payload) {
+            const data = payload?.data || payload || {};
+            const summary = data?.summary || payload?.summary || {};
+            const rawCount = data?.totalItems ?? data?.totals?.itemCount ?? data?.cartItems ?? summary?.cartItems ?? (
+                Array.isArray(data?.items)
+                    ? data.items.reduce((sum, item) => sum + Number(item?.quantity || 0), 0)
+                    : 0
+            );
+            return Number(rawCount) || 0;
         }
 
         async function fetchJson(url) {
@@ -587,9 +772,10 @@
             };
 
             row.innerHTML = products.map((product) => `
-                <div data-product-id="${encodeURIComponent(product.id || product.slug || '')}" class="product-card group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden relative flex flex-col min-w-[250px] max-w-[270px] w-full inline-block">
+                <div data-product-id="${encodeURIComponent(product.id || product.slug || '')}" class="home-product-card product-card group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden relative flex flex-col w-full">
                     <div class="relative aspect-square bg-gray-100 overflow-hidden">
                         <img src="${escHtml(product.image || 'https://via.placeholder.com/320')}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" alt="${escHtml(product.name || 'Product')}">
+                        ${product.isNew ? '<span class="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">new</span>' : ''}
                         <button data-product-id="${encodeURIComponent(product.id || product.slug || '')}" class="absolute top-3 right-3 z-10 bg-white/80 rounded-full p-1 shadow hover:bg-white add-to-wishlist-btn">
                             <svg class="w-5 h-5 text-gray-400 hover:text-red-500 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 21C12 21 4 13.5 4 8.5C4 5.42 6.42 3 9.5 3C11.24 3 12.91 3.81 14 5.08C15.09 3.81 16.76 3 18.5 3C21.58 3 24 5.42 24 8.5C24 13.5 16 21 16 21H12Z"></path></svg>
                         </button>
@@ -613,15 +799,16 @@
             if (!wrap || !flashDeals || !Array.isArray(flashDeals.items) || !flashDeals.items.length) return;
 
             wrap.innerHTML = flashDeals.items.map((item) => `
-                <div class="bg-white/10 backdrop-blur p-2 rounded-xl flex gap-4 min-w-[240px] items-center">
-                    <div class="w-16 h-16 bg-white rounded-lg overflow-hidden shrink-0">
+                <a href="products_details.html?id=${encodeURIComponent(item.id || item.slug || '')}" class="bg-white/10 backdrop-blur p-2 rounded-xl flex gap-4 min-w-[240px] items-center hover:bg-white/20 transition-colors">
+                    <div class="w-16 h-16 bg-white rounded-lg overflow-hidden shrink-0 relative">
                         <img src="${escHtml(item.image || 'https://via.placeholder.com/100')}" class="w-full h-full object-cover" alt="${escHtml(item.name || 'Deal')}">
+                        <span class="absolute top-1 left-1 bg-red-500 text-[9px] font-bold px-1.5 py-0.5 rounded-full">-${Number(item.discount || 0)}%</span>
                     </div>
                     <div>
                         <p class="text-[10px] font-bold line-clamp-1">${escHtml(item.name || 'Flash Deal')}</p>
                         <p class="text-sm font-bold">${formatPrice(item.salePrice)} <span class="text-[10px] line-through opacity-50">${formatPrice(item.originalPrice)}</span></p>
                     </div>
-                </div>
+                </a>
             `).join('');
         }
 
@@ -647,7 +834,7 @@
                     if (sellerSlug) return `sellerprofile.html?slug=${encodeURIComponent(sellerSlug)}`;
                     const sellerName = String(seller.sellerName || '').trim();
                     return sellerName ? `sellerprofile.html?seller=${encodeURIComponent(sellerName)}` : 'sellerprofile.html';
-                })()}" class="product-card group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden relative flex flex-col min-w-[250px] max-w-[270px] w-full inline-block">
+                })()}" class="home-product-card product-card group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden relative flex flex-col w-full">
                     <div class="relative aspect-square bg-gray-100 overflow-hidden">
                         <img src="${escHtml(seller.image || 'https://via.placeholder.com/480')}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" alt="${escHtml(seller.sellerName || 'Store')}">
                     </div>
@@ -692,14 +879,16 @@
         async function updateCartCount() {
             try {
                 const userId = resolveCurrentUserId();
-                if (!userId) return;
                 const res = await fetch(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
-                if (!res.ok) return;
+                if (!res.ok) return 0;
                 const payload = await res.json().catch(() => ({}));
-                const data = payload?.data || payload;
+                const count = getCartBadgeCount(payload);
                 const badge = document.getElementById('cartCountBadge');
-                if (badge) badge.textContent = String(Number(data.totalItems || data.totals?.itemCount || 0));
-            } catch (_) {}
+                if (badge) badge.textContent = String(count);
+                return count;
+            } catch (_) {
+                return 0;
+            }
         }
 
         async function addToCart(productId, quantity = 1) {
@@ -797,10 +986,7 @@
 
                 const data = await fetchJson(homepageUrl.toString());
 
-                if (data.summary) {
-                    const badge = document.getElementById('cartCountBadge');
-                    if (badge) badge.textContent = String(Number(data.summary.cartItems) || 0);
-                }
+                await updateCartCount();
 
                 updateHero(data.heroSlides || []);
                 if (!Array.isArray(data.heroSlides) || !data.heroSlides.length) {
@@ -809,10 +995,25 @@
 
                 const rows = Array.isArray(data.productRows) ? data.productRows : [];
                 const map = Object.fromEntries(rows.map((r) => [r.id, r.products || []]));
+                
+                // Check if user is logged in and has recommendation data
+                const auth = resolveAuthState();
+                const recommendedProducts = map['recommended-for-you'] || [];
+                const recommendedSection = document.getElementById('recommended-for-you-section');
+                
+                // Show "Recommended For You" only if user is logged in AND has recommendation products
+                if (auth.isLoggedIn && recommendedProducts.length > 0) {
+                    if (recommendedSection) recommendedSection.classList.remove('hidden');
+                    renderStrip('recommended-for-you', recommendedProducts);
+                } else {
+                    if (recommendedSection) recommendedSection.classList.add('hidden');
+                }
+                
                 renderStrip('new-arrivals', map['new-arrivals'] || []);
                 renderStrip('trending-products', map['trending-products'] || []);
                 renderStrip('best-sellers', map['best-sellers'] || []);
                 renderStrip('seasonal-collection', map['seasonal-collection'] || []);
+                renderStrip('limited-time-deals', map['limited-time-deals'] || []);
                 renderStrip('recently-added', map['recently-added'] || []);
                 renderFeaturedSellers(Array.isArray(data.featuredSellers) ? data.featuredSellers : []);
 

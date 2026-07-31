@@ -6,6 +6,8 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
+const axios = require('axios');
+const querystring = require('querystring');
 
 let nodemailer = null;
 try {
@@ -35,6 +37,27 @@ const {
 } = require('../../../shared/sessionStore');
 const { pool } = require('../../../database/postgresClient');
 
+function appendClientCookies(res, token, user) {
+  try {
+    const isProd = String(process.env.NODE_ENV || '').toLowerCase() === 'production';
+    const sameSite = isProd ? 'None' : 'Lax';
+    const secure = isProd ? '; Secure' : '';
+    const domain = process.env.FRONTEND_COOKIE_DOMAIN ? `; Domain=${process.env.FRONTEND_COOKIE_DOMAIN}` : '';
+    const maxAge = 28800; // 8 hours
+
+    if (token) {
+      res.append('Set-Cookie', `lumina.auth.token=${encodeURIComponent(token)}; Path=/; SameSite=${sameSite}; Max-Age=${maxAge}${secure}${domain}`);
+    }
+    if (user) {
+      res.append('Set-Cookie', `lumina.auth.user=${encodeURIComponent(JSON.stringify(user))}; Path=/; SameSite=${sameSite}; Max-Age=${maxAge}${secure}${domain}`);
+      res.append('Set-Cookie', `lumina.auth.role=${encodeURIComponent(String(user.role || 'customer').toLowerCase())}; Path=/; SameSite=${sameSite}; Max-Age=${maxAge}${secure}${domain}`);
+      res.append('Set-Cookie', `lumina.isLoggedIn=true; Path=/; SameSite=${sameSite}; Max-Age=${maxAge}${secure}${domain}`);
+    }
+  } catch (e) {
+    // best-effort; do not fail request if cookie append fails
+  }
+}
+
 function hasDb(req) {
   return Boolean(req.db && typeof req.db.query === 'function');
 }
@@ -42,6 +65,106 @@ function hasDb(req) {
 const AUTH_SCHEMA = 'public';
 
 let usersPasswordColumnPromise = null;
+
+async function ensureOAuthColumns(db) {
+  await db.query(`
+    ALTER TABLE ${AUTH_SCHEMA}.users
+    ADD COLUMN IF NOT EXISTS google_id VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS auth_provider VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS avatar_url TEXT
+  `);
+}
+
+async function findOrCreateOAuthUser(db, profileData) {
+  const normalizedEmail = String(profileData.email || '').trim().toLowerCase();
+  if (!normalizedEmail) {
+    throw new Error('Google account did not provide an email address');
+  }
+
+  await ensureOAuthColumns(db);
+
+  const existing = await db.query(
+    `SELECT id, role, full_name AS "fullName", email, phone, status, created_at AS "createdAt"
+     FROM ${AUTH_SCHEMA}.users
+     WHERE LOWER(email) = LOWER($1)
+     LIMIT 1`,
+    [normalizedEmail]
+  );
+
+  if (existing.rows.length) {
+    const row = existing.rows[0];
+    await db.query(
+      `UPDATE ${AUTH_SCHEMA}.users
+       SET google_id = COALESCE(NULLIF($2, ''), google_id),
+           auth_provider = COALESCE(NULLIF($3, ''), auth_provider),
+           avatar_url = COALESCE(NULLIF($4, ''), avatar_url),
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1`,
+      [row.id, profileData.googleId || null, profileData.provider || 'google', profileData.avatarUrl || null]
+    );
+
+    return sanitizeDbUser({ ...row, role: row.role });
+  }
+
+  const passwordColumn = await resolveUsersPasswordColumn(db);
+  const randomPassword = crypto.randomBytes(24).toString('hex');
+  const passwordExpression = passwordColumn === 'password' ? '$3' : "crypt($3, gen_salt('bf'))";
+
+  const insertUser = await db.query(
+    `
+    INSERT INTO ${AUTH_SCHEMA}.users (role, full_name, email, phone, ${passwordColumn}, status, google_id, auth_provider, avatar_url)
+    VALUES ('customer', $1, $2, NULL, ${passwordExpression}, 'active', $4, $5, $6)
+    RETURNING id, role, full_name AS "fullName", email, phone, status, created_at AS "createdAt"
+    `,
+    [
+      String(profileData.fullName || normalizedEmail || 'Google User').trim(),
+      normalizedEmail,
+      randomPassword,
+      profileData.googleId || null,
+      profileData.provider || 'google',
+      profileData.avatarUrl || null
+    ]
+  );
+
+  return sanitizeDbUser(insertUser.rows[0]);
+}
+
+function getGoogleOAuthConfig() {
+  return {
+    clientId: process.env.GOOGLE_CLIENT_ID || '633012483567-runaudt8hr7jue0rj2b2p1u1cpfdklhu.apps.googleusercontent.com',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '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',
+    callbackUrl: process.env.GOOGLE_CALLBACK_URL || `${process.env.PUBLIC_APP_URL || process.env.FRONTEND_ORIGIN || 'http://localhost:5000'}/api/auth/google/callback`
+  };
+}
+
+async function exchangeGoogleCode(code) {
+  const { clientId, clientSecret, callbackUrl } = getGoogleOAuthConfig();
+
+  const tokenResponse = await axios.post(
+    'https://oauth2.googleapis.com/token',
+    querystring.stringify({
+      code,
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uri: callbackUrl,
+      grant_type: 'authorization_code'
+    }),
+    {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }
+  );
+
+  const accessToken = tokenResponse.data?.access_token;
+  if (!accessToken) {
+    throw new Error('Google did not return an access token');
+  }
+
+  const profileResponse = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+
+  return profileResponse.data;
+}
 
 async function resolveUsersPasswordColumn(db) {
   if (!usersPasswordColumnPromise) {
@@ -191,6 +314,64 @@ function slugify(value) {
     .replace(/^-|-$/g, '');
 }
 
+router.get('/google', (req, res) => {
+  const { clientId, callbackUrl } = getGoogleOAuthConfig();
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: callbackUrl,
+    response_type: 'code',
+    scope: 'openid email profile',
+    access_type: 'offline',
+    prompt: 'select_account'
+  });
+
+  return res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
+});
+
+router.get('/google/callback', async (req, res) => {
+  const code = String(req.query.code || '').trim();
+  const error = String(req.query.error || '').trim();
+
+  if (error) {
+    return res.redirect('/login_register.html?oauth=failed');
+  }
+
+  if (!code) {
+    return res.redirect('/login_register.html?oauth=failed');
+  }
+
+  try {
+    const profile = await exchangeGoogleCode(code);
+    const user = await findOrCreateOAuthUser(pool, {
+      googleId: profile.id,
+      provider: 'google',
+      fullName: profile.name || profile.given_name || 'Google User',
+      email: profile.email || null,
+      avatarUrl: profile.picture || null
+    });
+
+    const { token, session } = makeSession(user);
+    setSessionCookie(res, token, session.expiresAt);
+
+    const redirectUrl = new URL('/homepage.html', getAppBaseUrl(req));
+    redirectUrl.searchParams.set('oauth', 'success');
+    redirectUrl.searchParams.set('auth', token);
+
+    res.setHeader('Set-Cookie', [
+      `lumina_session=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=28800`,
+      `lumina.auth.token=${encodeURIComponent(token)}; Path=/; SameSite=Lax; Max-Age=28800`,
+      `lumina.auth.user=${encodeURIComponent(JSON.stringify(user))}; Path=/; SameSite=Lax; Max-Age=28800`,
+      `lumina.auth.role=${encodeURIComponent(String(user.role || 'customer').toLowerCase())}; Path=/; SameSite=Lax; Max-Age=28800`,
+      `lumina.isLoggedIn=true; Path=/; SameSite=Lax; Max-Age=28800`
+    ]);
+
+    return res.redirect(redirectUrl.toString());
+  } catch (err) {
+    console.error('Google OAuth error:', err?.response?.data || err?.message || err);
+    return res.redirect('/login_register.html?oauth=failed');
+  }
+});
+
 /**
  * POST /api/auth/register/customer
  * Register a customer account and create a session token.
@@ -246,6 +427,7 @@ router.post('/register/customer', async (req, res) => {
       const user = sanitizeDbUser(insertUser.rows[0]);
       const { token, session } = makeSession(user);
       setSessionCookie(res, token, session.expiresAt);
+      appendClientCookies(res, token, user);
 
       return res.status(201).json({
         success: true,
@@ -265,7 +447,7 @@ router.post('/register/customer', async (req, res) => {
 
     const sessionData = makeSession(result.user);
     setSessionCookie(res, sessionData.token, sessionData.session.expiresAt);
-
+    appendClientCookies(res, sessionData.token, result.user);
     res.status(201).json({
       success: true,
       message: result.message,
@@ -285,7 +467,7 @@ router.post('/register/customer', async (req, res) => {
 
     const sessionData = makeSession(result.user);
     setSessionCookie(res, sessionData.token, sessionData.session.expiresAt);
-
+    appendClientCookies(res, sessionData.token, result.user);
     return res.status(201).json({
       success: true,
       message: result.message,
@@ -590,6 +772,7 @@ router.post('/login', async (req, res) => {
       const user = sanitizeDbUser(row);
       const { token, session } = makeSession(user);
       setSessionCookie(res, token, session.expiresAt);
+      appendClientCookies(res, token, user);
 
       return res.json({
         success: true,
@@ -619,6 +802,7 @@ router.post('/login', async (req, res) => {
 
     const sessionData = makeSession(result.user);
     setSessionCookie(res, sessionData.token, sessionData.session.expiresAt);
+    appendClientCookies(res, sessionData.token, result.user);
 
     res.json({
       success: true,
@@ -646,6 +830,7 @@ router.post('/login', async (req, res) => {
 
     const sessionData = makeSession(result.user);
     setSessionCookie(res, sessionData.token, sessionData.session.expiresAt);
+    appendClientCookies(res, sessionData.token, result.user);
 
     return res.json({
       success: true,
@@ -884,6 +1069,19 @@ router.post('/logout', (req, res) => {
 
     const removed = revokeSession(token) || logout(token);
     clearSessionCookie(res);
+    try {
+      const isProd = String(process.env.NODE_ENV || '').toLowerCase() === 'production';
+      const sameSite = isProd ? 'None' : 'Lax';
+      const secure = isProd ? '; Secure' : '';
+      const domain = process.env.FRONTEND_COOKIE_DOMAIN ? `; Domain=${process.env.FRONTEND_COOKIE_DOMAIN}` : '';
+      // Clear client-visible cookies as well
+      res.append('Set-Cookie', `lumina.auth.token=; Path=/; Max-Age=0; SameSite=${sameSite}${secure}${domain}`);
+      res.append('Set-Cookie', `lumina.auth.user=; Path=/; Max-Age=0; SameSite=${sameSite}${secure}${domain}`);
+      res.append('Set-Cookie', `lumina.auth.role=; Path=/; Max-Age=0; SameSite=${sameSite}${secure}${domain}`);
+      res.append('Set-Cookie', `lumina.isLoggedIn=; Path=/; Max-Age=0; SameSite=${sameSite}${secure}${domain}`);
+    } catch (e) {
+      // best-effort
+    }
 
     if (!removed) {
       return res.status(404).json({

@@ -11,7 +11,7 @@
     body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #111827; }
     .glass { background: rgba(255,255,255,0.94); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
     .panel { background: #fff; border: 1px solid #e8edf5; border-radius: 18px; box-shadow: 0 12px 28px rgba(15,23,42,0.06); }
-    .hero-panel { background: linear-gradient(140deg, #f0f7ff 0%, #ffffff 40%, #f5f0ff 100%); }
+    .hero-panel { background: linear-gradient(140deg, #f0f7ff 0%, #ffffff 40%, #f5f0ff 100%); border: 2px solid #d4d9ff !important; }
     .status-pill { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
     .seller-tag { display: inline-flex; align-items: center; gap: 6px; background: #f5f7fb; color: #334155; border: 1px solid #e4e9f1; border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 700; }
     .summary-sticky { position: sticky; top: 96px; }
@@ -62,7 +62,7 @@
       flex-wrap: wrap;
       gap: 8px;
     }
-    .account-flyout { width: 360px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
+    .account-flyout { width: min(360px, calc(100vw - 1rem)); background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
     .signin-btn { display: inline-block; width: 130px; text-align: center; background: #facc15; border: 1px solid #f59e0b; color: #111827; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 7px; }
     .signin-btn:hover { background: #fbbf24; }
     .account-col-title { font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
@@ -125,8 +125,10 @@
 <body class="text-[#1a1a1a]">
   <nav class="fixed top-0 w-full z-[100] glass">
     <div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
-      <div class="flex items-center gap-2 shrink-0">
-        <button class="p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
+        <div class="flex items-center gap-2 shrink-0">
+          <a href="all_product_spages.html" class="md:hidden p-2" aria-label="Search">
+            <i data-lucide="search" class="w-5 h-5"></i>
+          </a>
         <a href="homepage.html" class="text-2xl font-bold tracking-tighter uppercase shrink-0">Lumina</a>
       </div>
 
@@ -136,12 +138,12 @@
       </div>
 
       <div class="flex items-center gap-2 lg:gap-6 shrink-0">
-        <div id="accountMenuWrap" class="relative group">
-          <button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
-            <i data-lucide="user" class="w-5 h-5"></i>
+        <div id="accountMenuWrap" class="relative group max-sm:w-full">
+          <button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors max-sm:justify-center max-sm:px-3">
+            <i data-lucide="user" class="w-5 h-5 text-gray-700"></i>
             <span id="accountMenuLabel" class="hidden sm:block text-xs font-bold uppercase tracking-widest">Account</span>
           </button>
-          <div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block">
+          <div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block max-sm:fixed max-sm:inset-x-2 max-sm:top-20 max-sm:bottom-auto max-sm:rounded-2xl max-sm:shadow-2xl max-sm:max-h-[calc(100vh-5rem)] max-sm:overflow-y-auto">
             <div id="accountMenuContent" class="account-flyout"></div>
           </div>
         </div>
@@ -150,7 +152,7 @@
           <span id="navCartCount" class="absolute top-0 right-0 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
         </a>
         <a href="wishlist.html" class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"><i data-lucide="heart" class="w-5 h-5 text-gray-700"></i></a>
-        <button class="md:hidden p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
+        
       </div>
     </div>
   </nav>
@@ -241,6 +243,9 @@
   </main>
 
   <script>
+    // Initialize Lucide icons immediately
+    if (window.lucide) lucide.createIcons();
+
     function resolveAuthState() {
       const state = { isLoggedIn: false, fullName: '' };
 
@@ -290,7 +295,7 @@
               <a href="login_register.html" class="account-link">My Addresses</a>
               <a href="login_register.html" class="account-link">Messages</a>
               <a href="login_register.html" class="account-link">Returns & Refunds</a>
-              <a href="login_register.html" class="account-link">Security Settings</a>
+
               <a href="login_register.html" class="account-link">Help & Support</a>
             </div>
           </div>
@@ -319,7 +324,7 @@
               <a href="my_addresses.html" class="account-link">My Addresses</a>
               <a href="my_messages.html" class="account-link">Messages</a>
               <a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
-              <a href="security_settings.html" class="account-link">Security Settings</a>
+
               <a href="help_support.html" class="account-link">Help & Support</a>
             </div>
           </div>
@@ -333,7 +338,11 @@
 
     if (accountMenuButton && accountMenuDropdown) {
       accountMenuButton.addEventListener('click', () => {
-        accountMenuDropdown.classList.toggle('hidden');
+        const isHidden = accountMenuDropdown.classList.contains('hidden');
+        accountMenuDropdown.classList.toggle('hidden', !isHidden);
+        if (!isHidden) {
+          accountMenuDropdown.classList.add('hidden');
+        }
       });
 
       document.addEventListener('click', (event) => {
@@ -343,9 +352,8 @@
       });
     }
 
-    renderAccountFlyout();
-
-    const API_BASE_URL = 'http://localhost:5000/api';
+    const API_BASE_URL = `${window.location.origin}/api`;
+    const IS_LIVE_HOST = location.protocol !== 'file:';
     let cartItems = [];
     let appliedCoupon = null;
     let activeDiscount = 0;
@@ -667,7 +675,7 @@
         const addResponse = await fetch(`${API_BASE_URL}/wishlist/${userId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId: Number(item.productId) || item.productId })
+          body: JSON.stringify({ productId: item.productId })
         });
 
         if (!addResponse.ok) {
@@ -734,6 +742,8 @@
       }
     });
 
+    // Initialize account menu and load cart data
+    renderAccountFlyout();
     loadCartFromApi();
   </script>
 </body>

@@ -273,17 +273,22 @@ router.post('/items', async (req, res) => {
       });
     }
 
-    const productId = String(itemData.productId).trim();
+    const productRef = String(itemData.productId).trim();
     const quantity = Math.max(1, parseInt(itemData.quantity, 10) || 1);
 
     const productResult = await req.db.query(
       `
       SELECT id, base_price
       FROM public.products
-      WHERE id = $1 AND status = 'active'
+      WHERE status = 'active'
+        AND (
+          id::text = $1
+          OR slug = $1
+          OR sku = $1
+        )
       LIMIT 1
       `,
-      [productId]
+      [productRef]
     );
 
     if (!productResult.rows.length) {
@@ -293,6 +298,7 @@ router.post('/items', async (req, res) => {
       });
     }
 
+    const resolvedProductId = productResult.rows[0].id;
     const unitPrice = Number(productResult.rows[0].base_price) || 0;
 
     const cartResult = await req.db.query(
@@ -321,7 +327,7 @@ router.post('/items', async (req, res) => {
         AND variant_id IS NULL
       RETURNING id
       `,
-      [cartId, productId, quantity, unitPrice]
+      [cartId, resolvedProductId, quantity, unitPrice]
     );
 
     if (!mergeResult.rowCount) {
@@ -330,7 +336,7 @@ router.post('/items', async (req, res) => {
         INSERT INTO public.cart_items (cart_id, product_id, quantity, unit_price)
         VALUES ($1, $2, $3, $4)
         `,
-        [cartId, productId, quantity, unitPrice]
+        [cartId, resolvedProductId, quantity, unitPrice]
       );
     }
 

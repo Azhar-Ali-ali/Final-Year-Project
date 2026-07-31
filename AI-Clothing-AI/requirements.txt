@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+python-multipart
+open-clip-torch
+faiss-cpu
+torch
+torchvision
+pandas
+numpy
+pillow
+sqlalchemy

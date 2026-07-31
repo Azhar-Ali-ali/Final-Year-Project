@@ -48,7 +48,7 @@
 			50% { transform: scale(1.2); }
 		}
 
-		.account-flyout { width: 360px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
+		.account-flyout { width: min(360px, calc(100vw - 1rem)); background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
 		.signin-btn { display: inline-block; width: 130px; text-align: center; background: #facc15; border: 1px solid #f59e0b; color: #111827; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 7px; }
 		.signin-btn:hover { background: #fbbf24; }
 		.account-col-title { font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
@@ -70,7 +70,9 @@
 	<nav class="fixed top-0 w-full z-[100] glass">
 		<div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
 			<div class="flex items-center gap-2 shrink-0">
-				<button class="p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
+				<a href="all_product_spages.html" class="md:hidden p-2" aria-label="Search">
+					<i data-lucide="search" class="w-5 h-5"></i>
+				</a>
 				<a href="homepage.html" class="text-2xl font-bold tracking-tighter uppercase shrink-0">Lumina</a>
 			</div>
 
@@ -80,24 +82,24 @@
 			</div>
 
 			<div class="flex items-center gap-2 lg:gap-6 shrink-0">
-				<div id="accountMenuWrap" class="relative group">
-					<button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
-						<i data-lucide="user" class="w-5 h-5"></i>
+				<div id="accountMenuWrap" class="relative group max-sm:w-full">
+					<button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors max-sm:justify-center max-sm:px-3">
+						<i data-lucide="user" class="w-5 h-5 text-gray-700"></i>
 						<span id="accountMenuLabel" class="hidden sm:block text-xs font-bold uppercase tracking-widest">Account</span>
 					</button>
-					<div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block">
+					<div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block max-sm:fixed max-sm:inset-x-2 max-sm:top-20 max-sm:bottom-auto max-sm:rounded-2xl max-sm:shadow-2xl max-sm:max-h-[calc(100vh-5rem)] max-sm:overflow-y-auto">
 						<div id="accountMenuContent" class="account-flyout"></div>
 					</div>
 				</div>
 				<a href="cart.html" class="relative p-2">
-					<i data-lucide="shopping-cart" class="w-5 h-5"></i>
-					<span class="absolute top-0 right-0 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">3</span>
+					<i data-lucide="shopping-cart" class="w-5 h-5 text-gray-700"></i>
+					<span id="cartCountBadge" class="absolute top-0 right-0 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">3</span>
 				</a>
 				<a href="wishlist.html" class="p-2 relative">
-					<i data-lucide="heart" class="w-5 h-5"></i>
+					<i data-lucide="heart" class="w-5 h-5 text-gray-700"></i>
 					<span id="wishlistBadge" class="absolute top-0 right-0 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
 				</a>
-				<button class="md:hidden p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
+				
 			</div>
 		</div>
 	</nav>
@@ -248,6 +250,9 @@
 	</footer>
 
 	<script>
+		// Initialize Lucide icons immediately
+		if (window.lucide) lucide.createIcons();
+
 		function resolveAuthState() {
 			const state = { isLoggedIn: false, fullName: '' };
 
@@ -326,7 +331,7 @@
 							<a href="my_addresses.html" class="account-link">My Addresses</a>
 							<a href="my_messages.html" class="account-link">Messages</a>
 							<a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
-							<a href="security_settings.html" class="account-link">Security Settings</a>
+
 							<a href="help_support.html" class="account-link">Help & Support</a>
 						</div>
 					</div>
@@ -340,73 +345,69 @@
 
 		if (accountMenuButton && accountMenuDropdown) {
 			accountMenuButton.addEventListener('click', () => {
-				accountMenuDropdown.classList.toggle('hidden');
-			});
+                const isHidden = accountMenuDropdown.classList.contains('hidden');
+                accountMenuDropdown.classList.toggle('hidden', !isHidden);
+                if (!isHidden) {
+                    accountMenuDropdown.classList.add('hidden');
+                }
+            });
 
-			document.addEventListener('click', (event) => {
-				if (accountMenuWrap && !accountMenuWrap.contains(event.target)) {
-					accountMenuDropdown.classList.add('hidden');
-				}
-			});
-		}
+            document.addEventListener('click', (event) => {
+                if (accountMenuWrap && !accountMenuWrap.contains(event.target)) {
+                    accountMenuDropdown.classList.add('hidden');
+                }
+            });
+        }
 
-		renderAccountFlyout();
-		lucide.createIcons();
+        const API_BASE_URL = `${window.location.origin}/api`;
+        const IS_LIVE_HOST = location.protocol !== 'file:';
 
-		const API_BASE_URL = localStorage.getItem('lumina.customer.apiBase') || 'http://localhost:5000';
-		const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
-		let wishlistData = [];
+        let wishlistData = [];
+        const selectedItems = new Set();
 
-		let selectedItems = new Set();
+        function parseStoredUser(rawValue) {
+            if (!rawValue) return '';
+            try {
+                const parsed = JSON.parse(rawValue);
+                return String(parsed?.id || parsed?.userId || parsed?.customerId || '').trim();
+            } catch (_) {
+                return '';
+            }
+        }
 
-		function parseStoredUser(rawUser) {
-			try {
-				if (!rawUser) return '';
-				const parsed = JSON.parse(rawUser);
-				const id = parsed.userId || parsed.id || parsed.customerId || parsed.customer_id;
-				if (id !== undefined && id !== null && String(id).trim()) {
-					return String(id).trim();
-				}
-			} catch (_) {
-				return '';
-			}
+        async function resolveCurrentUserId() {
+            if (!IS_LIVE_HOST) {
+                return 'user_1';
+            }
 
-			return '';
-		}
+            const storedUserId = parseStoredUser(localStorage.getItem('lumina.auth.user')) || parseStoredUser(localStorage.getItem('lumina.customer.session'));
+            if (storedUserId) {
+                return storedUserId;
+            }
 
-		async function resolveCurrentUserId() {
-			if (!IS_LIVE_HOST) {
-				return 'user_1';
-			}
+            const authToken = localStorage.getItem('lumina.auth.token');
+            if (authToken) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                        headers: { Authorization: `Bearer ${authToken}` }
+                    });
 
-			const storedUserId = parseStoredUser(localStorage.getItem('lumina.auth.user')) || parseStoredUser(localStorage.getItem('lumina.customer.session'));
-			if (storedUserId) {
-				return storedUserId;
-			}
+                    if (response.ok) {
+                        const result = await response.json();
+                        const userId = result?.data?.user?.id || result?.data?.session?.userId;
+                        if (userId && String(userId).trim()) {
+                            return String(userId).trim();
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Could not resolve user from auth token:', error.message);
+                }
+            }
 
-			const authToken = localStorage.getItem('lumina.auth.token');
-			if (authToken) {
-				try {
-					const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
-						headers: { Authorization: `Bearer ${authToken}` }
-					});
+            return 'user_1';
+        }
 
-					if (response.ok) {
-						const result = await response.json();
-						const userId = result?.data?.user?.id || result?.data?.session?.userId;
-						if (userId && String(userId).trim()) {
-							return String(userId).trim();
-						}
-					}
-				} catch (error) {
-					console.warn('Could not resolve user from auth token:', error.message);
-				}
-			}
-
-			return 'user_1';
-		}
-
-		function normalizeWishlistItem(item) {
+        function normalizeWishlistItem(item) {
 			const price = Number(item.price) || 0;
 			const originalPrice = Number(item.originalPrice) || price;
 			let discount = Number(item.discount);
@@ -416,9 +417,9 @@
 			}
 
 			return {
-				id: Number(item.id),
-				productId: Number(item.productId),
-				sellerId: Number(item.sellerId) || 0,
+				id: String(item.id),
+				productId: String(item.productId),
+				sellerId: String(item.sellerId),
 				sellerName: item.sellerName || 'Store',
 				sellerRating: Number(item.sellerRating) || Number(item.rating) || 0,
 				productName: item.productName || 'Product',
@@ -437,7 +438,7 @@
 			}
 
 			const userId = encodeURIComponent(await resolveCurrentUserId());
-			const response = await fetch(`${API_BASE_URL}/api/wishlist/${userId}?sortBy=dateAdded&order=desc`);
+			const response = await fetch(`${API_BASE_URL}/wishlist/${userId}?sortBy=dateAdded&order=desc`);
 
 			if (!response.ok) {
 				throw new Error(`Wishlist request failed with status ${response.status}`);
@@ -455,6 +456,7 @@
 				updateWishlistDisplay();
 				updateWishlistBadge();
 				updateSelectedItems();
+				await loadCartBadge();
 			} catch (error) {
 				console.error('Failed to load wishlist from API:', error);
 				wishlistData = [];
@@ -577,18 +579,18 @@
 
 							<!-- Buttons -->
 							<div class="flex gap-2">
-								<button onclick="removeFromWishlist(${item.id})" class="flex-1 border-2 border-red-500 text-red-500 py-2 rounded-lg font-semibold hover:bg-red-50 transition-all text-sm">
-									<i data-lucide="trash-2" class="w-4 h-4 inline-block mr-1"></i>
-									Remove
-								</button>
-								<button onclick="addToCart(${item.id})" ${isOutOfStock ? 'disabled' : ''} class="flex-1 bg-black text-white py-2 rounded-lg font-semibold hover:bg-gray-800 transition-all text-sm disabled:bg-gray-300 disabled:cursor-not-allowed">
-									<i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>
-									Add
-								</button>
-							</div>
+							<button onclick="removeFromWishlist('${item.id}')" class="flex-1 border-2 border-red-500 text-red-500 py-2 rounded-lg font-semibold hover:bg-red-50 transition-all text-sm">
+								<i data-lucide="trash-2" class="w-4 h-4 inline-block mr-1"></i>
+								Remove
+							</button>
+							<button onclick="addToCart('${item.id}')" ${isOutOfStock ? 'disabled' : ''} class="flex-1 bg-black text-white py-2 rounded-lg font-semibold hover:bg-gray-800 transition-all text-sm disabled:bg-gray-300 disabled:cursor-not-allowed">
+								<i data-lucide="shopping-cart" class="w-4 h-4 inline-block mr-1"></i>
+								Add
+							</button>
+						</div>
 
-							<!-- View Details Link -->
-							<button onclick="viewProductDetails(${item.productId})" class="w-full mt-2 text-blue-600 text-xs font-semibold hover:underline">
+						<!-- View Details Link -->
+						<button onclick="viewProductDetails('${item.productId}')" class="w-full mt-2 text-blue-600 text-xs font-semibold hover:underline">
 								View Details →
 							</button>
 						</div>
@@ -603,12 +605,13 @@
 
 		// Remove from Wishlist
 		async function removeFromWishlist(itemId) {
+			itemId = String(itemId);
 			if (!IS_LIVE_HOST) return;
 
 			if (confirm('Remove this item from your wishlist?')) {
 				try {
 					const userId = encodeURIComponent(await resolveCurrentUserId());
-					const response = await fetch(`${API_BASE_URL}/api/wishlist/${userId}/item/${itemId}`, {
+					const response = await fetch(`${API_BASE_URL}/wishlist/${userId}/item/${itemId}`, {
 						method: 'DELETE'
 					});
 
@@ -627,14 +630,15 @@
 
 		// Add to Cart
 		async function addToCart(itemId) {
+			itemId = String(itemId);
 			if (!IS_LIVE_HOST) return;
 
-			const item = wishlistData.find(p => p.id === itemId);
+			const item = wishlistData.find(p => String(p.id) === itemId);
 			if (!item) return;
 
 			try {
 				const userId = encodeURIComponent(await resolveCurrentUserId());
-				const response = await fetch(`${API_BASE_URL}/api/wishlist/${userId}/move-to-cart`, {
+				const response = await fetch(`${API_BASE_URL}/wishlist/${userId}/move-to-cart`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ itemIds: [itemId] })
@@ -661,10 +665,9 @@
 		function updateSelectedItems() {
 			selectedItems.clear();
 			document.querySelectorAll('.wishlist-checkbox:checked').forEach(checkbox => {
-				selectedItems.add(parseInt(checkbox.dataset.id));
+				selectedItems.add(String(checkbox.dataset.id));
 			});
 
-			// Update action button state
 			document.getElementById('addToCartBtn').disabled = selectedItems.size === 0;
 
 			// Show/hide price summary
@@ -715,7 +718,7 @@
 
 			try {
 				const userId = encodeURIComponent(await resolveCurrentUserId());
-				const response = await fetch(`${API_BASE_URL}/api/wishlist/${userId}/move-to-cart`, {
+				const response = await fetch(`${API_BASE_URL}/wishlist/${userId}/move-to-cart`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ itemIds: Array.from(selectedItems) })
@@ -741,7 +744,7 @@
 			if (confirm('Are you sure you want to clear your entire wishlist? This action cannot be undone.')) {
 				try {
 					const userId = encodeURIComponent(await resolveCurrentUserId());
-					const response = await fetch(`${API_BASE_URL}/api/wishlist/${userId}`, {
+					const response = await fetch(`${API_BASE_URL}/wishlist/${userId}`, {
 						method: 'DELETE'
 					});
 
@@ -765,26 +768,46 @@
 			document.getElementById('wishlistBadgeStat').textContent = wishlistData.length;
 		}
 
+		async function loadCartBadge() {
+			if (!IS_LIVE_HOST) return;
+
+			try {
+				const userId = encodeURIComponent(await resolveCurrentUserId());
+				const response = await fetch(`${API_BASE_URL}/cart?userId=${userId}`);
+				if (!response.ok) {
+					throw new Error(`Failed to fetch cart badge: ${response.status}`);
+				}
+				const result = await response.json();
+				const count = Number(result?.data?.totalItems ?? result?.data?.itemCount ?? 0);
+				const cartBadge = document.getElementById('cartCountBadge') || document.querySelector('a[href="cart.html"] span');
+				if (cartBadge) {
+					cartBadge.textContent = String(count);
+				}
+			} catch (error) {
+				console.warn('Unable to load cart badge:', error);
+			}
+		}
+
 		// Toggle Wishlist (Heart Icon)
 		async function toggleWishlistItem(productId) {
 			if (!IS_LIVE_HOST) return;
 
 			try {
 				const userId = encodeURIComponent(await resolveCurrentUserId());
-				const exists = wishlistData.some(item => item.productId === Number(productId));
+				const exists = wishlistData.some(item => item.productId === String(productId));
 
 				if (exists) {
-					const removeResponse = await fetch(`${API_BASE_URL}/api/wishlist/${userId}/product/${productId}`, {
+					const removeResponse = await fetch(`${API_BASE_URL}/wishlist/${userId}/product/${encodeURIComponent(String(productId))}`, {
 						method: 'DELETE'
 					});
 					if (!removeResponse.ok) {
 						throw new Error('Failed to remove product from wishlist');
 					}
 				} else {
-					const addResponse = await fetch(`${API_BASE_URL}/api/wishlist/${userId}`, {
+					const addResponse = await fetch(`${API_BASE_URL}/wishlist/${userId}`, {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ productId: Number(productId) })
+						body: JSON.stringify({ productId: String(productId) })
 					});
 					if (!addResponse.ok) {
 						throw new Error('Failed to add product to wishlist');
@@ -799,6 +822,7 @@
 
 		// Initialize on page load
 		document.addEventListener('DOMContentLoaded', initWishlist);
+		renderAccountFlyout();
 	</script>
 </body>
 </html>

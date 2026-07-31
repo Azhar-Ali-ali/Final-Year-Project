@@ -1,0 +1,521 @@
+C:\files\Final-Year-Project\all_product_spages.html:298:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\all_product_spages.html:439:const resp = await fetch(`${API_BASE_URL}/visual-search?top_k=12`, {
+C:\files\Final-Year-Project\all_product_spages.html:1489:const response = await fetch(`${API_BASE_URL}/products/filters`);
+C:\files\Final-Year-Project\all_product_spages.html:1554:const recommendedResponse = await fetch(`${API_BASE_URL}/homepage?userId=${encodeURIComponent(userId)}&sectionLimit=50&flashDealLimit=0`);
+C:\files\Final-Year-Project\all_product_spages.html:1591:const trendingResponse = await fetch(`${API_BASE_URL}/homepage?sectionLimit=500&flashDealLimit=0`);
+C:\files\Final-Year-Project\all_product_spages.html:1628:const bestSellersResponse = await fetch(`${API_BASE_URL}/homepage?sectionLimit=500&flashDealLimit=0`);
+C:\files\Final-Year-Project\all_product_spages.html:1665:const dealsResponse = await fetch(`${API_BASE_URL}/homepage?sectionLimit=500&flashDealLimit=0`);
+C:\files\Final-Year-Project\all_product_spages.html:1702:const seasonalResponse = await fetch(`${API_BASE_URL}/homepage?sectionLimit=500&flashDealLimit=0`);
+C:\files\Final-Year-Project\all_product_spages.html:1737:const response = await fetch(`${API_BASE_URL}/products?${params.toString()}`);
+C:\files\Final-Year-Project\all_product_spages.html:1869:const res = await fetch(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\all_product_spages.html:1880:alert('Open site on localhost to add products to cart');
+C:\files\Final-Year-Project\all_product_spages.html:1886:const res = await fetch(`${API_BASE_URL}/cart/items?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\all_product_spages.html:1908:alert('Open site on localhost to add favorites');
+C:\files\Final-Year-Project\all_product_spages.html:1914:const res = await fetch(`${API_BASE_URL}/wishlist/${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\auth.js:51:var sameSite = (location.protocol === 'https:' && location.hostname !== 'localhost') ? 'None' : 'Lax';
+C:\files\Final-Year-Project\auth.js:354:return _origFetch(newReq, init);
+C:\files\Final-Year-Project\auth.js:359:return _origFetch(input, init);
+C:\files\Final-Year-Project\auth.js:361:return _origFetch(input, init);
+C:\files\Final-Year-Project\cart.html:355:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\cart.html:417:const response = await fetch(`${API_BASE_URL}/cart?userId=${userId}`);
+C:\files\Final-Year-Project\cart.html:613:const response = await fetch(`${API_BASE_URL}/cart/items/${id}?userId=${userId}`, {
+C:\files\Final-Year-Project\cart.html:645:const response = await fetch(`${API_BASE_URL}/cart/items/${id}?userId=${userId}`, {
+C:\files\Final-Year-Project\cart.html:675:const addResponse = await fetch(`${API_BASE_URL}/wishlist/${userId}`, {
+C:\files\Final-Year-Project\cart.html:685:const removeResponse = await fetch(`${API_BASE_URL}/cart/items/${id}?userId=${userId}`, {
+C:\files\Final-Year-Project\checkout.html:629:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\checkout.html:641:const response = await fetch(url, {
+C:\files\Final-Year-Project\checkout.html:661:const res = await fetch(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\checkout.html:849:const summary = normalizeCheckoutSummary(await fetchJson(`${API_BASE_URL}/checkout/summary?userId=${encodeURIComponent(userId)}`));
+C:\files\Final-Year-Project\checkout.html:894:const data = await fetchJson(`${API_BASE_URL}/checkout/addresses?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\checkout.html:1061:const endpoint = isEdit ? `${API_BASE_URL}/checkout/addresses/${encodeURIComponent(editingAddressId)}` : `${API_BASE_URL}/checkout/addresses`;
+C:\files\Final-Year-Project\checkout.html:1144:const result = await fetchJson(`${API_BASE_URL}/checkout/place-order`, {
+C:\files\Final-Year-Project\checkout.html:1164:const piResp = await fetchJson(`${API_BASE_URL}/checkout/create-payment-intent`, {
+C:\files\Final-Year-Project\checkout.html:1255:const cfg = await fetchJson(`${API_BASE_URL}/checkout/stripe-config`);
+C:\files\Final-Year-Project\Customer_Dashboard.html:664:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Customer_Dashboard.html:680:const response = await fetch(url);
+C:\files\Final-Year-Project\Customer_Dashboard.html:842:const payload = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\Customer_Dashboard.html:857:const data = await fetchJson(`${API_BASE_URL}/customer/dashboard/overview?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\digitalocean-nginx.conf:54:proxy_pass http://127.0.0.1:5000;
+C:\files\Final-Year-Project\digitalocean-nginx.conf:70:proxy_pass http://127.0.0.1:5000/socket.io/;
+C:\files\Final-Year-Project\digitalocean-nginx.conf:86:proxy_pass http://127.0.0.1:5000;
+C:\files\Final-Year-Project\fix_api_paths.py:24:text = text.replace('${API_BASE_URL}/api/', '${API_BASE_URL}/')
+C:\files\Final-Year-Project\fix_api_paths.py:25:text = text.replace('${API_BASE}/api/', '${API_BASE}/')
+C:\files\Final-Year-Project\fix_api_paths.py:26:text = text.replace('${ADMIN_API_BASE_URL}/api/', '${ADMIN_API_BASE_URL}/')
+C:\files\Final-Year-Project\fix_api_paths.py:27:text = text.replace("${ADMIN_API_BASE_URL}/api/admin/auth/login", "${ADMIN_API_BASE_URL}/admin/auth/login")
+C:\files\Final-Year-Project\fix_api_paths.py:28:text = text.replace("${API_BASE_URL}/api/admin/dashboard/notifications", "${API_BASE_URL}/admin/dashboard/notifications")
+C:\files\Final-Year-Project\fix_api_paths.py:29:text = text.replace("'http://localhost:5000/api/admin/reports'", "`${window.location.origin}/api/admin/reports`")
+C:\files\Final-Year-Project\fix_api_paths.py:30:text = text.replace("'http://localhost:5000'", "window.location.origin")
+C:\files\Final-Year-Project\fix_api_paths.py:31:text = text.replace("'http://127.0.0.1:5000'", "window.location.origin")
+C:\files\Final-Year-Project\fix_api_urls.py:20:text = text.replace('${API_BASE_URL}/api/', '${API_BASE_URL}/')
+C:\files\Final-Year-Project\fix_api_urls.py:21:text = text.replace('${API_BASE}/api/', '${API_BASE}/')
+C:\files\Final-Year-Project\fix_api_urls.py:22:text = text.replace('${ADMIN_API_BASE_URL}/api/', '${ADMIN_API_BASE_URL}/')
+C:\files\Final-Year-Project\fix_api_urls.py:23:text = text.replace('${ADMIN_API_BASE_URL}/admin/auth/login', '${ADMIN_API_BASE_URL}/admin/auth/login')
+C:\files\Final-Year-Project\fix_api_urls.py:24:text = text.replace('${API_BASE_URL}/api/admin/dashboard/notifications', '${API_BASE_URL}/admin/dashboard/notifications')
+C:\files\Final-Year-Project\fix_api_urls.py:25:text = text.replace("${ADMIN_API_BASE_URL}/api/admin/auth/login", "${ADMIN_API_BASE_URL}/admin/auth/login")
+C:\files\Final-Year-Project\help_support.html:337:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\help_support.html:352:const response = await fetch(url, {
+C:\files\Final-Year-Project\help_support.html:629:const payload = await fetchJson(`${API_BASE_URL}/customer/support/tickets/${encodeURIComponent(ticketId)}/messages?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\help_support.html:692:await fetchJson(`${API_BASE_URL}/customer/support/tickets/${encodeURIComponent(activeTicketId)}/messages?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\help_support.html:777:await fetchJson(`${API_BASE_URL}/customer/support/tickets?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\help_support.html:812:const payload = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\help_support.html:828:fetchJson(`${API_BASE_URL}/customer/support/tickets?userId=${encodeURIComponent(userId)}&status=${encodeURIComponent(status)}&page=1&pageSize=100`),
+C:\files\Final-Year-Project\help_support.html:829:fetchJson(`${API_BASE_URL}/customer/support/tickets/stats?userId=${encodeURIComponent(userId)}`)
+C:\files\Final-Year-Project\homepage.html:659:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\homepage.html:703:const response = await fetch(url);
+C:\files\Final-Year-Project\homepage.html:882:const res = await fetch(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\homepage.html:902:const res = await fetch(`${API_BASE_URL}/cart/items?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\homepage.html:929:const res = await fetch(`${API_BASE_URL}/wishlist/${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\homepage.html:980:const homepageUrl = new URL(`${API_BASE_URL}/homepage`);
+C:\files\Final-Year-Project\kyc_validate.ps1:2:$baseUrl='http://localhost:5000'
+C:\files\Final-Year-Project\login_register.html:509:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\login_register.html:519:throw new Error('Open this page on localhost to use database-backed login and register forms.');
+C:\files\Final-Year-Project\login_register.html:521:const response = await fetch(`${API_BASE_URL}${path}`, {
+C:\files\Final-Year-Project\my_addresses.html:231:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\my_addresses.html:247:throw new Error('Open this page on localhost to use database-backed address data.');
+C:\files\Final-Year-Project\my_addresses.html:250:const response = await fetch(url, {
+C:\files\Final-Year-Project\my_addresses.html:388:const data = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\my_addresses.html:411:const summary = await fetchJson(`${API_BASE_URL}/customer/addresses/summary?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\my_addresses.html:532:await fetchJson(`${API_BASE_URL}/customer/addresses/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\my_addresses.html:546:await fetchJson(`${API_BASE_URL}/customer/addresses/${encodeURIComponent(id)}/default?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\my_addresses.html:600:await fetchJson(`${API_BASE_URL}/customer/addresses/${encodeURIComponent(addressId)}?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\my_addresses.html:605:await fetchJson(`${API_BASE_URL}/customer/addresses?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\my_addresses.html:633:const list = await fetchJson(`${API_BASE_URL}/customer/addresses?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\my_messages.html:138:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\my_messages.html:158:const response = await fetch(url, {
+C:\files\Final-Year-Project\my_messages.html:357:const data = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\my_messages.html:463:const response = await fetch(`${API_BASE_URL}/customer/messages/threads/${encodeURIComponent(seller.id)}/messages?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\my_messages.html:529:const rows = await fetchJson(`${API_BASE_URL}/customer/messages/threads/${encodeURIComponent(seller.id)}/messages?userId=${encodeURIComponent(userId)}&limit=200`);
+C:\files\Final-Year-Project\my_messages.html:553:const rows = await fetchJson(`${API_BASE_URL}/customer/messages/threads?userId=${encodeURIComponent(userId)}&limit=100`);
+C:\files\Final-Year-Project\my_orders.html:476:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\my_orders.html:491:const response = await fetch(url, {
+C:\files\Final-Year-Project\my_orders.html:635:const payload = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\my_orders.html:806:await fetchJson(`${API_BASE_URL}/customer/orders/${encodeURIComponent(order.id)}/cancel?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\my_orders.html:852:const summary = await fetchJson(`${API_BASE_URL}/customer/orders/summary?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\my_orders.html:874:const payload = await fetchJson(`${API_BASE_URL}/customer/orders?userId=${encodeURIComponent(userId)}&status=${encodeURIComponent(status)}&search=${encodeURIComponent(search)}&page=1&pageSize=100`);
+C:\files\Final-Year-Project\my_profile.html:357:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\my_profile.html:373:throw new Error('Open this page on localhost to load database-backed profile data.');
+C:\files\Final-Year-Project\my_profile.html:376:const response = await fetch(url, {
+C:\files\Final-Year-Project\my_profile.html:524:const payload = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\my_profile.html:550:const profile = await fetchJson(`${API_BASE_URL}/customer/profile/me?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\my_profile.html:587:const data = await fetchJson(`${API_BASE_URL}/customer/profile/me?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\my_profile.html:635:const data = await fetchJson(`${API_BASE_URL}/customer/profile/me?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\my_profile.html:696:await fetchJson(`${API_BASE_URL}/customer/profile/password?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\my_profile.html:785:const response = await fetchJson(`${API_BASE_URL}/customer/profile/email?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\my_returns_refunds.html:112:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\my_returns_refunds.html:128:throw new Error('Open this page on localhost to load database-backed returns data.');
+C:\files\Final-Year-Project\my_returns_refunds.html:131:const response = await fetch(url, {
+C:\files\Final-Year-Project\my_returns_refunds.html:336:const data = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\my_returns_refunds.html:367:const data = await fetchJson(`${API_BASE_URL}/customer/returns/requests?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\order_details.html:168:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\order_details.html:191:throw new Error('Open this page on localhost to load database-backed order details.');
+C:\files\Final-Year-Project\order_details.html:194:const response = await fetch(url, {
+C:\files\Final-Year-Project\order_details.html:335:const invoice = await fetchJson(`${API_BASE_URL}/orders/${encodeURIComponent(order.id)}/invoice?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\order_details.html:402:result = await fetchJson(`${API_BASE_URL}/customer/returns/requests?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\order_details.html:423:document.getElementById('orderIntro').textContent = 'Open on localhost to load live order details.';
+C:\files\Final-Year-Project\order_details.html:436:const data = await fetchJson(`${API_BASE_URL}/orders/${encodeURIComponent(orderId)}/details?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\package-lock.json:316:"node_modules/gaxios": {
+C:\files\Final-Year-Project\package-lock.json:318:"resolved": "https://registry.npmjs.org/gaxios/-/gaxios-7.2.0.tgz",
+C:\files\Final-Year-Project\package-lock.json:336:"gaxios": "^7.0.0",
+C:\files\Final-Year-Project\package-lock.json:352:"gaxios": "^7.1.4",
+C:\files\Final-Year-Project\products_details.html:464:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\products_details.html:486:const response = await fetch(url, {
+C:\files\Final-Year-Project\products_details.html:1256:const data = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\products_details.html:1272:const data = await fetchJson(`${API_BASE_URL}/product-details/${encodeURIComponent(currentProductRef)}/reviews?page=1&limit=6&userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\products_details.html:1289:const data = await fetchJson(`${API_BASE_URL}/product-details/${encodeURIComponent(currentProductRef)}/related?limit=8`);
+C:\files\Final-Year-Project\products_details.html:1303:await fetchJson(`${API_BASE_URL}/product-details/${encodeURIComponent(currentProductRef)}/reviews/${encodeURIComponent(editingReviewId)}?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\products_details.html:1344:? `${API_BASE_URL}/product-details/${encodeURIComponent(currentProductRef)}/reviews/${encodeURIComponent(editingReviewId)}?userId=${encodeURIComponent(userId)}`
+C:\files\Final-Year-Project\products_details.html:1345:: `${API_BASE_URL}/product-details/${encodeURIComponent(currentProductRef)}/reviews?userId=${encodeURIComponent(userId)}`;
+C:\files\Final-Year-Project\products_details.html:1370:await fetchJson(`${API_BASE_URL}/cart/items?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\products_details.html:1390:await fetchJson(`${API_BASE_URL}/wishlist/${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\products_details.html:1436:const data = await fetchJson(`${API_BASE_URL}/product-details/${encodeURIComponent(currentProductRef)}?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\README.md:78:python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+C:\files\Final-Year-Project\README.md:86:Invoke-WebRequest -Uri "http://127.0.0.1:8000/api/health" -UseBasicParsing
+C:\files\Final-Year-Project\README.md:96:- **Health Check**: `http://127.0.0.1:8000/api/health`
+C:\files\Final-Year-Project\README.md:97:- **Visual Search**: `http://127.0.0.1:8000/api/visual-search`
+C:\files\Final-Year-Project\README.md:98:- **Documentation**: `http://127.0.0.1:8000/docs` (Swagger UI)
+C:\files\Final-Year-Project\README.md:113:$env:DATABASE_URL = "postgres://postgres:1234@localhost:5432/lumina"
+C:\files\Final-Year-Project\README.md:141:Invoke-WebRequest -Uri "http://localhost:5000/api/health" -UseBasicParsing
+C:\files\Final-Year-Project\README.md:148:- **Website**: `http://localhost:5000`
+C:\files\Final-Year-Project\README.md:149:- **Admin Panel**: `http://localhost:5000/Front_End/Admin/pages/admin_login.html`
+C:\files\Final-Year-Project\README.md:150:- **Seller Dashboard**: `http://localhost:5000/seller-pages/Dashboard.html`
+C:\files\Final-Year-Project\README.md:151:- **Product Details**: `http://localhost:5000/products_details.html?id=PRODUCT_ID`
+C:\files\Final-Year-Project\README.md:152:- **All Products**: `http://localhost:5000/all_product_spages.html`
+C:\files\Final-Year-Project\README.md:164:python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+C:\files\Final-Year-Project\README.md:171:$env:DATABASE_URL = "postgres://postgres:1234@localhost:5432/lumina"
+C:\files\Final-Year-Project\README.md:179:Uvicorn running on http://127.0.0.1:8000
+C:\files\Final-Year-Project\README.md:185:Server running on http://localhost:5000
+C:\files\Final-Year-Project\README.md:284:python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+C:\files\Final-Year-Project\README.md:288:$env:DATABASE_URL = "postgres://postgres:1234@localhost:5432/lumina"
+C:\files\Final-Year-Project\README.md:293:# Website: http://localhost:5000
+C:\files\Final-Year-Project\README.md:294:# Admin: http://localhost:5000/Front_End/Admin/pages/admin_login.html
+C:\files\Final-Year-Project\README.md:295:# AI Health: http://127.0.0.1:8000/api/health
+C:\files\Final-Year-Project\reset-password.html:129:const response = await fetch(`${apiBaseUrl}${path}`, {
+C:\files\Final-Year-Project\return_request_details.html:243:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\return_request_details.html:259:throw new Error('Open this page on localhost to load database-backed return request details.');
+C:\files\Final-Year-Project\return_request_details.html:262:const response = await fetch(url, {
+C:\files\Final-Year-Project\return_request_details.html:455:const data = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\return_request_details.html:566:await fetchJson(`${API_BASE_URL}/customer/returns/requests/${encodeURIComponent(data.returnRequestId)}/cancel?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\return_request_details.html:580:document.getElementById('timelineList').innerHTML = '<p class="text-sm text-gray-500">Open on localhost to load live return request details.</p>';
+C:\files\Final-Year-Project\return_request_details.html:598:? await fetchJson(`${API_BASE_URL}/customer/returns/requests/${encodeURIComponent(requestId)}?userId=${encodeURIComponent(userId)}`)
+C:\files\Final-Year-Project\return_request_details.html:599:: await fetchJson(`${API_BASE_URL}/customer/returns/requests/by-order/${encodeURIComponent(orderId)}?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\return_request_details.html:601:const timeline = await fetchJson(`${API_BASE_URL}/customer/returns/requests/${encodeURIComponent(request.returnRequestId)}/timeline?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\sellerprofile.html:268:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\sellerprofile.html:288:throw new Error('Open this page on localhost to load seller data from database.');
+C:\files\Final-Year-Project\sellerprofile.html:291:const response = await fetch(url, {
+C:\files\Final-Year-Project\sellerprofile.html:330:const res = await fetch(`${API_BASE_URL}/wishlist/${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\sellerprofile.html:653:const url = `${API_BASE_URL}/customer/sellers/profile?sellerId=${encodeURIComponent(sellerKey)}&userId=${encodeURIComponent(userId)}&limit=500`;
+C:\files\Final-Year-Project\sellerprofile.html:764:document.getElementById('aboutSellerText').textContent = 'Seller data is available only on localhost runtime.';
+C:\files\Final-Year-Project\sellerprofile.html:780:const cart = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\temp-check-login.js:5:hostname: '127.0.0.1',
+C:\files\Final-Year-Project\temp_update_api_base.py:19:("const API_BASE_URL = 'http://localhost:5000/api';", "const API_BASE_URL = `${window.location.origin}/api`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:20:("const API_BASE_URL = (location.protocol === 'file:' ? 'http://localhost:5000' : `${location.protocol}//${location.hostname}:5000`);", "const API_BASE_URL = `${window.location.origin}/api`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:21:("const API_BASE_URL = (location.protocol === 'file:' ? 'http://localhost:5000/api' : `${location.protocol}//${location.hostname}:5000/api`);", "const API_BASE_URL = `${window.location.origin}/api`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:22:("const API_BASE_URL = window.ADMIN_API_BASE_URL || 'http://localhost:5000';", "const API_BASE_URL = window.ADMIN_API_BASE_URL || window.location.origin;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:23:("const ADMIN_API_BASE_URL = window.ADMIN_API_BASE_URL || 'http://localhost:5000';", "const ADMIN_API_BASE_URL = window.ADMIN_API_BASE_URL || window.location.origin;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:24:("const API_BASE_URL = 'http://localhost:5000';", "const API_BASE_URL = window.location.origin;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:25:("const API_BASE = 'http://localhost:5000/api/seller/dashboard';", "const API_BASE = `${window.location.origin}/api/seller/dashboard`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:26:("const API_BASE = 'http://localhost:5000/api/seller/inventory';", "const API_BASE = `${window.location.origin}/api/seller/inventory`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:27:("const API_BASE = 'http://localhost:5000/api/seller/payments';", "const API_BASE = `${window.location.origin}/api/seller/payments`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:28:("const API_BASE = 'http://localhost:5000/api/seller/products';", "const API_BASE = `${window.location.origin}/api/seller/products`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:29:("const API_BASE = 'http://localhost:5000/api/seller/messages';", "const API_BASE = `${window.location.origin}/api/seller/messages`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:30:("const SOCKET_URL = 'http://localhost:5000';", "const SOCKET_URL = window.location.origin;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:31:("const API_BASE = 'http://localhost:5000/api/seller/returns';", "const API_BASE = `${window.location.origin}/api/seller/returns`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:32:("const API_BASE = 'http://localhost:5000/api/seller/performance';", "const API_BASE = `${window.location.origin}/api/seller/performance`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:33:("const API_BASE = 'http://localhost:5000/api/seller/settings';", "const API_BASE = `${window.location.origin}/api/seller/settings`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:34:("const API_BASE = 'http://localhost:5000/api/seller/disputes';", "const API_BASE = `${window.location.origin}/api/seller/disputes`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:35:("const API_BASE = 'http://localhost:5000/api/admin/support';", "const API_BASE = `${window.location.origin}/api/admin/support`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:36:("const API_BASE = 'http://localhost:5000/api/admin/users';", "const API_BASE = `${window.location.origin}/api/admin/users`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:37:("return 'http://localhost:5000/api/admin/reports';", "return `${window.location.origin}/api/admin/reports`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:45:text = text.replace('${API_BASE_URL}/api/', '${API_BASE_URL}/')
+C:\files\Final-Year-Project\temp_update_api_base.py:46:text = text.replace('${API_BASE}/api/', '${API_BASE}/')
+C:\files\Final-Year-Project\temp_verify_visual.py:13:req = urllib.request.Request('http://127.0.0.1:5000/api/visual-search?top_k=3', data=b''.join(body), method='POST')
+C:\files\Final-Year-Project\track_refund.html:153:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\track_refund.html:169:throw new Error('Open this page on localhost to load refund tracking data.');
+C:\files\Final-Year-Project\track_refund.html:172:const response = await fetch(url, {
+C:\files\Final-Year-Project\track_refund.html:338:const payload = await fetchJson(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\track_refund.html:412:? await fetchJson(`${API_BASE_URL}/customer/returns/requests/${encodeURIComponent(requestId)}/refund-tracking?userId=${encodeURIComponent(userId)}`)
+C:\files\Final-Year-Project\track_refund.html:413:: await fetchJson(`${API_BASE_URL}/customer/returns/requests/by-order/${encodeURIComponent(orderId)}/refund-tracking?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\wishlist.html:362:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\wishlist.html:391:const response = await fetch(`${API_BASE_URL}/auth/me`, {
+C:\files\Final-Year-Project\wishlist.html:441:const response = await fetch(`${API_BASE_URL}/wishlist/${userId}?sortBy=dateAdded&order=desc`);
+C:\files\Final-Year-Project\wishlist.html:614:const response = await fetch(`${API_BASE_URL}/wishlist/${userId}/item/${itemId}`, {
+C:\files\Final-Year-Project\wishlist.html:641:const response = await fetch(`${API_BASE_URL}/wishlist/${userId}/move-to-cart`, {
+C:\files\Final-Year-Project\wishlist.html:721:const response = await fetch(`${API_BASE_URL}/wishlist/${userId}/move-to-cart`, {
+C:\files\Final-Year-Project\wishlist.html:747:const response = await fetch(`${API_BASE_URL}/wishlist/${userId}`, {
+C:\files\Final-Year-Project\wishlist.html:776:const response = await fetch(`${API_BASE_URL}/cart?userId=${userId}`);
+C:\files\Final-Year-Project\wishlist.html:800:const removeResponse = await fetch(`${API_BASE_URL}/wishlist/${userId}/product/${encodeURIComponent(String(productId))}`, {
+C:\files\Final-Year-Project\wishlist.html:807:const addResponse = await fetch(`${API_BASE_URL}/wishlist/${userId}`, {
+C:\files\Final-Year-Project\AI-Clothing-AI\all_product_spages.html:289:const API_BASE_URL = `${window.location.origin}/api`;
+C:\files\Final-Year-Project\AI-Clothing-AI\all_product_spages.html:426:const resp = await fetch(`${API_BASE_URL}/visual-search?top_k=12`, {
+C:\files\Final-Year-Project\AI-Clothing-AI\all_product_spages.html:1454:const response = await fetch(`${API_BASE_URL}/products/filters`);
+C:\files\Final-Year-Project\AI-Clothing-AI\all_product_spages.html:1519:const recommendedResponse = await fetch(`${API_BASE_URL}/homepage?userId=${encodeURIComponent(userId)}&sectionLimit=50&flashDealLimit=0`);
+C:\files\Final-Year-Project\AI-Clothing-AI\all_product_spages.html:1556:const trendingResponse = await fetch(`${API_BASE_URL}/homepage?sectionLimit=500&flashDealLimit=0`);
+C:\files\Final-Year-Project\AI-Clothing-AI\all_product_spages.html:1593:const bestSellersResponse = await fetch(`${API_BASE_URL}/homepage?sectionLimit=500&flashDealLimit=0`);
+C:\files\Final-Year-Project\AI-Clothing-AI\all_product_spages.html:1630:const dealsResponse = await fetch(`${API_BASE_URL}/homepage?sectionLimit=500&flashDealLimit=0`);
+C:\files\Final-Year-Project\AI-Clothing-AI\all_product_spages.html:1667:const seasonalResponse = await fetch(`${API_BASE_URL}/homepage?sectionLimit=500&flashDealLimit=0`);
+C:\files\Final-Year-Project\AI-Clothing-AI\all_product_spages.html:1702:const response = await fetch(`${API_BASE_URL}/products?${params.toString()}`);
+C:\files\Final-Year-Project\AI-Clothing-AI\all_product_spages.html:1834:const res = await fetch(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+C:\files\Final-Year-Project\AI-Clothing-AI\all_product_spages.html:1845:alert('Open site on localhost to add products to cart');
+C:\files\Final-Year-Project\AI-Clothing-AI\all_product_spages.html:1851:const res = await fetch(`${API_BASE_URL}/cart/items?userId=${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\AI-Clothing-AI\all_product_spages.html:1873:alert('Open site on localhost to add favorites');
+C:\files\Final-Year-Project\AI-Clothing-AI\all_product_spages.html:1879:const res = await fetch(`${API_BASE_URL}/wishlist/${encodeURIComponent(userId)}`, {
+C:\files\Final-Year-Project\AI-Clothing-AI\db_catalog_sample.json:425:"image_url": "http://127.0.0.1:5000/uploads/products/b651ebf1-e479-481e-b99f--1fb3a735-e8c6-42c2-8ccb--hanes-men-s-hoodie-ecosmart-fleece-hooded-sweatshirt-for-men-women-midweight-fleece-big-tall-available-1783853755952-1-7a3c44db270b.jpg"
+C:\files\Final-Year-Project\AI-Clothing-AI\db_catalog_sample.json:985:"image_url": "http://127.0.0.1:5000/uploads/products/b651ebf1-e479-481e-b99f--c2d0db3f-116f-4391-8d91--kid-clothes-1783772269560-1-35b28b7cf19a.png"
+C:\files\Final-Year-Project\AI-Clothing-AI\app\main.py:16:"http://localhost:3000",
+C:\files\Final-Year-Project\AI-Clothing-AI\app\main.py:17:"http://localhost:5000",
+C:\files\Final-Year-Project\AI-Clothing-AI\app\main.py:18:"http://127.0.0.1:5000",
+C:\files\Final-Year-Project\AI-Clothing-AI\app\main.py:19:"http://localhost:8000",
+C:\files\Final-Year-Project\AI-Clothing-AI\app\main.py:20:"http://127.0.0.1:8000",
+C:\files\Final-Year-Project\AI-Clothing-AI\artifacts\fashion_catalog.pkl:2:product_id??$b1795318-e246-4752-a94c-8868e10dd85b??title??Classic Formal Belt??	image_url??Dhttps://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80?u}?(h?$49f71be4-f19b-4272-a4ab-ef522b96424a?h?Formal Office Jumpsuit?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$9c8b0ca8-77ad-415e-8c15-4e22ea990ca9?h?Genuine Leather Belt?h?Dhttps://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80?u}?(h?$73d9bc27-31c0-4e43-a0c1-02d97ba0018e?h?Denim Varsity Jacket?h?Ghttps://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80?u}?(h?$dc367a22-6ae0-4026-b141-1d14f0190a6e?h?Relaxed Denim Jogger Jeans?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$00eec85b-535c-47a3-87c6-079e968dcbbf?h?Cartoon Explorer T-Shirt?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$d596f5cf-b38e-48d6-a4be-650821b5d287?h?Cartoon Character Dress?h?Ghttps://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&q=80?u}?(h?$0a66305d-1480-430b-879d-1a5effb09cbc?h?Princess Party Dress?h?Ghttps://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&q=80?u}?(h?$14263293-0594-44fc-9272-5568f7150e8a?h?Everyday Jogger Pants?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$d9e0a746-4d72-4f89-af49-c5e52d649448?h?bTween Girls Clothes Short Sleeve Graphic T-Shirt Top + Cargo Pants 2pcs Outfit Set, Size 7-15Years?h?\https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80?u}?(h?$ff462ad6-c71c-493f-8383-a4468b161bf6?h?Floral Office Blouse?h?Ghttps://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80?u}?(h?$86056028-f3aa-440f-83a5-83cc2318e7f6?h?Minimal Style Jumpsuit?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$0c74dfcf-1433-4b7e-bea8-a6c201a119e5?h?Party Evening Jumpsuit?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$d6e1e6d7-779b-4b16-97ec-365e408fac82?h?Denim Utility Jumpsuit?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$d26e436c-c5a3-41c8-9b56-0ab186bdd861?h?Casual Wide Leg Jumpsuit?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$4a034377-d731-4f1d-833a-82017ca62454?h?Double Breasted Wool Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$4557a1c4-196b-407b-9754-da9fd664b09f?h?Heavy Winter Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$0c6f6e3a-74bf-494b-9fca-285c385a52bf?h?Winter Parka Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$386f37cc-7a24-4398-be59-be5a55a9ac28?h?Luxury Long Overcoat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$f65f6de3-36f1-4583-99cf-6b5f02cbc435?h?Premium Wool Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$f19ecd18-f099-42ed-8d5e-74b06beff35d?h?Chunky Knit Sweater?h?Ghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80?u}?(h?$6ef4ce99-7a26-480a-a5c3-80a09ddf3fa9?h?Satin Cocktail Dress?h?Ghttps://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&q=80?u}?(h?$f2630a6a-493f-4ec9-ac35-b4613aebcadd?h?Casual Shirt Dress?h?Ghttps://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&q=80?u}?(h?$6dad0ddc-fbd0-4320-be08-2315a1d87f65?h?Premium Oversized Sweatshirt?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$fb9c8290-3d91-4b92-abc1-c2f283492f22?h?Premium Designer Suit?h?Ghttps://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80?u}?(h?$5721b61d-3807-4cb1-b948-fb321a323911?h?Slim Fit Wedding Suit?h?Ghttps://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80?u}?(h?$a05a6835-8e4f-4d52-a8d9-18d11508ad41?h?Classic Black Tuxedo?h?Ghttps://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80?u}?(h?$31b6ae10-c65b-46c5-bfa7-fd69f20c62cb?h?Outdoor Travel Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$bf30a0bb-de4a-4325-a526-954eaf69792b?h?Three Piece Formal Suit?h?Ghttps://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80?u}?(h?$18dcd0c4-d85e-4fd3-b3b7-3c65023c9f0e?h?Casual Everyday Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$a1f4265c-2a87-4cbd-8dcc-af808c6cd1d3?h?Formal Business Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$fdb1237d-f13b-40c0-95c0-149149fa3353?h?Skinny Stretch Jeans?h?Ghttps://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80?u}?(h?$69eba660-584d-49ae-92e3-e9995efb7f24?h?Athletic Training Sweatshirt?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$65b96a46-9217-4445-acfe-753078c868f5?h?Belted Casual Jumpsuit?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$06049136-0b8f-4dc1-b449-17fb527b6303?h?Luxury Evening Tuxedo?h?Ghttps://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80?u}?(h?$9e8aeb04-5e9d-425b-a394-7167ee564cf4?h?Grey Formal Suit?h?Ghttps://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80?u}?(h?$781112c7-aca7-4096-882a-f938c8ede401?h?Navy Business Suit?h?Ghttps://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80?u}?(h?$4fd47a68-2804-4d87-aafb-447d4c836eb4?h?Luxury Wool Blend Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$035a5b43-a262-4bb1-b1d0-be043ef4b671?h?Two Piece Business Suit?h?Ghttps://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80?u}?(h?$9ddf8b1d-f26c-4077-9ebc-f35cdb7567f7?h?Long Winter Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$67070a0f-7cb7-414e-a071-0f4513ac0458?h?Waterproof Rain Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$2a5ae788-2dae-44a1-95c1-f8d42bfee231?h?Slim Fit Blue Jeans?h?Ghttps://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80?u}?(h?$e0295290-92ee-4d3a-8af8-345e5571c2ff?h?Minimalist Sweatshirt?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$5042048a-72bf-4caf-9630-39062e1a12b7?h?Crewneck Sweatshirt?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$70f763d9-7a6c-466b-b680-72fdc5c8c65a?h?Long Sleeve Polo Shirt?h?Ghttps://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80?u}?(h?$4decaf09-b76d-4cf2-b462-64b5c32fb636?h?Performance Sports Polo?h?Ghttps://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80?u}?(h?$ea4a31ee-67b0-46b5-b3bf-e34052b97a17?h?Striped Polo Shirt?h?Ghttps://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80?u}?(h?$5318ac71-20ef-451d-86c5-e375a4cfd940?h?Cotton Business Shirt?h?Ghttps://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80?u}?(h?$20504584-dd53-4d9c-ab38-fac8bf9ead22?h?Slim Fit Office Shirt?h?Ghttps://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80?u}?(h?$ed3fd86a-085d-48e2-ba29-763aa72b1e77?h?Floral Printed Casual Shirt?h?Ghttps://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80?u}?(h?$44988a85-065d-4adc-9a7a-7c05c187e468?h?Luxury Winter Overcoat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$1d4fc778-ac5d-42d7-a40d-3606f9cc2c64?h?Classic Wool Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$31b81b8b-0a8f-49a5-b481-3921be7abe43?h?Premium Cotton Sweatshirt?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$f2b0736f-9577-41b6-9542-d3e597b731be?h?Oversized Sweatshirt?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$79b1461f-587b-49a8-8fca-8760a45ca992?h?Cuban Collar Resort Shirt?h?Ghttps://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80?u}?(h?$9945124c-9c51-46a1-bd74-04b19559595f?h?Distressed Ripped Jeans?h?Ghttps://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80?u}?(h?$100c5d56-42b8-4eec-9deb-faf503cdf610?h?Classic Formal Business Blazer?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$966a059e-c4cd-4c85-9596-b86bf3732648?h?Premium Trench Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$983514d3-ec97-4bcb-a467-ac930705a8d7?h?Heavy Duty Parka Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$766b0d1e-a269-4b30-b497-329b0fe1fbb5?h?Premium Wedding Suit?h?Ghttps://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80?u}?(h?$6a597932-ec96-4911-bd45-7e2cada5bf46?h?Slim Fit Chino Trousers?h?Ghttps://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80?u}?(h?$d39990d3-7d4b-44f7-8b5e-98f778d64f7b?h?Stretch Comfort Jeans?h?Ghttps://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80?u}?(h?$a63fc4d2-37cf-4d49-a29c-b811b80ef1a4?h?Distressed Ripped Denim Jeans?h?Ghttps://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80?u}?(h?$67fda4be-98dc-4071-9851-e547898bba29?h?Running Performance Tracksuit?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$1fb3a735-e8c6-42c2-8ccb-04a453cef14c?h?pHanes Men's Hoodie - EcoSmart Fleece Hooded Sweatshirt for Men & Women - Midweight Fleece - Big & Tall Available?h??http://127.0.0.1:5000/uploads/products/b651ebf1-e479-481e-b99f--1fb3a735-e8c6-42c2-8ccb--hanes-men-s-hoodie-ecosmart-fleece-hooded-sweatshirt-for-men-women-midweight-fleece-big-tall-available-1783853755952-1-7a3c44db270b.jpg?u}?(h?$5db522a5-dec0-49cc-9bd1-71f9f9c5f203?h?Relaxed Straight Jeans?h?Ghttps://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80?u}?(h?$1347a343-89e0-4335-b354-6c50256724b4?h?Everyday Casual Jeans?h?Ghttps://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80?u}?(h?$b0c7d22a-b576-418c-bb4a-f28cc72d0c1c?h?Vintage Wash Jeans?h?Ghttps://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80?u}?(h?$3b539621-9cee-490b-8b5a-ca70427bae20?h?Slim Fit Stretch Jeans?h?Ghttps://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80?u}?(h?$f7ce6984-bbeb-4b3e-85f1-b83ce0fac0e2?h?Executive Business Suit?h?Ghttps://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80?u}?(h?$000e4ce6-ff42-40fc-b9a8-3d09e226d213?h?Double Breasted Trench Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$8a003888-e60d-4d36-ad4b-fbeb7f4365d3?h?Classic Denim Shirt?h?Ghttps://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80?u}?(h?$80f69e16-933a-4313-9df7-2c7d51ab5646?h?Faux Fur Winter Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$5c54b13d-c725-46b1-9749-2cce0eb88313?h?Elegant Long Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$c7d33383-b433-4dc7-84d9-fa256cd99e77?h?Classic Trench Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$9bcc5e2b-2801-4f25-bb76-595e7490db35?h?Everyday Comfort Sweater?h?Ghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80?u}?(h?$af59cc2a-2cf9-4181-a5a9-8c3401ad76e2?h?Minimalist Cotton Sweater?h?Ghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80?u}?(h?$85bb32fc-c2fe-4eef-8cd0-b53158654e13?h?Elegant Wrap Dress?h?Ghttps://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&q=80?u}?(h?$9683d46e-7fbd-4ad1-8423-4e72315f43c1?h?Modern Mini Dress?h?Ghttps://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&q=80?u}?(h?$e9270731-46f4-4f9b-9cde-3a51d8c14ea6?h?Chic Midi Dress?h?Ghttps://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&q=80?u}?(h?$0cc3f977-b869-45c1-80bd-bf0ae5c55a31?h?Classic Casual Cotton Dress?h?Ghttps://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&q=80?u}?(h?$4a6783ac-c719-48db-add5-70d1d0c99da7?h?Slim Fit Chinos?h?Ghttps://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80?u}?(h?$7ad198c1-0544-411e-913d-325250095fe5?h?Skinny Stretch Black Jeans?h?Ghttps://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80?u}?(h?$10087b42-1504-4e11-8035-de05ae470db9?h?Tapered Blue Denim Jeans?h?Ghttps://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80?u}?(h?$e6e1dc4d-81fc-42f5-98ea-20e3e7c2043a?h?Long Sleeve Office Polo?h?Ghttps://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80?u}?(h?$8b3cc4d7-cff1-454f-8276-c94eb35a97db?h?Classic Solid Polo Shirt?h?Ghttps://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80?u}?(h?$b13a7c6a-0c15-45e4-b496-71ddbc9bf983?h?Premium Linen Summer Shirt?h?Ghttps://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80?u}?(h?$2ab29dbf-7eb3-4454-86f3-ba8a2014436a?h?Business Oxford Shirt?h?Ghttps://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80?u}?(h?$10242184-5af1-4b9d-826f-3a7cb625ecaf?h?Oversized Urban Fashion Tee?h?Ghttps://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80?u}?(h?$4b63f886-c772-4cde-acf1-33244d2b1819?h?Vintage Graphic Print Tee?h?Ghttps://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80?u}?(h?$31948646-f260-40a9-a89c-950a2d270ea0?h? Premium Cotton Crew Neck T-Shirt?h?Ghttps://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80?u}?(h?$0a1d3887-77da-48b3-bf35-37d951a2b3a9?h?Classic Navy Formal Blazer?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$8a987d4c-554a-421d-ad3b-adadc6fe410e?h?Double Button Casual Blazer?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$20c30782-a5eb-4e00-89ec-e9a2c8113c7b?h?Velvet Party Blazer?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$2e5860e5-e9b2-4081-a581-c66e5aed780d?h?Crewneck Cotton Sweatshirt?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$c9cf4834-f840-43f4-94cd-e132dc78e36b?h?Elegant Long Sleeve Sweater?h?Ghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80?u}?(h?$6ad83379-48e6-445d-b30e-bb30d640743f?h?Relaxed Winter Sweater?h?Ghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80?u}?(h?$cf437aa0-5e4b-403c-8368-1a74ee7cf876?h?Premium Cashmere Sweater?h?Ghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80?u}?(h?$c91a9f6e-b4eb-40aa-a485-b4383a95b2e3?h?Belted Trench Coat?h?Ghttps://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80?u}?(h?$84b8d1a8-28a5-4b16-8d11-9196a94cd638?h?Lightweight Office Sweater?h?Ghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80?u}?(h?$2e532fc5-8d7e-4fbe-9740-f5ce697e64d7?h?Cropped Fashion Sweater?h?Ghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80?u}?(h?$7bdeaf5e-0be9-48ca-a3bc-4a7c300e5a8a?h?Soft Wool Sweater?h?Ghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80?u}?(h?$7c71cd05-c46d-4d49-a6ce-d5806f399300?h?Warm Turtleneck Sweater?h?Ghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80?u}?(h?$8fc456d6-5b70-4944-9117-ef4c6aead5db?h?Casual Stretch Leggings?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$5ee8250d-0b21-4170-bee2-4b231f1a7f8a?h?Winter Thermal Leggings?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$22274cb0-1180-4662-82a8-6850db3afacf?h?Compression Training Leggings?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$d5cf6fb9-1ed9-4e3f-88ac-d6e472ba46a2?h?Lightweight Running Leggings?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$9b6444de-093c-48a0-907f-c2f2b509511a?h?High Performance Gym Leggings?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$8f36f585-de73-4b69-801b-aae60b4e4065?h?Floral Print Skirt?h?Ghttps://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80?u}?(h?$3a3720a4-1bf2-4974-8a4a-3f33b0c6c665?h?Classic Mini Skirt?h?Ghttps://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80?u}?(h?$337c6660-0f98-4983-adea-f0b7d7da863c?h?Flowing Maxi Skirt?h?Ghttps://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80?u}?(h?$6bb10230-865e-4153-bed5-fe00df454e53?h?Satin Party Skirt?h?Ghttps://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80?u}?(h?$3b578e94-9399-4786-9561-6092c806dc16?h?Wrap Style Skirt?h?Ghttps://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80?u}?(h?$e2933830-f449-4bd8-a2d1-385ce17fa564?h?Denim Casual Skirt?h?Ghttps://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80?u}?(h?$cf6da605-0fb0-4249-83d1-5be7ff6970d2?h?Classic Bootcut Jeans?h?Ghttps://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80?u}?(h?$a96b93ab-f1f1-4804-bc31-21b8e9c9bb46?h?High Waist Stretch Jeans?h?Ghttps://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80?u}?(h?$c46fc5a9-6c4c-4884-a057-4c3b25d0a05e?h?Premium Bodycon Dress?h?Ghttps://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&q=80?u}?(h?$7ed2d339-841e-43f5-859a-360a0d916176?h?Classic A-Line Dress?h?Ghttps://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&q=80?u}?(h?$14b372bb-7f6b-49a3-8346-e69cb41fb6bd?h?Elegant Maxi Dress?h?Ghttps://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&q=80?u}?(h?$06ae0da0-42eb-41f7-a0d6-c1ec94229f73?h?Premium Velvet Party Blazer?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$e7912de7-b3c2-4191-a66d-15c035c773ab?h?Premium Office Trousers?h?Ghttps://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80?u}?(h?$10901754-de84-4141-95f9-537e081b8241?h?Outdoor Cargo Pants?h?Ghttps://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80?u}?(h?$797394ad-b67e-4515-9f56-eebfcebc67be?h?Formal Cotton Trousers?h?Ghttps://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80?u}?(h?$c9031d12-9636-4f84-b8ed-54812e1bd27b?h?Premium Striped Polo?h?Ghttps://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80?u}?(h?$0a724331-384a-4d1b-b572-8473f4f1a4a3?h?Cuban Resort Shirt?h?Ghttps://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80?u}?(h?$f203f8a6-af28-474d-8e23-8bc446c10507?h?Denim Button Down Shirt?h?Ghttps://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80?u}?(h?$d1c86e23-7450-4486-9898-63ba19f2b728?h?Checked Weekend Casual Shirt?h?Ghttps://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80?u}?(h?$af46dd43-b1cd-43bf-b797-51a19b4be3d9?h?Long Sleeve Winter Tee?h?Ghttps://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80?u}?(h?$1e13cf49-317d-4efd-88c0-c6e3466047bd?h?!Athletic Compression Training Tee?h?Ghttps://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80?u}?(h?$e110a22f-fe1b-4516-b10a-0a52b649826f?h?Stretch Performance Blazer?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$356fcd77-be05-4945-9bff-bf3d2e8c9dc8?h?Wedding Ceremony Blazer?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$101eb0ec-550e-46ec-b5f5-565e0b21d0ad?h?Luxury Designer Blazer?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$e9ec6bf2-8745-42d5-9866-5953a086a92c?h?Slim Fit Business Blazer?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$39ba237c-cfb9-4f8a-8014-bc3fd85fe1a9?h?Premium Linen Blazer?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$8b74f86b-63bc-4fe7-a50a-bf76e48473b8?h?Formal Office Blazer?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$f86c3997-816d-4fd4-9ceb-a9153b996115?h?Casual Cotton Blazer?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$c984ec98-f97e-464f-bec1-a02d7df96d17?h?Fleece Winter Sweatshirt?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$0acde873-7bce-4f16-be2d-478b792f2375?h?Casual Knit Sweater?h?Ghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80?u}?(h?$21759fce-a46b-41a6-87d8-cdac4db7b55f?h?Button Cardigan Sweater?h?Ghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80?u}?(h?$94ea0b82-9c98-45dc-85b3-0afa21cafa71?h?Wide Leg Fashion Jumpsuit?h?Ghttps://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80?u}?(h?$42b6c3c0-2c98-4424-9c64-7cb19a6c7e74?h?Oversized Knit Sweater?h?Ghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80?u}?(h?$d665d856-c6b5-42ed-8519-a9ec292254df?h?Cable Knit Sweater?h?Ghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80?u}?(h?$f7b42331-8f0d-435f-b34e-26496b64d923?h?Crew Neck Sweater?h?Ghttps://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80?u}?(h?$9046111a-6175-441d-ae5f-b9bd4853506c?h?Athleisure Active Leggings?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$d986b708-23d7-4c48-a631-0cee413fdd30?h?Seamless Comfort Leggings?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$08842fa7-3cd4-457c-b590-d66004ed55c8?h?High Waist Fitness Leggings?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$94bf07cb-77a0-4f11-830a-e494d4b20390?h?Premium Yoga Leggings?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$e45b9aaf-ed86-4b81-8c57-e9a30faf1ad3?h?Cotton Everyday Leggings?h?Ghttps://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80?u}?(h?$54ebcaba-b7ea-4bed-ad84-50ae476b7161?h?Elegant Midi Skirt?h?Ghttps://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80?u}?(h?$6154ff36-bb50-4b2e-96a7-65ed7bc43caf?h?Pleated Office Skirt?h?Ghttps://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80?u}?(h?$4fb5bcf2-839c-4103-8da4-79c7bbb9de66?h?A-Line Cotton Skirt?h?Ghttps://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80?u}?(h?$9a4df0f1-341c-4ac4-9a70-6ca05d9bcbd4?h?Distressed Skinny Jeans?h?Ghttps://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80?u}?(h?$e357a35d-d732-42b6-9e15-6f488d3549d4?h?Classic Pencil Skirt?h?Ghttps://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80?u}?(h?$19db07a1-b1b8-474d-803f-c2ed5a012469?h?Relaxed Fit Denim Jeans?h?Ghttps://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80?u}?(h?$e26a591f-fe94-4b2b-a515-d920426bb6b2?h?Wide Leg Denim Jeans?h?Ghttps://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80?u}?(h?$c2d0db3f-116f-4391-8d91-3a9c0884b233?h?kid clothes?h??http://127.0.0.1:5000/uploads/products/b651ebf1-e479-481e-b99f--c2d0db3f-116f-4391-8d91--kid-clothes-1783772269560-1-35b28b7cf19a.png?ue.
+C:\files\Final-Year-Project\back_end\admin_backend\.env:19:DATABASE_URL=postgres://postgres:1234@localhost:5432/lumina
+C:\files\Final-Year-Project\back_end\admin_backend\.env.example:6:FRONTEND_ORIGIN=http://localhost:5000
+C:\files\Final-Year-Project\back_end\admin_backend\.env.example:9:DATABASE_URL=postgres://postgres:1234@localhost:5432/lumina
+C:\files\Final-Year-Project\back_end\admin_backend\.env.example:16:AI_SERVICE_URL=http://127.0.0.1:8000/api/visual-search
+C:\files\Final-Year-Project\back_end\admin_backend\package-lock.json:12:"axios": "^1.11.0",
+C:\files\Final-Year-Project\back_end\admin_backend\package-lock.json:135:"node_modules/axios": {
+C:\files\Final-Year-Project\back_end\admin_backend\package-lock.json:137:"resolved": "https://registry.npmjs.org/axios/-/axios-1.17.0.tgz",
+C:\files\Final-Year-Project\back_end\admin_backend\package.json:18:"axios": "^1.11.0",
+C:\files\Final-Year-Project\back_end\admin_backend\README.md:13:Server starts at `http://localhost:5000` by default.
+C:\files\Final-Year-Project\back_end\admin_backend\README.md:289:const response = await fetch('http://localhost:5000/api/admin/dashboard/summary');
+C:\files\Final-Year-Project\back_end\admin_backend\README_DEPLOYMENT.md:30:docker run -d -p 5000:5000 --name lumina-admin-backend --env-file back_end/admin_backend/.env lumina-admin-backend
+C:\files\Final-Year-Project\back_end\admin_backend\README_DEPLOYMENT.md:42:- Verify `http://localhost:5000/api/health`
+C:\files\Final-Year-Project\back_end\admin_backend\server_5000.out.log:3:Unified backend running on http://localhost:5000
+C:\files\Final-Year-Project\back_end\admin_backend\server_stdout.log:7:Unified backend running on http://localhost:5000
+C:\files\Final-Year-Project\back_end\admin_backend\startup.log:7:Unified backend running on http://localhost:5000
+C:\files\Final-Year-Project\back_end\admin_backend\scripts\seedCms.js:5:connectionString: process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/lumina'
+C:\files\Final-Year-Project\back_end\admin_backend\src\server.txt:98:console.log(`Admin backend running on http://localhost:${PORT}`);
+C:\files\Final-Year-Project\back_end\admin_backend\src\unifiedServer.js:7:const axios = require('axios');
+C:\files\Final-Year-Project\back_end\admin_backend\src\unifiedServer.js:378:const AI_URL = process.env.AI_SERVICE_URL || 'http://127.0.0.1:8000/api/visual-search';
+C:\files\Final-Year-Project\back_end\admin_backend\src\unifiedServer.js:388:const aiResp = await axios.post(forwardUrl, form, { headers: { ...form.getHeaders(), ...(process.env.HUGGING_FACE_HEADERS || {}) } });
+C:\files\Final-Year-Project\back_end\admin_backend\src\unifiedServer.js:419:const response = await axios.post(
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:503:SELECT id, name, code, contact_phone, contact_email, api_base_url, service_states, service_cities, cod_supported, is_active
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:515:INSERT INTO couriers (name, code, contact_email, contact_phone, api_base_url, service_states, service_cities, cod_supported, is_active)
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:550:SELECT id, name, code, contact_phone, contact_email, api_base_url, service_states, service_cities, cod_supported, is_active
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:566:apiIntegrated: Boolean(row.api_base_url),
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:567:webhookUrl: row.api_base_url || '',
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:582:const rows = await safeQuery(req.db, `SELECT id, name, api_base_url, service_states, service_cities, cod_supported FROM couriers WHERE is_active = TRUE ORDER BY name ASC`);
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:589:apiIntegrated: Boolean(row.api_base_url),
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:590:webhookUrl: row.api_base_url || '',
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:612:INSERT INTO couriers (name, code, contact_email, contact_phone, api_base_url, service_states, service_cities, cod_supported, is_active)
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:614:RETURNING id, name, code, contact_email, contact_phone, api_base_url, service_states, service_cities, cod_supported, is_active
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:645:apiIntegrated: Boolean(row.api_base_url),
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:646:webhookUrl: row.api_base_url || '',
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:663:api_base_url = $5,
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:670:RETURNING id, name, contact_email, contact_phone, api_base_url, service_states, service_cities, cod_supported, is_active
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:701:apiIntegrated: Boolean(row.api_base_url),
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:702:webhookUrl: row.api_base_url || '',
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:716:RETURNING id, name, contact_email, contact_phone, api_base_url, service_states, service_cities, cod_supported, is_active
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:737:apiIntegrated: Boolean(row.api_base_url),
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:738:webhookUrl: row.api_base_url || '',
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:809:safeQuery(req.db, `SELECT id, name, api_base_url, is_active FROM couriers WHERE id = $1 LIMIT 1`, [courierId])
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:874:apiIntegrated: Boolean(courier.api_base_url)
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:887:safeQuery(req.db, `SELECT id, name, api_base_url, is_active, service_states, service_cities, cod_supported FROM couriers WHERE id = $1 LIMIT 1`, [courierId]),
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:956:apiIntegrated: Boolean(courier.api_base_url),
+C:\files\Final-Year-Project\back_end\admin_backend\src\routes\logisticsRoutes.js:1294:const rows = await safeQuery(req.db, `SELECT COUNT(*)::int AS count FROM couriers WHERE is_active = TRUE AND api_base_url IS NOT NULL`);
+C:\files\Final-Year-Project\back_end\customer_backend\.env:10:DATABASE_URL=postgres://postgres:1234@localhost:5432/lumina
+C:\files\Final-Year-Project\back_end\customer_backend\.env.example:6:DATABASE_URL=postgres://postgres:1234@localhost:5432/lumina
+C:\files\Final-Year-Project\back_end\customer_backend\.env.example:23:PUBLIC_APP_URL=http://localhost:5000
+C:\files\Final-Year-Project\back_end\customer_backend\check-homepage-recs.js:4:const url = `http://localhost:5000/api/homepage?sectionLimit=8&flashDealLimit=8&userId=${userId}`;
+C:\files\Final-Year-Project\back_end\customer_backend\package-lock.json:13:"axios": "^1.11.0",
+C:\files\Final-Year-Project\back_end\customer_backend\package-lock.json:119:"node_modules/axios": {
+C:\files\Final-Year-Project\back_end\customer_backend\package-lock.json:121:"resolved": "https://registry.npmjs.org/axios/-/axios-1.17.0.tgz",
+C:\files\Final-Year-Project\back_end\customer_backend\package.json:22:"axios": "^1.11.0",
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:22:The server runs on `http://localhost:5000`
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:51:fetch('http://localhost:5000/api/products?brands=e.l.f.,NYX PROFESSIONAL MAKEUP&minRating=4&sortBy=price-asc&page=1&limit=12')
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:177:fetch('http://localhost:5000/api/products/1')
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:239:fetch('http://localhost:5000/api/homepage?userId=user_1&sectionLimit=8')
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:716:const response = await fetch('http://localhost:5000/api/products?page=1&limit=24&sortBy=relevance');
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:769:const response = await fetch(`http://localhost:5000/api/products?${queryParams}`);
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:799:const response = await fetch(`http://localhost:5000/api/products/search?q=${encodeURIComponent(query)}&limit=10`);
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:821:const response = await fetch(`http://localhost:5000/api/products/${productId}`);
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:841:const response = await fetch(`http://localhost:5000/api/products/${productId}/related?limit=6`);
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:858:const response = await fetch('http://localhost:5000/api/products/filters');
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:890:const response = await fetch('http://localhost:5000/api/cart?userId=user_1');
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:911:const response = await fetch('http://localhost:5000/api/cart/items?userId=user_1', {
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:943:const response = await fetch(`http://localhost:5000/api/cart/items/${itemId}?userId=user_1`, {
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:966:const response = await fetch(`http://localhost:5000/api/cart/items/${itemId}?userId=user_1`, {
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:990:const response = await fetch('http://localhost:5000/api/cart/coupon?userId=user_1', {
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:1052:fetch('http://localhost:5000/api/wishlist/user_1?sortBy=price&order=asc')
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:1121:fetch('http://localhost:5000/api/wishlist/user_1/check/1')
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:1258:const response = await fetch('http://localhost:5000/api/wishlist/user_1?sortBy=dateAdded&order=desc');
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:1275:const response = await fetch(`http://localhost:5000/api/wishlist/user_1`, {
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:1301:const response = await fetch(`http://localhost:5000/api/wishlist/user_1/item/${itemId}`, {
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:1327:const response = await fetch('http://localhost:5000/api/wishlist/user_1/move-to-cart', {
+C:\files\Final-Year-Project\back_end\customer_backend\README.md:1350:const response = await fetch(`http://localhost:5000/api/wishlist/user_1/check/${productId}`);
+C:\files\Final-Year-Project\back_end\customer_backend\tmp_check_wishlist.js:2:const client = new Client({ connectionString: 'postgres://postgres:1234@localhost:5432/lumina' });
+C:\files\Final-Year-Project\back_end\customer_backend\src\server.js:134:console.log(`Customer backend running on http://localhost:${PORT}`);
+C:\files\Final-Year-Project\back_end\customer_backend\src\data\authData.js:375:const baseAppUrl = (process.env.PUBLIC_APP_URL || process.env.FRONTEND_ORIGIN || 'http://localhost:5000').replace(/\/$/, '');
+C:\files\Final-Year-Project\back_end\customer_backend\src\routes\authRoutes.js:9:const axios = require('axios');
+C:\files\Final-Year-Project\back_end\customer_backend\src\routes\authRoutes.js:136:callbackUrl: process.env.GOOGLE_CALLBACK_URL || `${process.env.PUBLIC_APP_URL || process.env.FRONTEND_ORIGIN || 'http://localhost:5000'}/api/auth/google/callback`
+C:\files\Final-Year-Project\back_end\customer_backend\src\routes\authRoutes.js:143:const tokenResponse = await axios.post(
+C:\files\Final-Year-Project\back_end\customer_backend\src\routes\authRoutes.js:162:const profileResponse = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+C:\files\Final-Year-Project\back_end\customer_backend\src\routes\checkoutRoutes.js:1068:const origin = process.env.FRONTEND_ORIGIN || process.env.PUBLIC_APP_URL || 'http://localhost:5000';
+C:\files\Final-Year-Project\back_end\customer_backend\src\routes\homepageRoutes.js:27:const uploadHost = process.env.PUBLIC_UPLOAD_BASE_URL || process.env.PUBLIC_APP_URL || process.env.FRONTEND_ORIGIN || 'http://localhost:5000';
+C:\files\Final-Year-Project\back_end\customer_backend\src\routes\productDetailsRoutes.js:2:const axios = require('axios');
+C:\files\Final-Year-Project\back_end\customer_backend\tests\wishlistRoutes.test.js:13:const instance = app.listen(0, '127.0.0.1', () => resolve(instance));
+C:\files\Final-Year-Project\back_end\customer_backend\tests\wishlistRoutes.test.js:18:const response = await fetch(`http://127.0.0.1:${address.port}/api/wishlist/user_123`, {
+C:\files\Final-Year-Project\back_end\database\full_platform_schema.sql:705:api_base_url TEXT,
+C:\files\Final-Year-Project\back_end\database\postgresClient.js:12:const DATABASE_URL = process.env.DATABASE_URL || 'postgres://postgres:1234@localhost:5432/lumina';
+C:\files\Final-Year-Project\back_end\database\testCmsUpdate.js:3:const pool = new Pool({ connectionString: 'postgres://postgres:1234@localhost:5432/lumina' });
+C:\files\Final-Year-Project\back_end\database\scripts\setupAndSeed.js:9:const DEFAULT_DATABASE_URL = 'postgres://postgres:postgres@localhost:5432/lumina';
+C:\files\Final-Year-Project\back_end\scripts\normalize_db_catalog.js:10:const base = process.env.FRONTEND_BASE || 'http://127.0.0.1:5000';
+C:\files\Final-Year-Project\back_end\seller_backend\.env.example:8:DATABASE_URL=postgres://postgres:1234@localhost:5432/lumina
+C:\files\Final-Year-Project\back_end\seller_backend\backend_stdout.log:7:Seller backend running on http://localhost:5000
+C:\files\Final-Year-Project\back_end\seller_backend\exec_start.out.log:7:Seller backend running on http://localhost:5000
+C:\files\Final-Year-Project\back_end\seller_backend\hardrestart.out.log:7:Seller backend running on http://localhost:5000
+C:\files\Final-Year-Project\back_end\seller_backend\package-lock.json:696:"node_modules/gaxios": {
+C:\files\Final-Year-Project\back_end\seller_backend\package-lock.json:698:"resolved": "https://registry.npmjs.org/gaxios/-/gaxios-7.2.0.tgz",
+C:\files\Final-Year-Project\back_end\seller_backend\package-lock.json:716:"gaxios": "^7.0.0",
+C:\files\Final-Year-Project\back_end\seller_backend\package-lock.json:782:"gaxios": "^7.1.4",
+C:\files\Final-Year-Project\back_end\seller_backend\README.md:13:Server starts at `http://localhost:5000` by default.
+C:\files\Final-Year-Project\back_end\seller_backend\README.md:603:const response = await fetch('http://localhost:5000/api/seller/dashboard/metrics');
+C:\files\Final-Year-Project\back_end\seller_backend\README.md:607:const response = await fetch('http://localhost:5000/api/seller/disputes/overview');
+C:\files\Final-Year-Project\back_end\seller_backend\README.md:611:const response = await fetch('http://localhost:5000/api/seller/inventory/products?page=1&pageSize=10');
+C:\files\Final-Year-Project\back_end\seller_backend\README.md:615:const response = await fetch('http://localhost:5000/api/seller/orders?page=1&pageSize=10');
+C:\files\Final-Year-Project\back_end\seller_backend\README.md:619:const response = await fetch('http://localhost:5000/api/seller/payments/transactions?page=1&pageSize=5');
+C:\files\Final-Year-Project\back_end\seller_backend\README.md:623:const response = await fetch('http://localhost:5000/api/seller/products?search=&status=&stock=&page=1&pageSize=10');
+C:\files\Final-Year-Project\back_end\seller_backend\README.md:627:const response = await fetch('http://localhost:5000/api/seller/refunds-returns/requests?search=&status=&page=1&pageSize=10');
+C:\files\Final-Year-Project\back_end\seller_backend\README.md:631:const response = await fetch('http://localhost:5000/api/seller/performance/metrics');
+C:\files\Final-Year-Project\back_end\seller_backend\README.md:635:const response = await fetch('http://localhost:5000/api/seller/settings/profile');
+C:\files\Final-Year-Project\back_end\seller_backend\run_stdout_20260417_100651_739.log:7:Seller backend running on http://localhost:5000
+C:\files\Final-Year-Project\back_end\seller_backend\seller_server.out.log:7:Seller backend running on http://localhost:5000
+C:\files\Final-Year-Project\back_end\seller_backend\server.out.log:7:Seller backend running on http://localhost:5000
+C:\files\Final-Year-Project\back_end\seller_backend\server_stdout.log:3:Seller backend running on http://localhost:5000
+C:\files\Final-Year-Project\back_end\seller_backend\support_stdout_20260417_101158.log:7:Seller backend running on http://localhost:5000
+C:\files\Final-Year-Project\back_end\seller_backend\test_endpoints.ps1:2:"http://localhost:5000/api/health",
+C:\files\Final-Year-Project\back_end\seller_backend\test_endpoints.ps1:3:"http://localhost:5000/api/product-details/044e1de2-4a1f-44b2-a24a-7a4c47fbc65c?userId=1",
+C:\files\Final-Year-Project\back_end\seller_backend\test_endpoints.ps1:4:"http://localhost:5000/api/product-details/044e1de2-4a1f-44b2-a24a-7a4c47fbc65c/related?limit=4"
+C:\files\Final-Year-Project\back_end\seller_backend\verify_stdout.log:7:Seller backend running on http://localhost:5000
+C:\files\Final-Year-Project\back_end\seller_backend\verify_stdout_20260417_100212_092.log:7:Seller backend running on http://localhost:5000
+C:\files\Final-Year-Project\back_end\seller_backend\verify_stdout_20260417_100525_238.log:7:Seller backend running on http://localhost:5000
+C:\files\Final-Year-Project\back_end\seller_backend\src\server.js:191:console.log(`Seller backend running on http://localhost:${PORT}`);
+C:\files\Final-Year-Project\Front_End\Admin\js\cms.js:4:const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Admin\js\cms.js:6:console.log('CMS API base URL set to', API_BASE_URL);
+C:\files\Final-Year-Project\Front_End\Admin\js\cms.js:9:return `${API_BASE_URL}${path}`;
+C:\files\Final-Year-Project\Front_End\Admin\js\cms.js:28:let res = await fetch(url, { ...options, headers, credentials: 'include' });
+C:\files\Final-Year-Project\Front_End\Admin\js\cms.js:38:res = await fetch(fallbackUrl, { ...options, headers, credentials: 'include' });
+C:\files\Final-Year-Project\Front_End\Admin\js\cms.js:167:assetResult = await fetchJson(`${API_BASE_URL}/admin/cms/assets`, {
+C:\files\Final-Year-Project\Front_End\Admin\js\cms.js:199:const sectionResult = await fetchJson(`${API_BASE_URL}/admin/cms/sections`, {
+C:\files\Final-Year-Project\Front_End\Admin\js\cms.js:241:fetchJson(`${API_BASE_URL}/admin/cms/pages`),
+C:\files\Final-Year-Project\Front_End\Admin\js\cms.js:242:fetchJson(`${API_BASE_URL}/admin/cms/sections`),
+C:\files\Final-Year-Project\Front_End\Admin\js\cms.js:243:fetchJson(`${API_BASE_URL}/admin/cms/navigation`),
+C:\files\Final-Year-Project\Front_End\Admin\js\cms.js:244:fetchJson(`${API_BASE_URL}/admin/cms/assets`),
+C:\files\Final-Year-Project\Front_End\Admin\js\cms.js:245:fetchJson(`${API_BASE_URL}/admin/cms/announcements`)
+C:\files\Final-Year-Project\Front_End\Admin\js\dashboard.js:4:const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Admin\js\dashboard.js:27:return `${API_BASE_URL}${path}`;
+C:\files\Final-Year-Project\Front_End\Admin\js\dashboard.js:39:const res = await fetch(apiUrl(path), {
+C:\files\Final-Year-Project\Front_End\Admin\js\dashboard.js:354:const result = await fetchJson(`${API_BASE_URL}/admin/dashboard/summary`);
+C:\files\Final-Year-Project\Front_End\Admin\js\Logistics-Courier-Management.js:1:const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Admin\js\Logistics-Courier-Management.js:4:return `${API_BASE_URL}${path}`;
+C:\files\Final-Year-Project\Front_End\Admin\js\Logistics-Courier-Management.js:13:const response = await fetch(apiUrl(path), {
+C:\files\Final-Year-Project\Front_End\Admin\js\Logistics-Courier-Management.js:163:const result = await fetchJson(`${API_BASE_URL}/admin/logistics/overview`);
+C:\files\Final-Year-Project\Front_End\Admin\js\Logistics-Courier-Management.js:182:const result = await fetchJson(`${API_BASE_URL}/admin/logistics/orders/ready`);
+C:\files\Final-Year-Project\Front_End\Admin\js\Logistics-Courier-Management.js:191:const result = await fetchJson(`${API_BASE_URL}/admin/logistics/shipments`);
+C:\files\Final-Year-Project\Front_End\Admin\js\Logistics-Courier-Management.js:200:const result = await fetchJson(`${API_BASE_URL}/admin/logistics/assignments`);
+C:\files\Final-Year-Project\Front_End\Admin\js\Logistics-Courier-Management.js:209:const result = await fetchJson(`${API_BASE_URL}/admin/logistics/payments`);
+C:\files\Final-Year-Project\Front_End\Admin\js\Logistics-Courier-Management.js:218:const result = await fetchJson(`${API_BASE_URL}/admin/logistics/shipping-rules`);
+C:\files\Final-Year-Project\Front_End\Admin\js\Logistics-Courier-Management.js:307:result = await fetchJson(`${API_BASE_URL}/admin/logistics/couriers`, {
+C:\files\Final-Year-Project\Front_End\Admin\js\Logistics-Courier-Management.js:818:await fetchJson(`${API_BASE_URL}/admin/logistics/shipping-charges`, { method: 'POST', body: JSON.stringify(payload) });
+C:\files\Final-Year-Project\Front_End\Admin\js\Logistics-Courier-Management.js:848:await fetchJson(`${API_BASE_URL}/admin/logistics/cod-rules`, { method: 'POST', body: JSON.stringify(payload) });
+C:\files\Final-Year-Project\Front_End\Admin\js\Logistics-Courier-Management.js:925:await fetchJson(`${API_BASE_URL}/admin/logistics/shipping-rules`, {
+C:\files\Final-Year-Project\Front_End\Admin\js\Logistics-Courier-Management.js:1238:const result = await fetchJson(`${API_BASE_URL}/admin/logistics/sync/webhooks`, { method: 'POST' });
+C:\files\Final-Year-Project\Front_End\Admin\js\notificationsUI.js:2:const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Admin\js\notificationsUI.js:30:const res = await fetch(`${API_BASE_URL}/admin/dashboard/notifications`, { headers });
+C:\files\Final-Year-Project\Front_End\Admin\js\order-management.js:1:const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Admin\js\order-management.js:4:return `${API_BASE_URL}${path}`;
+C:\files\Final-Year-Project\Front_End\Admin\js\order-management.js:36:const response = await fetch(apiUrl(path), {
+C:\files\Final-Year-Project\Front_End\Admin\js\order-management.js:148:const result = await fetchJson(`${API_BASE_URL}/admin/orders/meta`);
+C:\files\Final-Year-Project\Front_End\Admin\js\order-management.js:163:const result = await fetchJson(`${API_BASE_URL}/admin/orders/stats`);
+C:\files\Final-Year-Project\Front_End\Admin\js\order-management.js:172:const result = await fetchJson(`${API_BASE_URL}/admin/orders/orders`);
+C:\files\Final-Year-Project\Front_End\Admin\js\Payment-Payout-Management.js:4:const DEFAULT_ADMIN_API_BASE_URL = (typeof window !== 'undefined' && (window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`))
+C:\files\Final-Year-Project\Front_End\Admin\js\Payment-Payout-Management.js:5:? (window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`)
+C:\files\Final-Year-Project\Front_End\Admin\js\Payment-Payout-Management.js:8:const ADMIN_API_BASE = `${String(DEFAULT_ADMIN_API_BASE_URL).replace(/\/$/, '')}/admin`;
+C:\files\Final-Year-Project\Front_End\Admin\js\Payment-Payout-Management.js:9:const API_BASE = `${ADMIN_API_BASE}/payments`;
+C:\files\Final-Year-Project\Front_End\Admin\js\Payment-Payout-Management.js:16:return `${ADMIN_API_BASE}${path}`;
+C:\files\Final-Year-Project\Front_End\Admin\js\Payment-Payout-Management.js:72:const response = await fetch(`${API_BASE}${path}`, {
+C:\files\Final-Year-Project\Front_End\Admin\js\Payment-Payout-Management.js:92:const response = await fetch(buildApiUrl('/auth/session'), {
+C:\files\Final-Year-Project\Front_End\Admin\js\Reports-Analytics.js:2:const base = (typeof window !== 'undefined' && (window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`)) || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Admin\js\Reports-Analytics.js:6:const API_BASE = getReportsApiBase();
+C:\files\Final-Year-Project\Front_End\Admin\js\Reports-Analytics.js:74:const response = await fetch(`${API_BASE}${path}`, {
+C:\files\Final-Year-Project\Front_End\Admin\js\Reviews-Ratings-Management.js:1:const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Admin\js\Reviews-Ratings-Management.js:2:const API_BASE = `${API_BASE_URL}/admin/reviews`;
+C:\files\Final-Year-Project\Front_End\Admin\js\Reviews-Ratings-Management.js:29:const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+C:\files\Final-Year-Project\Front_End\Admin\pages\admin_login.html:95:const ADMIN_API_BASE_URL = window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Admin\pages\admin_login.html:96:const IS_LOCALHOST = location.protocol !== 'file:';
+C:\files\Final-Year-Project\Front_End\Admin\pages\admin_login.html:124:if (!IS_LOCALHOST) {
+C:\files\Final-Year-Project\Front_End\Admin\pages\admin_login.html:125:alert('Please open this page from localhost so admin login can connect to the backend.');
+C:\files\Final-Year-Project\Front_End\Admin\pages\admin_login.html:134:const response = await fetch(`${ADMIN_API_BASE_URL}/admin/auth/login`, {
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:364:const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:366:summary: `${API_BASE_URL}/admin/support/summary`,
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:367:tickets: `${API_BASE_URL}/admin/support/tickets`,
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:368:ticket: (id) => `${API_BASE_URL}/admin/support/tickets/${id}`,
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:369:reply: (id) => `${API_BASE_URL}/admin/support/tickets/${id}/reply`,
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:370:assign: (id) => `${API_BASE_URL}/admin/support/tickets/${id}/assign`,
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:371:status: (id) => `${API_BASE_URL}/admin/support/tickets/${id}/status`,
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:372:priority: (id) => `${API_BASE_URL}/admin/support/tickets/${id}/priority`,
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:373:delete: (id) => `${API_BASE_URL}/admin/support/tickets/${id}`,
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:374:upload: `${API_BASE_URL}/admin/support/attachments`
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:413:async function apiFetch(url, opts={}){
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:415:const res = await fetch(url + (opts.query ? `?${new URLSearchParams(opts.query)}` : ''), { credentials: 'include', headers, method: opts.method||'GET', body: opts.body ? JSON.stringify(opts.body) : undefined });
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:421:try{ const data = await apiFetch(API.summary); renderStats(data.data || {}); }catch(e){console.warn('summary',e.message);} }
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:442:const res = await apiFetch(`${API_BASE_URL}/admin/users?role=admin`);
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:457:const res = await apiFetch(API.tickets, { query: q });
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:545:try{ showLoading(true); const res = await apiFetch(API.ticket(id)); const t = res.data; state.activeTicket = t; connectSupportSocket(); joinSupportRoom(t.id, t.ticketId); renderDrawer(t); openDrawer(); }catch(e){alert(e.message||e)}finally{showLoading(false)}
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:549:try{ showLoading(true); const res = await apiFetch(API.ticket(id)); const t = res.data; state.activeTicket = t; connectSupportSocket(); joinSupportRoom(t.id, t.ticketId); renderDrawer(t); openDrawer(); }catch(e){alert(e.message||e)}finally{showLoading(false)}
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:636:try{ await apiFetch(API.status(t.id), { method:'POST', body:{ status } }); await apiFetch(API.priority(t.id), { method:'POST', body:{ priority } }); alert('Updated'); loadTickets(); loadSummary(); }catch(e){alert(e.message||e)};
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:639:document.getElementById('btnDeleteTicket').onclick = async ()=>{ if(!confirm('Delete ticket?')) return; try{ await apiFetch(API.delete(t.id), { method:'DELETE' }); alert('Deleted'); closeDrawer(); loadTickets(); loadSummary(); }catch(e){alert(e.message||e)} };
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:648:const up = await apiFetch(API.upload, { method:'POST', body:{ filename:file.name, content, mimeType:file.type } });
+C:\files\Final-Year-Project\Front_End\Admin\pages\dispute&support.html:651:try{ await apiFetch(API.reply(t.id), { method:'POST', body:{ message: body, attachments } }); alert('Reply sent'); document.getElementById('replyBox').value=''; loadTickets(); viewTicket(t.id); }catch(e){alert(e.message||e)}
+C:\files\Final-Year-Project\Front_End\Admin\pages\Product_Catalog_Management.html:1091:const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Admin\pages\Product_Catalog_Management.html:1092:const API_BASE = `${API_BASE_URL}/admin/catalog`;
+C:\files\Final-Year-Project\Front_End\Admin\pages\Product_Catalog_Management.html:1136:const response = await fetch(`${API_BASE}${path}`, {
+C:\files\Final-Year-Project\Front_End\Admin\pages\Product_Catalog_Management.html:2225:a.href = `${API_BASE}/products/export?${query.toString()}`;
+C:\files\Final-Year-Project\Front_End\Admin\pages\seller_details.html:487:const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Admin\pages\seller_details.html:488:const API_BASE = `${API_BASE_URL}/admin/sellers`;
+C:\files\Final-Year-Project\Front_End\Admin\pages\seller_details.html:545:const response = await fetch(`${API_BASE}${path}`, {
+C:\files\Final-Year-Project\Front_End\Admin\pages\seller_management.html:879:const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Admin\pages\seller_management.html:880:const API_BASE = `${API_BASE_URL}/admin/sellers`;
+C:\files\Final-Year-Project\Front_End\Admin\pages\seller_management.html:980:const response = await fetch(`${API_BASE}${path}`, {
+C:\files\Final-Year-Project\Front_End\Admin\pages\setting.html:1239:const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Admin\pages\setting.html:1242:return `${API_BASE_URL}${path}`;
+C:\files\Final-Year-Project\Front_End\Admin\pages\setting.html:1262:const response = await fetch(apiUrl(path), {
+C:\files\Final-Year-Project\Front_End\Admin\pages\setting.html:1412:const result = await fetchJson(`${API_BASE_URL}/admin/auth/profile`);
+C:\files\Final-Year-Project\Front_End\Admin\pages\setting.html:1469:await fetchJson(`${API_BASE_URL}/admin/auth/profile`, {
+C:\files\Final-Year-Project\Front_End\Admin\pages\setting.html:1731:const result = await fetchJson(`${API_BASE_URL}/admin/roles`);
+C:\files\Final-Year-Project\Front_End\Admin\pages\setting.html:1749:const result = await fetchJson(`${API_BASE_URL}/admin/auth/accounts`);
+C:\files\Final-Year-Project\Front_End\Admin\pages\setting.html:1836:const result = await fetchJson(`${API_BASE_URL}/admin/marketplace-settings`);
+C:\files\Final-Year-Project\Front_End\Admin\pages\setting.html:1927:const result = await fetchJson(`${API_BASE_URL}/admin/marketplace-settings`, {
+C:\files\Final-Year-Project\Front_End\Admin\pages\setting.html:2002:const result = await fetchJson(`${API_BASE_URL}/admin/auth/profile`, {
+C:\files\Final-Year-Project\Front_End\Admin\pages\setting.html:2064:await fetchJson(`${API_BASE_URL}/admin/roles/assign-role`, {
+C:\files\Final-Year-Project\Front_End\Admin\pages\suport_control.html:597:const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Admin\pages\suport_control.html:598:const API_BASE = `${API_BASE_URL}/admin/support`;
+C:\files\Final-Year-Project\Front_End\Admin\pages\suport_control.html:637:const response = await fetch(`${API_BASE}${path}`, {
+C:\files\Final-Year-Project\Front_End\Admin\pages\user_management.html:951:const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Admin\pages\user_management.html:952:const API_BASE = `${API_BASE_URL}/admin/users`;
+C:\files\Final-Year-Project\Front_End\Admin\pages\user_management.html:1006:const response = await fetch(`${API_BASE}${path}`, {
+C:\files\Final-Year-Project\Front_End\Seller\js\dashboard.js:4:const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Seller\js\dashboard.js:5:const API_BASE = `${API_BASE_URL}/seller/dashboard`;
+C:\files\Final-Year-Project\Front_End\Seller\js\dashboard.js:159:const response = await fetch(url, {
+C:\files\Final-Year-Project\Front_End\Seller\js\dashboard.js:451:const metrics = await fetchJson(`${API_BASE}/metrics?sellerId=${encodeURIComponent(sellerId)}`);
+C:\files\Final-Year-Project\Front_End\Seller\js\dashboard.js:489:const payload = await fetchJson(`${API_BASE}/orders?${params.toString()}`);
+C:\files\Final-Year-Project\Front_End\Seller\js\dashboard.js:498:const payload = await fetchJson(`${API_BASE}/notifications?sellerId=${encodeURIComponent(sellerId)}`);
+C:\files\Final-Year-Project\Front_End\Seller\js\dashboard.js:508:order = await fetchJson(`${API_BASE}/orders/${encodeURIComponent(orderId)}?sellerId=${encodeURIComponent(sellerId)}`);
+C:\files\Final-Year-Project\Front_End\Seller\js\dashboard.js:574:const payload = await fetchJson(`${API_BASE}/charts/${encodeURIComponent(chartType)}?sellerId=${encodeURIComponent(sellerId)}&period=${encodeURIComponent(period)}`);
+C:\files\Final-Year-Project\Front_End\Seller\js\dashboard.js:629:console.warn('Dashboard data fetch disabled outside localhost:5000 runtime.');
+C:\files\Final-Year-Project\Front_End\Seller\js\Inventory-management.js:3:const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Seller\js\Inventory-management.js:4:const API_BASE = `${API_BASE_URL}/seller/inventory`;
+C:\files\Final-Year-Project\Front_End\Seller\js\Inventory-management.js:23:const url = new URL(`${API_BASE}${path}`);
+C:\files\Final-Year-Project\Front_End\Seller\js\Inventory-management.js:34:const response = await fetch(url.toString(), {
+C:\files\Final-Year-Project\Front_End\Seller\js\Order-management.js:1:const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Seller\js\Order-management.js:2:const API_BASE = `${API_BASE_URL}/seller/orders`;
+C:\files\Final-Year-Project\Front_End\Seller\js\Order-management.js:50:const url = new URL(`${API_BASE}${path}`);
+C:\files\Final-Year-Project\Front_End\Seller\js\Order-management.js:61:const response = await fetch(url.toString(), {
+C:\files\Final-Year-Project\Front_End\Seller\js\Order-management.js:484:console.warn('Order page data fetch disabled outside localhost:5000 runtime.');
+C:\files\Final-Year-Project\Front_End\Seller\js\Payments.js:1:const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Seller\js\Payments.js:2:const API_BASE = `${API_BASE_URL}/seller/payments`;
+C:\files\Final-Year-Project\Front_End\Seller\js\Payments.js:70:const url = new URL(`${API_BASE}${path}`);
+C:\files\Final-Year-Project\Front_End\Seller\js\Payments.js:83:const response = await fetch(url.toString(), {
+C:\files\Final-Year-Project\Front_End\Seller\js\Payments.js:379:const response = await fetch(`${API_BASE}/export?${query.toString()}${sellerId ? `&sellerId=${encodeURIComponent(sellerId)}` : ''}`, {
+C:\files\Final-Year-Project\Front_End\Seller\js\Product-Management.js:3:const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Seller\js\Product-Management.js:4:const API_BASE = `${API_BASE_URL}/seller/products`;
+C:\files\Final-Year-Project\Front_End\Seller\js\Product-Management.js:8:const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+C:\files\Final-Year-Project\Front_End\Seller\js\Product-Management.js:9:if (!isLocalhost) {
+C:\files\Final-Year-Project\Front_End\Seller\js\Product-Management.js:10:console.warn(`Product Management is expected on localhost, but loaded from ${window.location.origin}`);
+C:\files\Final-Year-Project\Front_End\Seller\js\Product-Management.js:85:const response = await fetch(url.toString(), {
+C:\files\Final-Year-Project\Front_End\Seller\js\Product-Management.js:103:requestWithSellerContext(`${API_BASE_URL}/seller/settings/profile`),
+C:\files\Final-Year-Project\Front_End\Seller\js\Product-Management.js:104:requestWithSellerContext(`${API_BASE_URL}/seller/settings/verification`)
+C:\files\Final-Year-Project\Front_End\Seller\js\Product-Management.js:246:const url = new URL(`${API_BASE}${path}`);
+C:\files\Final-Year-Project\Front_End\Seller\js\Product-Management.js:254:const response = await fetch(url.toString(), {
+C:\files\Final-Year-Project\Front_End\Seller\js\seller-header-state.js:2:const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Seller\js\seller-header-state.js:83:const response = await fetch(url.toString(), {
+C:\files\Final-Year-Project\Front_End\Seller\js\seller-header-state.js:100:requestWithSellerContext(`${API_BASE_URL}/seller/settings/profile`),
+C:\files\Final-Year-Project\Front_End\Seller\js\seller-header-state.js:101:requestWithSellerContext(`${API_BASE_URL}/seller/settings/verification`)
+C:\files\Final-Year-Project\Front_End\Seller\js\seller-header-state.js:453:const response = await fetch(`${API_BASE}/dashboard/notifications?sellerId=` + encodeURIComponent(sellerId || ''), {
+C:\files\Final-Year-Project\Front_End\Seller\js\seller-header-state.js:516:await fetch(`${window.location.origin}/auth/logout`, {
+C:\files\Final-Year-Project\Front_End\Seller\js\seller-header-state.js:559:fetch(`${API_BASE}/settings/verification`, {
+C:\files\Final-Year-Project\Front_End\Seller\js\seller-header-state.js:564:fetch(`${API_BASE}/settings/payment/bank-account`, {
+C:\files\Final-Year-Project\Front_End\Seller\js\Seller-Performance.js:1:const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Seller\js\Seller-Performance.js:2:const API_BASE = `${API_BASE_URL}/seller/performance`;
+C:\files\Final-Year-Project\Front_End\Seller\js\Seller-Performance.js:88:const response = await fetch(url, {
+C:\files\Final-Year-Project\Front_End\Seller\js\Seller-Performance.js:121:url: `${API_BASE}${path}${query.toString() ? `?${query.toString()}` : ''}`,
+C:\files\Final-Year-Project\Front_End\Seller\js\seller_messages.js:1:const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Seller\js\seller_messages.js:2:const API_BASE = `${API_BASE_URL}/seller/messages`;
+C:\files\Final-Year-Project\Front_End\Seller\js\seller_messages.js:24:const url = new URL(`${API_BASE}${path}`);
+C:\files\Final-Year-Project\Front_End\Seller\js\seller_messages.js:29:const response = await fetch(url.toString(), {
+C:\files\Final-Year-Project\Front_End\Seller\js\seller_return_request_details.js:1:const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Seller\js\seller_return_request_details.js:2:const API_BASE = `${API_BASE_URL}/seller/returns`;
+C:\files\Final-Year-Project\Front_End\Seller\js\seller_return_request_details.js:21:const url = new URL(`${API_BASE}${path}`);
+C:\files\Final-Year-Project\Front_End\Seller\js\seller_return_request_details.js:26:const response = await fetch(url.toString(), {
+C:\files\Final-Year-Project\Front_End\Seller\js\Settings.js:1:const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Seller\js\Settings.js:2:const API_BASE = `${API_BASE_URL}/seller/settings`;
+C:\files\Final-Year-Project\Front_End\Seller\js\Settings.js:37:const response = await fetch(url, {
+C:\files\Final-Year-Project\Front_End\Seller\js\Settings.js:56:const url = new URL(`${API_BASE}${path}`, window.location.origin);
+C:\files\Final-Year-Project\Front_End\Seller\pages\Dispute-Management.html:812:const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Seller\pages\Dispute-Management.html:813:const API_BASE = `${API_BASE_URL}/seller/disputes`;
+C:\files\Final-Year-Project\Front_End\Seller\pages\Dispute-Management.html:869:const url = new URL(`${API_BASE}${path}`);
+C:\files\Final-Year-Project\Front_End\Seller\pages\Dispute-Management.html:880:const response = await fetch(url.toString(), {
+C:\files\Final-Year-Project\Front_End\Seller\pages\seller_return_requests.html:615:const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+C:\files\Final-Year-Project\Front_End\Seller\pages\seller_return_requests.html:616:const API_BASE = `${API_BASE_URL}/seller/returns`;
+C:\files\Final-Year-Project\Front_End\Seller\pages\seller_return_requests.html:635:const url = new URL(`${API_BASE}${path}`);
+C:\files\Final-Year-Project\Front_End\Seller\pages\seller_return_requests.html:640:const response = await fetch(url.toString(), {
+C:\files\Final-Year-Project\scripts\list_api_base_files.py:9:if 'API_BASE_URL' in text or 'API_BASE =' in text or 'window.location.origin' in text or 'API_BASE' in text:

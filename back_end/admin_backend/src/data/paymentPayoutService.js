@@ -366,10 +366,20 @@ async function ensureSupportTables(db) {
   try {
     const fraction = (await commissionSettings.getCommissionSettings(db)).commissionRate / 100;
     await db.query(`
-      UPDATE public.payment_payout_seller_state s
-      SET commission = COALESCE(oi_stats.commission, s.commission),
-          gross_sales = COALESCE(oi_stats.gross_sales, s.gross_sales),
-          available_balance = COALESCE(s.gross_sales - COALESCE(oi_stats.commission, s.commission) - s.shipping - s.taxes - s.refunds - COALESCE(paid.paid_amount,0), s.available_balance)
+      UPDATE public.payment_payout_seller_state
+      SET commission = COALESCE(oi_stats.commission, public.payment_payout_seller_state.commission),
+          gross_sales = COALESCE(oi_stats.gross_sales, public.payment_payout_seller_state.gross_sales),
+          available_balance = COALESCE(
+            public.payment_payout_seller_state.gross_sales - COALESCE(oi_stats.commission, public.payment_payout_seller_state.commission) - public.payment_payout_seller_state.shipping - public.payment_payout_seller_state.taxes - public.payment_payout_seller_state.refunds - COALESCE(
+              (
+                SELECT SUM(amount) FILTER (WHERE status::text = 'paid')::numeric(12,2)
+                FROM public.seller_payouts
+                WHERE public.seller_payouts.seller_id = public.payment_payout_seller_state.seller_id
+              ),
+              0
+            ),
+            public.payment_payout_seller_state.available_balance
+          )
       FROM (
         SELECT
           oi.seller_id,
@@ -380,10 +390,7 @@ async function ensureSupportTables(db) {
         WHERE COALESCE(to_jsonb(o)->>'payment_status', 'pending') <> 'pending'
         GROUP BY oi.seller_id
       ) oi_stats
-      LEFT JOIN (
-        SELECT seller_id, SUM(amount) FILTER (WHERE status::text = 'paid')::numeric(12,2) AS paid_amount FROM public.seller_payouts GROUP BY seller_id
-      ) paid ON paid.seller_id = s.seller_id
-      WHERE oi_stats.seller_id = s.seller_id
+      WHERE oi_stats.seller_id = public.payment_payout_seller_state.seller_id
     `, [fraction]);
   } catch (err) {
     console.warn('Failed to recompute payout seller commission from order_items', err && err.message);
@@ -422,7 +429,8 @@ async function logAudit(db, { action, entityType, entityId = null, adminId = nul
 
 async function getOverview(db) {
   await ensureSupportTables(db);
-  const [payments, sellers, cod, refunds, revenueSummary] = await Promise.all([
+  const fraction = (await commissionSettings.getCommissionSettings(db)).commissionRate / 100;
+  const [payments, sellers, commissionTotals, cod, refunds, revenueSummary] = await Promise.all([
     db.query(`
       SELECT
         COUNT(*)::int AS total_payments,
@@ -441,6 +449,12 @@ async function getOverview(db) {
         COALESCE(SUM(s.refunds), 0)::numeric(12,2) AS total_refunds
       FROM public.payment_payout_seller_state s
     `),
+    db.query(`
+      SELECT
+        COALESCE(SUM(COALESCE(oi.commission_amount, oi.line_total * $1)), 0)::numeric(12,2) AS total_commission
+      FROM public.order_items oi
+      JOIN public.orders o ON o.id = oi.order_id
+    `, [fraction]),
     db.query(`
       SELECT
         COUNT(*) FILTER (WHERE courier_deposit_status = 'pending')::int AS pending_cod
@@ -476,7 +490,7 @@ async function getOverview(db) {
 
   return {
     totalGrossSales: toNumber(revenueSummary.rows[0].total_gross_sales),
-    totalCommission: toNumber(sellers.rows[0].total_commission),
+    totalCommission: toNumber(commissionTotals.rows[0].total_commission),
     pendingAmount: toNumber(revenueSummary.rows[0].pending_amount),
     totalPendingEscrow: 0,
     totalSellerPayable: toNumber(sellers.rows[0].total_seller_payable),
@@ -665,11 +679,25 @@ async function getPayoutQueue(db) {
       COALESCE(stats.total_commission, 0)::numeric(12,2) AS total_commission,
       COALESCE(payouts.completed_payouts, 0)::numeric(12,2) AS completed_payouts,
       COALESCE(payouts.pending_payouts, 0)::numeric(12,2) AS pending_payouts,
+      COALESCE(active_request.amount, 0)::numeric(12,2) AS pending_request_amount,
+      COALESCE(active_request.status::text, 'none') AS pending_request_status,
+      COALESCE(active_request.payout_reference, '') AS pending_request_reference,
       COALESCE(stats.lifetime_earnings, 0) - COALESCE(payouts.completed_payouts, 0) - COALESCE(payouts.pending_payouts, 0) AS withdrawable_balance
     FROM public.users u
     LEFT JOIN public.seller_profiles sp ON sp.user_id = u.id
     LEFT JOIN seller_stats stats ON stats.seller_id = u.id
     LEFT JOIN payout_stats payouts ON payouts.seller_id = u.id
+    LEFT JOIN LATERAL (
+      SELECT
+        p.amount,
+        p.status::text AS status,
+        p.payout_reference
+      FROM public.seller_payouts p
+      WHERE p.seller_id = u.id
+        AND LOWER(COALESCE(p.status::text, 'pending')) IN ('pending', 'processing')
+      ORDER BY p.created_at DESC, p.updated_at DESC
+      LIMIT 1
+    ) active_request ON TRUE
     WHERE u.role = 'seller'
     ORDER BY COALESCE(sp.store_name, u.full_name)
   `);
@@ -696,6 +724,12 @@ async function getPayoutQueue(db) {
       refunds: 0,
       availableBalance,
       available_balance: availableBalance,
+      paymentRequestAmount: toNumber(row.pending_request_amount || row.pending_payouts),
+      payment_request_amount: toNumber(row.pending_request_amount || row.pending_payouts),
+      pendingRequestStatus: String(row.pending_request_status || (toNumber(row.pending_request_amount || row.pending_payouts) > 0 ? 'pending' : 'none')).toLowerCase(),
+      pending_request_status: String(row.pending_request_status || (toNumber(row.pending_request_amount || row.pending_payouts) > 0 ? 'pending' : 'none')).toLowerCase(),
+      pendingRequestReference: row.pending_request_reference || null,
+      pending_request_reference: row.pending_request_reference || null,
       pendingBalance: toNumber(row.pending_payouts),
       pending_balance: toNumber(row.pending_payouts),
       paidAmount: toNumber(row.completed_payouts),
@@ -1255,7 +1289,16 @@ async function batchApprovePayouts(db, sellerIds = [], admin = null) {
     const seller = await getSellerState(db, sellerId);
     if (!seller) continue;
     if (seller.kyc_status !== 'verified' || seller.bank_status !== 'verified' || seller.risk_level !== 'clear') continue;
-    await approvePayout(db, sellerId, 'Batch payout approval', admin);
+
+    try {
+      await approvePayout(db, sellerId, 'Batch payout approval', admin);
+    } catch (error) {
+      const message = error && error.message ? error.message : '';
+      if (message === 'This payout has already been processed.' || message === 'No payable payout request found') {
+        continue;
+      }
+      throw error;
+    }
   }
 }
 

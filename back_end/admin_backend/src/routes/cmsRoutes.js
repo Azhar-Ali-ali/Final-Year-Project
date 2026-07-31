@@ -222,10 +222,10 @@ router.put('/assets/:id', async (req, res) => {
       SET file_name = $1,
           file_url = $2,
           mime_type = $3,
-          file_size = $4,
-          updated_at = NOW()
+          file_size = $4
+          -- Note: not updating updated_at to preserve compatibility with older schemas
       WHERE id = $5
-      RETURNING id, asset_type, file_name, file_url, mime_type, file_size, created_at, updated_at
+      RETURNING id, asset_type, file_name, file_url, mime_type, file_size, created_at
     `;
 
     const result = await req.db.query(updateSql, [
@@ -248,6 +248,7 @@ router.put('/assets/:id', async (req, res) => {
       success: true,
       data: {
         ...asset,
+        updated_at: asset.updated_at || asset.created_at,
         status: 'active',
         location: 'homepage',
         alt_text: title
@@ -325,14 +326,30 @@ router.post('/sections', async (req, res) => {
       [pageSlug]
     );
 
+    let pageId;
     if (!pageResult.rows.length) {
-      return res.status(404).json({
-        success: false,
-        message: 'Page not found for CMS section'
-      });
+      // Auto-create the page when missing to support local/dev environments
+      const titleFromSlug = (pageSlug || 'untitled').toString().replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      const insertPageSql = `
+        INSERT INTO cms_pages (slug, title, meta_title, meta_description, status, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, 'published', NOW(), NOW())
+        RETURNING id
+      `;
+      try {
+        const insertRes = await req.db.query(insertPageSql, [
+          pageSlug,
+          titleFromSlug,
+          `${titleFromSlug} | Lumina`,
+          `${titleFromSlug} page`
+        ]);
+        pageId = insertRes.rows[0].id;
+      } catch (err) {
+        console.error('Failed to auto-create CMS page:', err && err.message);
+        return res.status(404).json({ success: false, message: 'Page not found for CMS section' });
+      }
+    } else {
+      pageId = pageResult.rows[0].id;
     }
-
-    const pageId = pageResult.rows[0].id;
     const sectionResult = await req.db.query(
       `SELECT id FROM cms_sections WHERE page_id = $1 AND section_key = $2 LIMIT 1`,
       [pageId, sectionKey]

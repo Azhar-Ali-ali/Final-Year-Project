@@ -1,4 +1,5 @@
-const API_BASE = '/api/admin/reviews';
+const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+const API_BASE = `${API_BASE_URL}/admin/reviews`;
 
 const state = {
   queue: [],

@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { pool } = require('../../../database/postgresClient');
+const { generateTags } = require('../utils/tagging');
 
 const router = express.Router();
 const projectRootPath = path.resolve(__dirname, '../../../..');
@@ -55,7 +56,7 @@ async function readSellerVerificationStatus(db, sellerId) {
         return result.rows[0];
       }
     } catch (_) {
-      // Keep compatibility across deployments that use only one schema.
+      // ignore failed query attempts and continue to alternate DB schema
     }
   }
 
@@ -69,7 +70,6 @@ function isSellerVerified(profile) {
   const verifiedFlag = String(profile.is_verified || '').trim().toLowerCase();
   return status === 'verified' || status === 'approved' || status === 'active' || verifiedFlag === 'true' || verifiedFlag === '1';
 }
-
 async function enforceSellerVerification(req, res, sellerId) {
   const profile = await readSellerVerificationStatus(req.db, sellerId);
 
@@ -117,8 +117,29 @@ function mapDbStatusToUi(status) {
   return 'Hidden';
 }
 
+function calculateDiscountPercent(price, comparePrice) {
+  const basePrice = Number.isFinite(Number(price)) ? Number(price) : 0;
+  const discountedPrice = Number.isFinite(Number(comparePrice)) ? Number(comparePrice) : null;
+
+  if (!basePrice || discountedPrice === null || discountedPrice <= 0 || discountedPrice >= basePrice) {
+    return 0;
+  }
+
+  return Number(Math.round(((basePrice - discountedPrice) / basePrice) * 100));
+}
+
 function normalizeCategoryName(name) {
   return String(name || '').trim();
+}
+
+function serializeDateValue(value) {
+  if (!value) return null;
+  if (value instanceof Date) {
+    return value.toISOString().split('T')[0];
+  }
+  const text = String(value).trim();
+  if (!text) return null;
+  return text.includes('T') ? text.split('T')[0] : text.slice(0, 10);
 }
 
 function normalizeProductRow(row) {
@@ -168,6 +189,8 @@ function normalizeProductRow(row) {
     occasion: row.occasion || null,
     style: row.style || null,
     discountPercent: row.discount_percent !== null && row.discount_percent !== undefined ? Number(row.discount_percent) : 0,
+    discountStartDate: serializeDateValue(row.discount_start_date),
+    discountEndDate: serializeDateValue(row.discount_end_date),
     status: mapDbStatusToUi(row.status),
     description: row.description || '',
     weight: row.weight !== null && row.weight !== undefined ? Number(row.weight) : null,
@@ -178,9 +201,12 @@ function normalizeProductRow(row) {
     reviewCount,
     variants,
     images,
-    reviews
+    reviews,
+    tags: Array.isArray(row.tags) ? row.tags.filter(Boolean) : []
   };
 }
+  
+  // include tags in normalized row if present
 
 async function ensureProductCompanionTables(dbClient) {
   // Ensure `products` table contains optional attribute columns used by the UI.
@@ -192,7 +218,18 @@ async function ensureProductCompanionTables(dbClient) {
     ADD COLUMN IF NOT EXISTS material VARCHAR(120),
     ADD COLUMN IF NOT EXISTS occasion VARCHAR(120),
     ADD COLUMN IF NOT EXISTS style VARCHAR(120),
-    ADD COLUMN IF NOT EXISTS discount_percent NUMERIC(7,2) DEFAULT 0
+    ADD COLUMN IF NOT EXISTS discount_percent NUMERIC(7,2) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS discount_start_date DATE,
+    ADD COLUMN IF NOT EXISTS discount_end_date DATE
+  `);
+  // ensure tags column to store generated tags
+  await dbClient.query(`
+    ALTER TABLE IF EXISTS public.products
+    ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT ARRAY[]::text[]
+  `);
+  // create GIN index for fast tag lookups
+  await dbClient.query(`
+    CREATE INDEX IF NOT EXISTS idx_products_tags_gin ON public.products USING GIN (tags)
   `);
   await dbClient.query(`
     CREATE TABLE IF NOT EXISTS public.product_details (
@@ -216,6 +253,24 @@ async function ensureProductCompanionTables(dbClient) {
       reply_text TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  // Ensure tags table for canonical tags and product_tags join table
+  await dbClient.query(`
+    CREATE TABLE IF NOT EXISTS public.tags (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name VARCHAR(255) NOT NULL UNIQUE,
+      slug VARCHAR(255) NOT NULL UNIQUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await dbClient.query(`
+    CREATE TABLE IF NOT EXISTS public.product_tags (
+      product_id UUID NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
+      tag_id UUID NOT NULL REFERENCES public.tags(id) ON DELETE CASCADE,
+      PRIMARY KEY (product_id, tag_id)
     )
   `);
 }
@@ -301,6 +356,8 @@ async function fetchProducts(dbClient, sellerId, productId = null) {
         p.occasion,
         p.style,
         p.discount_percent,
+        p.discount_start_date,
+        p.discount_end_date,
         p.sku,
         p.description,
         p.base_price,
@@ -378,7 +435,22 @@ async function fetchProducts(dbClient, sellerId, productId = null) {
   return result.rows.map(normalizeProductRow);
 }
 
+function normalizePendingDraftShipping(payload) {
+  const status = String(payload?.status || '').trim().toLowerCase();
+  const isPendingDraft = status.includes('pending') || status.includes('draft');
+  if (!isPendingDraft) return;
+
+  ['weight', 'length', 'width', 'height'].forEach((field) => {
+    const rawValue = payload[field];
+    if (rawValue === undefined || rawValue === null || rawValue === '' || Number(rawValue) <= 0) {
+      payload[field] = 1;
+    }
+  });
+}
+
 function validateProductPayload(payload, partial = false) {
+  normalizePendingDraftShipping(payload);
+
   const requiredFields = ['name', 'sku', 'category', 'price', 'stock', 'status'];
 
   if (!partial) {
@@ -391,6 +463,10 @@ function validateProductPayload(payload, partial = false) {
 
   if (payload.price !== undefined && (Number.isNaN(Number(payload.price)) || Number(payload.price) < 0)) {
     return 'price must be a non-negative number';
+  }
+
+  if (payload.discountPrice !== undefined && payload.discountPrice !== null && (Number.isNaN(Number(payload.discountPrice)) || Number(payload.discountPrice) < 0)) {
+    return 'discountPrice must be a non-negative number';
   }
 
   if (payload.stock !== undefined && (Number.isNaN(Number(payload.stock)) || Number(payload.stock) < 0)) {
@@ -609,6 +685,48 @@ async function replaceVariants(client, productId, variants, productSku) {
   }
 }
 
+async function upsertTagsAndLink(client, productId, tagNames) {
+  if (!Array.isArray(tagNames) || !tagNames.length) return;
+
+  // Normalize and insert tags, returning their ids
+  const tagIds = [];
+  for (const name of tagNames) {
+    const normalized = String(name || '').trim().toLowerCase();
+    if (!normalized) continue;
+    const slug = slugify(normalized);
+
+    const insertResult = await client.query(
+      `
+        INSERT INTO public.tags (name, slug)
+        VALUES ($1, $2)
+        ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+        RETURNING id
+      `,
+      [normalized, slug]
+    );
+
+    if (insertResult.rows && insertResult.rows[0]) {
+      tagIds.push(insertResult.rows[0].id);
+    }
+  }
+
+  if (!tagIds.length) return;
+
+  // Replace product_tags entries for this product
+  await client.query('DELETE FROM public.product_tags WHERE product_id = $1', [productId]);
+
+  for (const tagId of tagIds) {
+    await client.query(
+      `
+        INSERT INTO public.product_tags (product_id, tag_id)
+        VALUES ($1, $2)
+        ON CONFLICT DO NOTHING
+      `,
+      [productId, tagId]
+    );
+  }
+}
+
 async function replaceImages(client, productId, images) {
   await client.query('DELETE FROM public.product_images WHERE product_id = $1', [productId]);
 
@@ -628,9 +746,41 @@ async function replaceImages(client, productId, images) {
 async function createOrUpdateProduct(client, sellerId, productId, payload, existingSlug = null) {
   const categoryId = await resolveCategoryId(client, payload.category);
   const brandId = await resolveBrandId(client, payload.brand);
-  const status = 'draft';
+  const status = mapUiStatusToDb(payload.status) || 'active';
   const slug = existingSlug || `${slugify(payload.name)}-${Date.now().toString(36)}`;
   const normalizedImages = normalizeImages(payload.images);
+  const normalizedDiscountPrice =
+    payload.discountPrice === undefined || payload.discountPrice === null || payload.discountPrice === ''
+      ? null
+      : Number(payload.discountPrice);
+  const origPrice = Number(payload.price);
+  // DB expects: base_price = current selling price, compare_price = original price (when discounted)
+  let dbBasePrice = origPrice;
+  let dbComparePrice = null;
+  if (normalizedDiscountPrice !== null && Number.isFinite(Number(normalizedDiscountPrice)) && normalizedDiscountPrice > 0 && normalizedDiscountPrice < origPrice) {
+    dbBasePrice = Number(normalizedDiscountPrice);
+    dbComparePrice = origPrice;
+  }
+  const normalizedDiscountPercent = calculateDiscountPercent(origPrice, dbBasePrice);
+  const normalizedDiscountStartDate = payload.discountStartDate === undefined || payload.discountStartDate === null || payload.discountStartDate === ''
+    ? null
+    : serializeDateValue(payload.discountStartDate);
+  const normalizedDiscountEndDate = payload.discountEndDate === undefined || payload.discountEndDate === null || payload.discountEndDate === ''
+    ? null
+    : serializeDateValue(payload.discountEndDate);
+
+  let computedTags = [];
+  try {
+    const raw = await generateTags(`${payload.name} ${payload.description || ''}`);
+    computedTags = Array.isArray(raw) ? raw : [];
+  } catch (e) {
+    console.error('Tag generation failed:', e?.message || e);
+    computedTags = [];
+  }
+
+  if (normalizedDiscountStartDate && normalizedDiscountEndDate && normalizedDiscountStartDate > normalizedDiscountEndDate) {
+    throw new Error('discount start date cannot be after end date');
+  }
 
   if (productId) {
     const updateResult = await client.query(
@@ -645,6 +795,10 @@ async function createOrUpdateProduct(client, sellerId, productId, payload, exist
           compare_price = $8,
           sku = $9,
           status = $10,
+          discount_percent = $11,
+          discount_start_date = $12,
+          discount_end_date = $13,
+          tags = $14,
           updated_at = NOW()
         WHERE id = $1 AND seller_id = $2
         RETURNING *
@@ -656,10 +810,14 @@ async function createOrUpdateProduct(client, sellerId, productId, payload, exist
         brandId,
         String(payload.name).trim(),
         String(payload.description || '').trim() || null,
-        Number(payload.price),
-        payload.discountPrice === undefined || payload.discountPrice === null || payload.discountPrice === '' ? null : Number(payload.discountPrice),
+        dbBasePrice,
+        dbComparePrice,
         String(payload.sku).trim(),
-        status
+        status,
+        normalizedDiscountPercent,
+        normalizedDiscountStartDate,
+        normalizedDiscountEndDate,
+        computedTags
       ]
     );
 
@@ -671,16 +829,22 @@ async function createOrUpdateProduct(client, sellerId, productId, payload, exist
     const persistedImages = await persistUploadedImages(normalizedImages, sellerId, productId, payload.name);
     await replaceImages(client, productId, persistedImages);
     await replaceVariants(client, productId, normalizeVariants(payload.variants), payload.sku);
+    // upsert canonical tags and link to product
+    try {
+      await upsertTagsAndLink(client, productId, computedTags);
+    } catch (e) {
+      console.error('Failed to upsert tags for product', productId, e?.message || e);
+    }
     return productId;
   }
 
-    const insertResult = await client.query(
+  const insertResult = await client.query(
     `
       INSERT INTO public.products (
         seller_id, category_id, brand_id, name, slug, description, base_price, compare_price, currency, sku, status, is_featured, average_rating, total_reviews,
-        color, size, fit_type, material, occasion, style, discount_percent
+          color, size, fit_type, material, occasion, style, discount_percent, discount_start_date, discount_end_date, tags
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'BDT', $9, $10, FALSE, 0, 0, $11, $12, $13, $14, $15, $16, $17)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'BDT', $9, $10, FALSE, 0, 0, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
       RETURNING id
     `,
     [
@@ -690,8 +854,8 @@ async function createOrUpdateProduct(client, sellerId, productId, payload, exist
       String(payload.name).trim(),
       slug,
       String(payload.description || '').trim() || null,
-      Number(payload.price),
-      payload.discountPrice === undefined || payload.discountPrice === null || payload.discountPrice === '' ? null : Number(payload.discountPrice),
+      dbBasePrice,
+      dbComparePrice,
       String(payload.sku).trim(),
       status,
       payload.color ? String(payload.color).trim() : null,
@@ -700,7 +864,10 @@ async function createOrUpdateProduct(client, sellerId, productId, payload, exist
       payload.material ? String(payload.material).trim() : null,
       payload.occasion ? String(payload.occasion).trim() : null,
       payload.style ? String(payload.style).trim() : null,
-      payload.discountPercent !== undefined && payload.discountPercent !== null ? Number(payload.discountPercent) : 0
+      normalizedDiscountPercent,
+      normalizedDiscountStartDate,
+      normalizedDiscountEndDate,
+      computedTags
     ]
   );
 
@@ -709,6 +876,12 @@ async function createOrUpdateProduct(client, sellerId, productId, payload, exist
   const persistedImages = await persistUploadedImages(normalizedImages, sellerId, newProductId, payload.name);
   await replaceImages(client, newProductId, persistedImages);
   await replaceVariants(client, newProductId, normalizeVariants(payload.variants), payload.sku);
+  // upsert canonical tags and link to product
+  try {
+    await upsertTagsAndLink(client, newProductId, computedTags);
+  } catch (e) {
+    console.error('Failed to upsert tags for product', newProductId, e?.message || e);
+  }
   return newProductId;
 }
 

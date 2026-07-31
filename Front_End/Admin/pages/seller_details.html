@@ -289,17 +289,17 @@
     <nav class="p-4 space-y-2">
       <a href="admin_dashboard.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard</a>
       <a href="user_management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="users" class="w-4 h-4"></i>User Management</a>
-      <a href="seller_management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg bg-gray-50 transition-all"><i data-lucide="store" class="w-4 h-4"></i>Seller Management</a>
+      <a href="seller_management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="store" class="w-4 h-4"></i>Seller Management</a>
       <a href="Order_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="package" class="w-4 h-4"></i>Order Management</a>
       <a href="Product_Catalog_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="box" class="w-4 h-4"></i>Product Catalog</a>
       <a href="cms.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="file-text" class="w-4 h-4"></i>CMS</a>
       <a href="Reviews_Ratings_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="star" class="w-4 h-4"></i>Reviews & Ratings</a>
       <a href="Logistics_Courier_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="truck" class="w-4 h-4"></i>Logistics</a>
       <a href="Payment_Payout_Management.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="credit-card" class="w-4 h-4"></i>Payments</a>
-      <a href="Dispute_Support_System.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="shield-alert" class="w-4 h-4"></i>Dispute & Support</a>
+      <a href="dispute&support.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="shield-alert" class="w-4 h-4"></i>Dispute & Support</a>
       <a href="Reports_Analytics.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="bar-chart-3" class="w-4 h-4"></i>Reports</a>
       <div class="h-px bg-gray-100 my-4"></div>
-      <a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all"><i data-lucide="settings" class="w-4 h-4"></i>Settings</a>
+      <a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-lg transition-all"><i data-lucide="settings" class="w-4 h-4"></i>Settings</a>
     </nav>
   </aside>
 
@@ -316,8 +316,6 @@
         <div class="actions">
           <button id="backBtn" class="btn secondary">Back</button>
           <button id="refreshBtn" class="btn secondary">Refresh</button>
-          <button id="verifyBtn" class="btn primary">Approve KYC</button>
-          <button id="rejectKycBtn" class="btn danger">Reject KYC</button>
           <button id="freezeBtn" class="btn warning">Freeze</button>
           <button id="strikeBtn" class="btn danger">Strike</button>
           <button id="payoutBtn" class="btn success">Process Payout</button>
@@ -369,21 +367,6 @@
           <div class="space-y-4">
             <div class="section-card">
               <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold">Business Information</h3>
-                <span class="badge">Store</span>
-              </div>
-              <div class="grid-2 gap-4">
-                <div><div class="detail-label">Support Email</div><div id="supportEmail" class="detail-value"></div></div>
-                <div><div class="detail-label">Support Phone</div><div id="supportPhone" class="detail-value"></div></div>
-                <div><div class="detail-label">Tax ID</div><div id="taxId" class="detail-value"></div></div>
-                <div><div class="detail-label">Vacation Mode</div><div id="vacationMode" class="detail-value"></div></div>
-                <div class="col-span-2"><div class="detail-label">Return Policy</div><div id="returnPolicy" class="detail-value"></div></div>
-                <div class="col-span-2"><div class="detail-label">Shipping Policy</div><div id="shippingPolicy" class="detail-value"></div></div>
-              </div>
-            </div>
-
-            <div class="section-card">
-              <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold">Performance</h3>
                 <span id="performanceScore" class="badge"></span>
               </div>
@@ -425,6 +408,10 @@
                 <div class="stat-box"><div class="detail-label">Risk Level</div><div id="riskLevel" class="detail-value"></div></div>
                 <div class="stat-box"><div class="detail-label">Strikes</div><div id="strikes" class="detail-value"></div></div>
                 <div class="stat-box"><div class="detail-label">Documents</div><div id="documents" class="space-y-2"></div></div>
+                <div class="flex flex-wrap gap-2 pt-2">
+                  <button id="verifyBtn" class="btn primary">Approve KYC</button>
+                  <button id="rejectKycBtn" class="btn danger">Reject KYC</button>
+                </div>
               </div>
             </div>
 
@@ -497,7 +484,8 @@
     const params = new URLSearchParams(window.location.search);
     const sellerId = params.get('sellerId');
     const requestedAction = params.get('action');
-    const API_BASE = `${window.location.origin}/api/admin/sellers`;
+    const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+    const API_BASE = `${API_BASE_URL}/admin/sellers`;
 
     const state = { seller: null };
     let requestedActionHandled = false;
@@ -591,6 +579,44 @@
       return 'Pending';
     }
 
+    function openDocumentPreview(url, label = 'Document') {
+      if (!url) {
+        setAlert(`No ${label.toLowerCase()} available.`, 'error');
+        return;
+      }
+
+      const openUrl = (targetUrl) => {
+        window.open(targetUrl, '_blank', 'noopener,noreferrer');
+      };
+
+      if (String(url).startsWith('data:')) {
+        try {
+          const match = /^data:([^;]+);base64,(.+)$/i.exec(String(url));
+          if (!match) {
+            openUrl(url);
+            return;
+          }
+
+          const mimeType = match[1] || 'application/octet-stream';
+          const binary = atob(match[2]);
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i += 1) {
+            bytes[i] = binary.charCodeAt(i);
+          }
+
+          const blob = new Blob([bytes], { type: mimeType });
+          const blobUrl = URL.createObjectURL(blob);
+          openUrl(blobUrl);
+          window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+        } catch (error) {
+          openUrl(url);
+        }
+        return;
+      }
+
+      openUrl(url);
+    }
+
     function renderStatusBadges(seller) {
       const badges = [];
       badges.push(`<span class="pill ${seller.status === 'active' ? 'pill-active' : seller.status === 'frozen' ? 'pill-frozen' : 'pill-suspended'}">${seller.status || 'active'}</span>`);
@@ -609,12 +635,6 @@
       document.getElementById('phone').textContent = seller.phone || 'Not provided';
       document.getElementById('registeredDate').textContent = seller.registeredDate || 'N/A';
       document.getElementById('address').textContent = seller.profile?.businessAddress || 'Not provided';
-      document.getElementById('supportEmail').textContent = seller.businessInfo?.supportEmail || 'Not provided';
-      document.getElementById('supportPhone').textContent = seller.businessInfo?.supportPhone || 'Not provided';
-      document.getElementById('taxId').textContent = seller.profile?.taxId || 'Not provided';
-      document.getElementById('vacationMode').textContent = seller.businessInfo?.vacationMode ? 'Enabled' : 'Disabled';
-      document.getElementById('returnPolicy').textContent = seller.businessInfo?.returnPolicy || 'Not provided';
-      document.getElementById('shippingPolicy').textContent = seller.businessInfo?.shippingPolicy || 'Not provided';
       document.getElementById('products').textContent = seller.performance?.products ?? 0;
       document.getElementById('stock').textContent = seller.performance?.totalStock ?? 0;
       document.getElementById('orders').textContent = seller.performance?.orders ?? 0;
@@ -632,8 +652,9 @@
       document.getElementById('riskLevel').className = `detail-value ${seller.kyc?.riskLevel === 'high' ? 'text-rose-600' : seller.kyc?.riskLevel === 'medium' ? 'text-amber-600' : 'text-emerald-600'}`;
       document.getElementById('strikes').textContent = `${seller.kyc?.strikes || 0}/3`;
       document.getElementById('notesInput').value = seller.notes || '';
-      document.getElementById('documents').innerHTML = (seller.kyc?.documents || []).length
-        ? (seller.kyc.documents || []).map(doc => `<div class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"><div class="flex items-center justify-between gap-2"><div><div class="font-semibold text-gray-800">${getDocumentLabel(doc.type)}</div><div class="mt-1 text-xs text-gray-500">${doc.uploadedDate || 'Uploaded recently'}</div></div><div class="flex items-center gap-2"><span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">${getDocumentStatusLabel(doc.status)}</span>${doc.url ? `<a href="${doc.url}" target="_blank" rel="noreferrer" class="text-sm font-semibold text-blue-600 hover:underline">View</a>` : '<span class="text-xs text-gray-400">No file</span>'}</div></div></div>`).join('')
+      const documents = Array.isArray(seller.kyc?.documents) ? seller.kyc.documents : [];
+      document.getElementById('documents').innerHTML = documents.length
+        ? documents.map(doc => `<div class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"><div class="flex items-center justify-between gap-2"><div><div class="font-semibold text-gray-800">${getDocumentLabel(doc.type)}</div><div class="mt-1 text-xs text-gray-500">${doc.uploadedDate || 'Uploaded recently'}</div></div><div class="flex items-center gap-2"><span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">${getDocumentStatusLabel(doc.status)}</span>${doc.url ? `<button type="button" class="text-sm font-semibold text-blue-600 hover:underline" onclick="openDocumentPreview('${String(doc.url).replace(/'/g, "\\'")}', '${String(getDocumentLabel(doc.type)).replace(/'/g, "\\'")}')">View</button>` : '<span class="text-xs text-gray-400">No file</span>'}</div></div></div>`).join('')
         : '<div class="rounded-lg border border-dashed border-gray-200 p-3 text-sm text-gray-500">No documents uploaded yet.</div>';
       
       const bankAccount = (seller.bankAccounts || [])[0] || null;
@@ -694,7 +715,7 @@
         <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm">
           <div class="flex items-center justify-between gap-2">
             <span class="font-semibold text-gray-800">Uploaded Bank Statement</span>
-            ${fallbackValues.statementUrl ? `<a href="${fallbackValues.statementUrl}" target="_blank" class="text-sm text-blue-600 hover:underline">View</a>` : '<button type="button" class="rounded border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-500" disabled>View</button>'}
+            ${fallbackValues.statementUrl ? `<button type="button" class="rounded border border-gray-300 px-3 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50" onclick="openDocumentPreview('${String(fallbackValues.statementUrl).replace(/'/g, "\\'")}', 'Bank Statement')">View</button>` : '<button type="button" class="rounded border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-500" disabled>View</button>'}
           </div>
           <div class="mt-1 text-gray-600">${fallbackValues.statementName}</div>
         </div>
@@ -815,5 +836,6 @@
     lucide.createIcons();
     loadSeller();
   </script>
+<script src="../js/notificationsUI.js"></script>
 </body>
 </html>

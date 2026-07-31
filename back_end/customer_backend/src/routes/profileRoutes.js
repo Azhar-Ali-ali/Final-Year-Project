@@ -211,4 +211,63 @@ router.patch('/password', async (req, res) => {
   }
 });
 
+router.patch('/email', async (req, res) => {
+  const requestedId = getCustomerId(req);
+  const newEmail = String(req.body?.newEmail || '').trim().toLowerCase();
+  const password = String(req.body?.password || '').trim();
+
+  if (!newEmail || !password) {
+    return res.status(400).json({ success: false, message: 'newEmail and password are required' });
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(newEmail)) {
+    return res.status(400).json({ success: false, message: 'Invalid email format' });
+  }
+
+  try {
+    const customerId = await resolveCustomerId(req, requestedId);
+    if (!customerId) {
+      return res.status(404).json({ success: false, message: 'Customer not found' });
+    }
+
+    // Verify user exists and is a customer
+    const userResult = await req.db.query(
+      `SELECT id, email, password_hash FROM public.users WHERE id = $1 AND role = 'customer' LIMIT 1`,
+      [customerId]
+    );
+
+    if (!userResult.rows.length) {
+      return res.status(404).json({ success: false, message: 'Customer not found' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Check if new email is already in use
+    const emailCheck = await req.db.query(
+      `SELECT id FROM public.users WHERE LOWER(email) = $1 AND id != $2 LIMIT 1`,
+      [newEmail, customerId]
+    );
+
+    if (emailCheck.rows.length > 0) {
+      return res.status(409).json({ success: false, message: 'This email address is already in use' });
+    }
+
+    // Update email
+    const updateResult = await req.db.query(
+      `UPDATE public.users SET email = $1, email_verified_at = NOW(), updated_at = NOW() WHERE id = $2 RETURNING id AS "userId", email, updated_at AS "updatedAt"`,
+      [newEmail, customerId]
+    );
+
+    return res.json({
+      success: true,
+      message: 'Email changed successfully',
+      data: updateResult.rows[0]
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to change email', error: error.message });
+  }
+});
+
 module.exports = router;

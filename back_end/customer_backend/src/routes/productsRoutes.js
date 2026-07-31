@@ -17,6 +17,7 @@ const {
   getProductsByCategory,
   getProductsByBrand
 } = require('../data/productsData');
+const { smartSearchProducts } = require('../utils/smartSearch');
 
 function parseListParam(value) {
   if (!value) return [];
@@ -74,10 +75,14 @@ function buildFilterConditions(filters, values, where) {
   }
 
   if (filters.categories.length > 0) {
-    values.push(filters.categories);
+    // normalize categories to lowercase for case-insensitive matching
+    const normalizedCategories = filters.categories.map((cat) =>
+      String(cat || '').trim().toLowerCase()
+    );
+    values.push(normalizedCategories);
     where.push(`(
-      c.name = ANY($${values.length}::text[])
-      OR c.slug = ANY($${values.length}::text[])
+      LOWER(c.name) = ANY($${values.length}::text[])
+      OR LOWER(c.slug) = ANY($${values.length}::text[])
     )`);
   }
 
@@ -88,6 +93,118 @@ function buildFilterConditions(filters, values, where) {
       OR b.slug = ANY($${values.length}::text[])
     )`);
   }
+
+  if (Array.isArray(filters.tags) && filters.tags.length > 0) {
+    values.push(filters.tags);
+    where.push(`(p.tags && $${values.length}::text[])`);
+  }
+}
+
+async function fetchTrendingProductsFromDb(reqDb, limit = 12) {
+  const sql = `
+    SELECT
+      p.id,
+      p.slug,
+      p.name,
+      COALESCE(p.description, '') AS description,
+      COALESCE(p.tags, ARRAY[]::text[]) AS tags,
+      p.base_price AS price,
+      COALESCE(p.compare_price, p.base_price) AS "originalPrice",
+      p.currency,
+      COALESCE(p.average_rating, 0) AS rating,
+      COALESCE(p.total_reviews, 0) AS "reviewCount",
+      COALESCE(c.name, 'General') AS category,
+      COALESCE(c.slug, '') AS "categorySlug",
+      COALESCE(b.name, 'Generic') AS brand,
+      COALESCE(b.slug, '') AS "brandSlug",
+      COALESCE(sp.store_name, 'Store') AS "sellerName",
+      COALESCE(img.image_url, '') AS image,
+      COALESCE(stock.stock_quantity, 0) AS quantity,
+      (COALESCE(stock.stock_quantity, 0) > 0) AS "inStock",
+      CASE WHEN p.is_featured = TRUE THEN TRUE ELSE FALSE END AS sponsored,
+      CASE WHEN p.compare_price IS NOT NULL AND p.compare_price > p.base_price THEN TRUE ELSE FALSE END AS "limitedDeal",
+      CASE
+        WHEN p.compare_price IS NOT NULL AND p.compare_price > p.base_price
+        THEN ROUND(((p.compare_price - p.base_price) / NULLIF(p.compare_price, 0)) * 100)
+        ELSE 0
+      END AS discount,
+      (
+        (COALESCE(sales.units_sold, 0) * 5) +
+        (COALESCE(view_stats.view_count, 0) * 2) +
+        (COALESCE(cart_stats.cart_count, 0) * 3) +
+        (COALESCE(wishlist_stats.wishlist_count, 0) * 2) +
+        (COALESCE(review_stats.avg_rating, p.average_rating, 0) * 10)
+      )::numeric AS "trendScore"
+    FROM public.products p
+    LEFT JOIN public.categories c ON c.id = p.category_id
+    LEFT JOIN public.brands b ON b.id = p.brand_id
+    LEFT JOIN public.seller_profiles sp ON sp.user_id = p.seller_id
+    LEFT JOIN LATERAL (
+      SELECT image_url
+      FROM public.product_images
+      WHERE product_id = p.id
+      ORDER BY is_primary DESC, sort_order ASC, created_at ASC
+      LIMIT 1
+    ) img ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT COALESCE(SUM(COALESCE(stock_quantity, 0)), 0)::int AS stock_quantity
+      FROM public.product_variants
+      WHERE product_id = p.id AND is_active = TRUE
+    ) stock ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT COALESCE(SUM(oi.quantity), 0)::int AS units_sold
+      FROM public.order_items oi
+      WHERE oi.product_id = p.id
+    ) sales ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT 0::int AS view_count
+    ) view_stats ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT COALESCE(SUM(ci.quantity), 0)::int AS cart_count
+      FROM public.cart_items ci
+      WHERE ci.product_id = p.id
+    ) cart_stats ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT COUNT(*)::int AS wishlist_count
+      FROM public.wishlists w
+      WHERE w.product_id = p.id
+    ) wishlist_stats ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT
+        COUNT(*)::int AS review_count,
+        COALESCE(AVG(pr.rating), 0)::numeric(3,2) AS avg_rating
+      FROM public.product_reviews pr
+      WHERE pr.product_id = p.id AND pr.is_hidden IS NOT TRUE
+    ) review_stats ON TRUE
+    WHERE p.status = 'active'
+    ORDER BY "trendScore" DESC, COALESCE(review_stats.review_count, 0) DESC, COALESCE(p.average_rating, 0) DESC, p.created_at DESC
+    LIMIT $1
+  `;
+
+  const result = await reqDb.query(sql, [Math.max(limit, 1)]);
+  return result.rows.map((row) => ({
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    description: row.description || '',
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    price: Number(row.price) || 0,
+    originalPrice: Number(row.originalPrice) || Number(row.price) || 0,
+    rating: Number(row.rating) || 0,
+    reviewCount: Number(row.reviewCount) || 0,
+    category: row.category || '',
+    categorySlug: row.categorySlug || '',
+    brand: row.brand || '',
+    brandSlug: row.brandSlug || '',
+    sellerName: row.sellerName || 'Store',
+    image: row.image || '',
+    quantity: Number(row.quantity) || 0,
+    inStock: Boolean(row.inStock),
+    sponsored: Boolean(row.sponsored),
+    limitedDeal: Boolean(row.limitedDeal),
+    discount: Number(row.discount) || 0,
+    trendScore: Number(row.trendScore) || 0
+  }));
 }
 
 function mapSortOrder(sortBy) {
@@ -123,6 +240,7 @@ async function fetchCatalogProductsFromDb(reqDb, filters) {
       p.slug,
       p.name,
       COALESCE(p.description, '') AS description,
+      COALESCE(p.tags, ARRAY[]::text[]) AS tags,
       p.base_price AS price,
       COALESCE(p.compare_price, p.base_price) AS "originalPrice",
       p.currency,
@@ -221,6 +339,13 @@ async function fetchCatalogFilterOptionsFromDb(reqDb) {
     `)
   ]);
 
+  const tagsResult = await reqDb.query(`
+    SELECT DISTINCT unnest(tags) AS tag
+    FROM public.products p
+    WHERE p.status = 'active' AND tags IS NOT NULL
+    ORDER BY tag ASC
+  `);
+
   return {
     categories: categoryResult.rows.map((row) => ({
       label: row.name,
@@ -230,6 +355,7 @@ async function fetchCatalogFilterOptionsFromDb(reqDb) {
       label: row.name,
       value: row.slug || row.name
     })),
+    tags: tagsResult.rows.map((r) => ({ label: r.tag, value: r.tag })),
     ratings: [5, 4, 3, 2, 1].map((rating) => ({
       label: `${rating} & Up`,
       value: rating
@@ -268,6 +394,7 @@ router.get('/', async (req, res) => {
       search: req.query.search || '',
       brands: parseListParam(req.query.brands),
       categories: parseListParam(req.query.categories),
+        tags: parseListParam(req.query.tags),
       minRating: parseFloat(req.query.minRating) || 0,
       minPrice: parseFloat(req.query.minPrice) || 0,
       maxPrice: parseFloat(req.query.maxPrice) || Infinity,
@@ -354,11 +481,24 @@ router.get('/filters', (req, res) => {
  * Query params:
  *  - limit: number (default 10)
  */
-router.get('/trending', (req, res) => {
+router.get('/trending', async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 12;
+
+    if (req.db && typeof req.db.query === 'function') {
+      try {
+        const products = await fetchTrendingProductsFromDb(req.db, limit);
+        return res.json({
+          success: true,
+          data: products
+        });
+      } catch (dbError) {
+        console.warn('Trending products DB query failed:', dbError.message);
+      }
+    }
+
     const products = getTrendingProducts(limit);
-    res.json({
+    return res.json({
       success: true,
       data: products
     });
@@ -419,15 +559,17 @@ router.get('/sponsored', (req, res) => {
 
 /**
  * GET /api/products/search
- * Search products by query
+ * Smart search with database-first, Gemini fallback
  * Query params:
  *  - q: string (required)
- *  - limit: number (default 10)
+ *  - categories: comma-separated string (optional)
+ *  - limit: number (default 20)
  */
-router.get('/search', (req, res) => {
+router.get('/search', async (req, res) => {
   try {
     const query = req.query.q || '';
-    const limit = parseInt(req.query.limit) || 10;
+    const categories = parseListParam(req.query.categories);
+    const limit = parseInt(req.query.limit) || 20;
 
     if (!query) {
       return res.status(400).json({
@@ -436,12 +578,32 @@ router.get('/search', (req, res) => {
       });
     }
 
-    const products = searchProducts(query, limit);
+    // Try database search first if available
+    if (req.db && typeof req.db.query === 'function') {
+      try {
+        const products = await smartSearchProducts(req.db, query, categories);
+        const paginated = products.slice(0, limit);
+        
+        return res.json({
+          success: true,
+          data: paginated,
+          source: 'database',
+          totalResults: products.length
+        });
+      } catch (dbError) {
+        console.warn('Database search failed, falling back to mock data:', dbError.message);
+      }
+    }
+
+    // Fallback to mock data search
+    const products = searchProducts(query, categories, limit);
     res.json({
       success: true,
       data: products,
-      query
+      source: 'mock',
+      totalResults: products.length
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,

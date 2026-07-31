@@ -1,4 +1,5 @@
-const API_BASE = 'http://localhost:5000/api/seller/performance';
+const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+const API_BASE = `${API_BASE_URL}/seller/performance`;
 const chartColors = ['#0066c0', '#28a745', '#ffc107', '#8b5cf6', '#dc3545', '#06b6d4'];
 
 let salesLineChart = null;
@@ -8,30 +9,88 @@ let currentSalesPeriod = 'monthly';
 let currentViewsLimit = 5;
 
 function resolveSellerId() {
-  try {
-    const keys = ['sellerId', 'seller_id', 'currentSellerId', 'sellerUserId', 'userId'];
-    for (const key of keys) {
-      const value = localStorage.getItem(key) || sessionStorage.getItem(key);
-      if (value) {
-        return String(value).trim();
+  const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || '').trim());
+  const candidateKeys = [
+    'sellerId',
+    'seller_id',
+    'currentSellerId',
+    'sellerUserId',
+    'userId',
+    'lumina.seller.session',
+    'lumina.auth.user',
+    'lumina.auth',
+    'lumina.user',
+    'lumina.seller.profile',
+    'sellerProfile'
+  ];
+
+  const seen = new Set();
+  for (const key of candidateKeys) {
+    const raw = localStorage.getItem(key) || sessionStorage.getItem(key);
+    if (!raw || seen.has(raw)) continue;
+    seen.add(raw);
+
+    try {
+      const parsed = JSON.parse(raw);
+      const candidate = [
+        parsed?.id,
+        parsed?.userId,
+        parsed?.sellerId,
+        parsed?.seller_id,
+        parsed?.seller?.id,
+        parsed?.seller?.userId,
+        parsed?.seller?.sellerId,
+        parsed?.seller?.seller_id,
+        parsed?.sellerProfile?.id,
+        parsed?.sellerProfile?.userId,
+        parsed?.sellerProfile?.sellerId,
+        parsed?.sellerProfile?.seller_id,
+        parsed?.user?.id,
+        parsed?.user?.userId,
+        parsed?.user?.sellerId,
+        parsed?.user?.seller_id,
+        parsed?.session?.userId,
+        parsed?.session?.sellerId,
+        parsed?.session?.seller_id,
+        parsed?.auth?.user?.id,
+        parsed?.auth?.user?.userId,
+        parsed?.auth?.user?.sellerId,
+        parsed?.auth?.user?.seller_id,
+        parsed?.auth?.user?.sellerProfile?.id,
+        parsed?.auth?.user?.sellerProfile?.userId,
+        parsed?.auth?.user?.sellerProfile?.sellerId,
+        parsed?.auth?.user?.sellerProfile?.seller_id,
+        parsed?.data?.id,
+        parsed?.data?.userId,
+        parsed?.data?.sellerId,
+        parsed?.data?.seller_id,
+        parsed?.profile?.id,
+        parsed?.profile?.userId,
+        parsed?.profile?.sellerId,
+        parsed?.profile?.seller_id
+      ].find((value) => value !== undefined && value !== null && String(value).trim() !== '');
+
+      if (candidate && isUuid(String(candidate).trim())) {
+        return String(candidate).trim();
       }
+    } catch (_) {
+      const directValue = String(raw).trim();
+      if (isUuid(directValue)) return directValue;
     }
+  }
 
-    const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.seller.session');
-    if (rawUser) {
-      const parsed = JSON.parse(rawUser);
-      return String(parsed.id || parsed.userId || parsed.sellerId || '2').trim();
-    }
-  } catch (_) {}
-
-  return '2';
+  return '';
 }
 
 async function fetchJson(url, options = {}) {
+  const sellerId = resolveSellerId();
+  const token = localStorage.getItem('lumina.auth.token') || sessionStorage.getItem('lumina.auth.token') || '';
   const response = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(sellerId ? { 'x-seller-id': sellerId } : {}),
       ...(options.headers || {})
     }
   });

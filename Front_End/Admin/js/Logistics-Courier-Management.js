@@ -1,4 +1,4 @@
-const API_BASE_URL = window.ADMIN_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
 
 function apiUrl(path) {
   return `${API_BASE_URL}${path}`;
@@ -12,6 +12,7 @@ async function fetchJson(path, options = {}) {
   const token = getAdminToken();
   const response = await fetch(apiUrl(path), {
     cache: 'no-store',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -159,7 +160,7 @@ function setTabBehavior() {
 
 async function loadOverview() {
   try {
-    const result = await fetchJson('/api/admin/logistics/overview');
+    const result = await fetchJson(`${API_BASE_URL}/admin/logistics/overview`);
     db.overview = result.data || db.overview;
   } catch (_) {
     db.overview = { readyForPickup: 0, activeCouriers: 0, inTransit: 0, codPending: 0 };
@@ -169,7 +170,7 @@ async function loadOverview() {
 async function loadCouriers() {
   try {
     const q = document.getElementById('search-courier') ? document.getElementById('search-courier').value.trim() : '';
-    const result = await fetchJson(`/api/admin/logistics/couriers?search=${encodeURIComponent(q)}`);
+    const result = await fetchJson(`/admin/logistics/couriers?search=${encodeURIComponent(q)}`);
     db.couriers = Array.isArray(result.data) ? result.data : [];
   } catch (_) {
     db.couriers = [];
@@ -178,7 +179,7 @@ async function loadCouriers() {
 
 async function loadOrdersReady() {
   try {
-    const result = await fetchJson('/api/admin/logistics/orders/ready');
+    const result = await fetchJson(`${API_BASE_URL}/admin/logistics/orders/ready`);
     db.orders = Array.isArray(result.data) ? result.data : [];
   } catch (_) {
     db.orders = [];
@@ -187,7 +188,7 @@ async function loadOrdersReady() {
 
 async function loadShipments() {
   try {
-    const result = await fetchJson('/api/admin/logistics/shipments');
+    const result = await fetchJson(`${API_BASE_URL}/admin/logistics/shipments`);
     db.shipments = Array.isArray(result.data) ? result.data : [];
   } catch (_) {
     db.shipments = [];
@@ -196,7 +197,7 @@ async function loadShipments() {
 
 async function loadAssignments() {
   try {
-    const result = await fetchJson('/api/admin/logistics/assignments');
+    const result = await fetchJson(`${API_BASE_URL}/admin/logistics/assignments`);
     db.assignments = Array.isArray(result.data) ? result.data : [];
   } catch (_) {
     db.assignments = [];
@@ -205,7 +206,7 @@ async function loadAssignments() {
 
 async function loadPayments() {
   try {
-    const result = await fetchJson('/api/admin/logistics/payments');
+    const result = await fetchJson(`${API_BASE_URL}/admin/logistics/payments`);
     db.payments = Array.isArray(result.data) ? result.data : [];
   } catch (_) {
     db.payments = [];
@@ -214,7 +215,7 @@ async function loadPayments() {
 
 async function loadShippingRules() {
   try {
-    const result = await fetchJson('/api/admin/logistics/shipping-rules');
+    const result = await fetchJson(`${API_BASE_URL}/admin/logistics/shipping-rules`);
     db.shippingRules = result.data || db.shippingRules;
   } catch (_) {
     // keep defaults
@@ -298,12 +299,12 @@ async function saveCourierForm(e) {
   try {
     let result;
     if (editingCourierId) {
-      result = await fetchJson(`/api/admin/logistics/couriers/${encodeURIComponent(editingCourierId)}`, {
+      result = await fetchJson(`/admin/logistics/couriers/${encodeURIComponent(editingCourierId)}`, {
         method: 'PUT',
         body: JSON.stringify({ ...courier, email: '' })
       });
     } else {
-      result = await fetchJson('/api/admin/logistics/couriers', {
+      result = await fetchJson(`${API_BASE_URL}/admin/logistics/couriers`, {
         method: 'POST',
         body: JSON.stringify({ ...courier, email: '' })
       });
@@ -357,7 +358,7 @@ function editCourier(id) {
 
 async function toggleCourier(id) {
   try {
-    await fetchJson(`/api/admin/logistics/couriers/${encodeURIComponent(id)}/toggle`, { method: 'PATCH' });
+    await fetchJson(`/admin/logistics/couriers/${encodeURIComponent(id)}/toggle`, { method: 'PATCH' });
     await reloadAllData();
     renderCourierTable();
     renderAssignmentQueue();
@@ -369,7 +370,7 @@ async function toggleCourier(id) {
 
 async function deleteCourier(id) {
   try {
-    await fetchJson(`/api/admin/logistics/couriers/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    await fetchJson(`/admin/logistics/couriers/${encodeURIComponent(id)}`, { method: 'DELETE' });
     await reloadAllData();
     renderCourierTable();
     renderAssignmentQueue();
@@ -507,7 +508,7 @@ async function manualStatusUpdate(shipmentId, status) {
   const s = db.shipments.find(x => x.id === shipmentId);
   if (!s || s.apiIntegrated) return;
   try {
-    await fetchJson(`/api/admin/logistics/shipments/${encodeURIComponent(shipmentId)}/status`, {
+    await fetchJson(`/admin/logistics/shipments/${encodeURIComponent(shipmentId)}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status })
     });
@@ -811,10 +812,10 @@ async function saveChargeRuleForm() {
   try {
     const payload = { state, city, shippingFee: fee };
     if (editingChargeRuleId) {
-      await fetchJson(`/api/admin/logistics/shipping-charges/${editingChargeRuleId}`, { method: 'PUT', body: JSON.stringify(payload) });
+      await fetchJson(`/admin/logistics/shipping-charges/${editingChargeRuleId}`, { method: 'PUT', body: JSON.stringify(payload) });
       setRulesNote('Shipping fee rule updated.');
     } else {
-      await fetchJson('/api/admin/logistics/shipping-charges', { method: 'POST', body: JSON.stringify(payload) });
+      await fetchJson(`${API_BASE_URL}/admin/logistics/shipping-charges`, { method: 'POST', body: JSON.stringify(payload) });
       setRulesNote('Shipping fee rule added.');
     }
 
@@ -841,10 +842,10 @@ async function saveCodRuleForm() {
   try {
     const payload = { state, city, codAvailable, maxAmount: maxCodAmount };
     if (editingCodRuleId) {
-      await fetchJson(`/api/admin/logistics/cod-rules/${editingCodRuleId}`, { method: 'PUT', body: JSON.stringify(payload) });
+      await fetchJson(`/admin/logistics/cod-rules/${editingCodRuleId}`, { method: 'PUT', body: JSON.stringify(payload) });
       setRulesNote('COD rule updated.');
     } else {
-      await fetchJson('/api/admin/logistics/cod-rules', { method: 'POST', body: JSON.stringify(payload) });
+      await fetchJson(`${API_BASE_URL}/admin/logistics/cod-rules`, { method: 'POST', body: JSON.stringify(payload) });
       setRulesNote('COD rule added.');
     }
 
@@ -873,7 +874,7 @@ function removeAssignmentRule(index) {
 async function deleteChargeRule(ruleId) {
   if (!ruleId) return;
   try {
-    await fetchJson(`/api/admin/logistics/shipping-charges/${ruleId}`, { method: 'DELETE' });
+    await fetchJson(`/admin/logistics/shipping-charges/${ruleId}`, { method: 'DELETE' });
     await loadShippingRules();
     loadRuleInputs();
     setRulesNote('Shipping fee rule deleted.');
@@ -885,7 +886,7 @@ async function deleteChargeRule(ruleId) {
 async function deleteCodRule(ruleId) {
   if (!ruleId) return;
   try {
-    await fetchJson(`/api/admin/logistics/cod-rules/${ruleId}`, { method: 'DELETE' });
+    await fetchJson(`/admin/logistics/cod-rules/${ruleId}`, { method: 'DELETE' });
     await loadShippingRules();
     loadRuleInputs();
     setRulesNote('COD rule deleted.');
@@ -921,7 +922,7 @@ async function saveRules(event) {
     return;
   }
   try {
-    await fetchJson('/api/admin/logistics/shipping-rules', {
+    await fetchJson(`${API_BASE_URL}/admin/logistics/shipping-rules`, {
       method: 'PUT',
       body: JSON.stringify(db.shippingRules)
     });
@@ -1234,7 +1235,7 @@ function bindEvents() {
   if (syncBtn) {
     syncBtn.addEventListener('click', async () => {
       try {
-        const result = await fetchJson('/api/admin/logistics/sync/webhooks', { method: 'POST' });
+        const result = await fetchJson(`${API_BASE_URL}/admin/logistics/sync/webhooks`, { method: 'POST' });
         alert(result.message || 'Webhook sync completed.');
         await reloadAllData();
         renderTracking();

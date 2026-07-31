@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Help & Support | LUMINA Seller</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     * {
@@ -808,7 +809,8 @@
       sidebar.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMobileSidebar));
     }
 
-    const API_BASE = 'http://localhost:5000/api/seller/disputes';
+    const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+    const API_BASE = `${API_BASE_URL}/seller/disputes`;
     const form = document.getElementById('supportForm');
     const ticketFileInput = document.getElementById('ticketFile');
     const fileNames = document.getElementById('fileNames');
@@ -830,6 +832,10 @@
     let activeTicketId = null;
     let activeTicket = null;
     let tickets = [];
+    let conversationMessages = [];
+    let supportSocket = null;
+    let activeSocketRoomId = null;
+    let activeSocketRoomDbId = null;
 
     function getSellerId() {
       const candidateKeys = ['sellerId', 'seller_id', 'currentSellerId', 'sellerUserId', 'userId'];
@@ -1003,17 +1009,60 @@
         replyFileInput.value = '';
         replyFileNames.textContent = '';
         replyFileNames.classList.add('hidden');
-        renderChatMessages(Array.isArray(messagesResponse.data) ? messagesResponse.data : []);
+        conversationMessages = Array.isArray(messagesResponse.data) ? messagesResponse.data : [];
+        renderChatMessages(conversationMessages);
         conversationModal.classList.add('open');
+        connectSupportSocket();
+        joinSupportRoom(activeTicket.id, activeTicket.ticketId);
         lucide.createIcons();
       } catch (error) {
         alert(error.message || 'Unable to open ticket conversation.');
       }
     }
 
+    function connectSupportSocket() {
+      if (!window.io || supportSocket) return;
+      const socketUrl = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : window.location.origin;
+      supportSocket = io(socketUrl, { transports: ['websocket', 'polling'] });
+      supportSocket.on('support-message-received', (payload) => {
+        if (!payload) return;
+        const isSameTicket = String(activeTicketId || '') === String(payload.ticketId || payload.ticketDbId || '') || String(activeTicket?.ticketId || '') === String(payload.ticketDbId || payload.ticketId || '');
+        if (!isSameTicket) return;
+        const incoming = {
+          id: payload.id,
+          from: payload.senderRole === 'seller' ? 'seller' : 'admin',
+          text: payload.message || '',
+          attachments: Array.isArray(payload.attachments) ? payload.attachments : [],
+          createdAt: payload.createdAt || new Date().toISOString()
+        };
+        const exists = conversationMessages.some((message) => String(message.id || '') === String(incoming.id || '') || (message.text === incoming.text && message.createdAt === incoming.createdAt));
+        if (!exists) {
+          conversationMessages = [...conversationMessages, incoming];
+          renderChatMessages(conversationMessages);
+        }
+      });
+    }
+
+    function joinSupportRoom(ticketId, ticketDbId) {
+      if (!supportSocket || (!ticketId && !ticketDbId)) return;
+      const rooms = [ticketId, ticketDbId].filter(Boolean).map(String);
+      rooms.forEach((roomId) => supportSocket.emit('join-room', { threadId: roomId, userId: sellerId, role: 'seller' }));
+      activeSocketRoomId = ticketId || null;
+      activeSocketRoomDbId = ticketDbId || null;
+    }
+
+    function leaveSupportRoom() {
+      if (!supportSocket) return;
+      [activeSocketRoomId, activeSocketRoomDbId].filter(Boolean).forEach((roomId) => supportSocket.emit('leave-room', { threadId: roomId }));
+      activeSocketRoomId = null;
+      activeSocketRoomDbId = null;
+    }
+
     function closeModal() {
+      leaveSupportRoom();
       conversationModal.classList.remove('open');
       activeTicketId = null;
+      conversationMessages = [];
     }
 
     async function sendReply() {

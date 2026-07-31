@@ -11,7 +11,7 @@
 		body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; background: #f8fafc; color: #111827; }
 		.serif { font-family: 'Playfair Display', serif; }
 		.glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
-		.account-flyout { width: 360px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
+		.account-flyout { width: min(360px, calc(100vw - 1rem)); background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
 		.signin-btn { display: inline-block; width: 130px; text-align: center; background: #facc15; border: 1px solid #f59e0b; color: #111827; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 7px; }
 		.signin-btn:hover { background: #fbbf24; }
 		.account-col-title { font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
@@ -35,6 +35,15 @@
 		.review-card { background: #fff; border: 1px solid #e8edf5; border-radius: 16px; box-shadow: 0 10px 24px rgba(15,23,42,0.05); }
 		.policy-card { background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); border: 1px solid #e8edf5; border-radius: 16px; }
 		.hero-avatar { width: 92px; height: 92px; border-radius: 24px; object-fit: cover; border: 4px solid #fff; box-shadow: 0 14px 32px rgba(15,23,42,0.12); }
+		.hero-title {
+			font-size: clamp(1.5rem, 2.3vw, 2.4rem);
+			font-weight: 800;
+			line-height: 1.1;
+			letter-spacing: -0.02em;
+			margin: 0;
+			color: #111827;
+			word-break: break-word;
+		}
 		@media (max-width: 1024px) { .content-shell { margin-left: 0; } }
 		@media (max-width: 768px) { .hero-avatar { width: 76px; height: 76px; } }
 	</style>
@@ -42,8 +51,10 @@
 <body>
 	<nav class="fixed top-0 w-full z-[100] glass">
 		<div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
-			<div class="flex items-center gap-2 shrink-0">
-				<button type="button" class="p-2" aria-label="Menu"><i data-lucide="menu" class="w-6 h-6"></i></button>
+				<div class="flex items-center gap-2 shrink-0">
+					<a href="all_product_spages.html" class="md:hidden p-2" aria-label="Search">
+						<i data-lucide="search" class="w-5 h-5"></i>
+					</a>
 				<a href="homepage.html" class="text-2xl font-bold tracking-tighter uppercase shrink-0">Lumina</a>
 			</div>
 
@@ -53,12 +64,12 @@
 			</div>
 
 			<div class="flex items-center gap-2 lg:gap-6 shrink-0">
-				<div id="accountMenuWrap" class="relative group">
-					<button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
+				<div id="accountMenuWrap" class="relative group max-sm:w-full">
+					<button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors max-sm:justify-center max-sm:px-3">
 						<i data-lucide="user" class="w-5 h-5"></i>
 						<span id="accountMenuLabel" class="hidden sm:block text-xs font-bold uppercase tracking-widest">Account</span>
 					</button>
-					<div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block">
+					<div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block max-sm:fixed max-sm:inset-x-2 max-sm:top-20 max-sm:bottom-auto max-sm:rounded-2xl max-sm:shadow-2xl max-sm:max-h-[calc(100vh-5rem)] max-sm:overflow-y-auto">
 						<div id="accountMenuContent" class="account-flyout"></div>
 					</div>
 				</div>
@@ -254,8 +265,8 @@
 </main>
 
 <script>
-	const API_BASE_URL = 'http://localhost:5000/api';
-		const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+	const API_BASE_URL = `${window.location.origin}/api`;
+		const IS_LIVE_HOST = location.protocol !== 'file:';
 
 		function getQueryParam(key) {
 			return new URLSearchParams(window.location.search).get(key);
@@ -390,7 +401,7 @@
 							<a href="my_addresses.html" class="account-link">My Addresses</a>
 							<a href="my_messages.html" class="account-link">Messages</a>
 							<a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
-							<a href="security_settings.html" class="account-link">Security Settings</a>
+
 							<a href="help_support.html" class="account-link">Help & Support</a>
 						</div>
 					</div>
@@ -404,7 +415,11 @@
 
 		if (accountMenuButton && accountMenuDropdown) {
 			accountMenuButton.addEventListener('click', () => {
-				accountMenuDropdown.classList.toggle('hidden');
+				const isHidden = accountMenuDropdown.classList.contains('hidden');
+				accountMenuDropdown.classList.toggle('hidden', !isHidden);
+				if (!isHidden) {
+					accountMenuDropdown.classList.add('hidden');
+				}
 			});
 
 			document.addEventListener('click', (event) => {
@@ -635,7 +650,7 @@
 		async function loadSellerProfile() {
 			const sellerKey = getSellerKey();
 			const userId = resolveCurrentUserId();
-			const url = `${API_BASE_URL}/customer/sellers/profile?sellerId=${encodeURIComponent(sellerKey)}&userId=${encodeURIComponent(userId)}`;
+			const url = `${API_BASE_URL}/customer/sellers/profile?sellerId=${encodeURIComponent(sellerKey)}&userId=${encodeURIComponent(userId)}&limit=500`;
 			const data = await fetchJson(url);
 			data.reviews = mergeReviews(data.reviews || []);
 			sellerData = data;

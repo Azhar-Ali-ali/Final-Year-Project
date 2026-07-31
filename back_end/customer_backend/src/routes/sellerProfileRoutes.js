@@ -204,9 +204,9 @@ router.get('/profile', async (req, res) => {
         WHERE p.seller_id = $1
           AND p.status = 'active'
         ORDER BY p.is_featured DESC, p.average_rating DESC, p.total_reviews DESC, p.created_at DESC
-        LIMIT 24
+        LIMIT $2
         `,
-        [sellerId]
+        [sellerId, Math.max(1, Math.min(parseInt(req.query.limit, 10) || 500, 1000))]
       ),
       req.db.query(
         `

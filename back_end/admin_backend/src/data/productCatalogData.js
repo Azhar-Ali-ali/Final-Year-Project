@@ -260,6 +260,8 @@ async function fetchProducts(db, query = {}) {
         COALESCE(b.name, 'Unknown') AS brand,
         COALESCE(p.sku, '') AS sku,
         p.base_price AS price,
+        p.compare_price AS original_price,
+        COALESCE(p.discount_percent, 0)::numeric(5,2) AS discount_percent,
         COALESCE(stock.total_stock, 0)::int AS stock,
         p.status,
         COALESCE(meta.visibility, CASE WHEN p.status = 'active' THEN 'live' ELSE 'hidden' END) AS visibility,
@@ -300,11 +302,23 @@ async function fetchProducts(db, query = {}) {
     params
   );
 
-  let rows = baseRows.rows.map((r) => ({
-    ...r,
-    status: mapDbStatusToUi(r.status),
-    stockStatus: stockBucket(r.stock)
-  }));
+  let rows = baseRows.rows.map((r) => {
+    const price = Number(r.price || 0);
+    const original = Number(r.original_price || 0);
+    let discountPercent = Number(r.discount_percent || 0);
+    if (!discountPercent && original > price) {
+      discountPercent = Math.round(((original - price) / original) * 100);
+    }
+
+    return {
+      ...r,
+      price,
+      originalPrice: original > 0 ? original : null,
+      discountPercent,
+      status: mapDbStatusToUi(r.status),
+      stockStatus: stockBucket(r.stock)
+    };
+  });
 
   if (query.stock && query.stock !== 'all') {
     rows = rows.filter((r) => r.stockStatus === query.stock);
@@ -325,7 +339,7 @@ async function fetchProducts(db, query = {}) {
   });
 
   const page = Math.max(1, parseInt(query.page, 10) || 1);
-  const pageSize = Math.max(1, Math.min(parseInt(query.pageSize, 10) || 10, 100));
+  const pageSize = Math.max(1, Math.min(parseInt(query.pageSize, 10) || 10, 500));
   const start = (page - 1) * pageSize;
 
   return {

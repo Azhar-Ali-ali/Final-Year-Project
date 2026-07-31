@@ -3,7 +3,14 @@
 const router = express.Router();
 
 function getSellerId(req) {
-  const raw = req.auth?.session?.userId || req.headers['x-seller-id'] || '';
+  const raw = req.auth?.session?.userId
+    || req.auth?.user?.id
+    || req.auth?.user?.sellerId
+    || req.headers['x-seller-id']
+    || req.headers['x-user-id']
+    || req.query?.sellerId
+    || req.body?.sellerId
+    || '';
   return String(raw).trim();
 }
 
@@ -27,16 +34,14 @@ function seriesFromRows(rows, fallbackLabels) {
 }
 
 function completedAndPaidOrderFilter(orderAlias = 'o') {
+  const statusExpr = `LOWER(COALESCE(${orderAlias}.status::text, ''))`;
+  const paymentExpr = `LOWER(COALESCE(${orderAlias}.payment_status::text, ''))`;
+
   return `
-    ${orderAlias}.status::text IN ('delivered', 'completed')
+    ${statusExpr} NOT IN ('cancelled', 'canceled', 'failed', 'refunded', 'returned', 'return_requested', 'payment_failed', 'payment_cancelled')
     AND (
-      COALESCE(to_jsonb(${orderAlias})->>'payment_status', '') = 'paid'
-      OR EXISTS (
-        SELECT 1
-        FROM public.payments ppay
-        WHERE ppay.order_id = ${orderAlias}.id
-          AND ppay.status::text = 'paid'
-      )
+      ${paymentExpr} IN ('paid', 'completed', 'successful', 'captured', 'succeeded', 'confirmed', 'pending', 'processing', 'partial', 'partially_paid', 'awaiting_payment', 'awaiting_confirmation')
+      OR ${statusExpr} IN ('confirmed', 'processing', 'courier_assigned', 'picked_up', 'ready_for_pickup', 'shipped', 'delivered', 'completed')
     )
   `;
 }
@@ -49,8 +54,8 @@ async function getMetrics(req, sellerId) {
         COALESCE(SUM(oi.line_total) FILTER (WHERE o.created_at >= CURRENT_DATE AND o.created_at < CURRENT_DATE + INTERVAL '1 day' AND ${eligibleFilter}), 0)::numeric AS daily_sales,
         COALESCE(SUM(oi.line_total) FILTER (WHERE o.created_at >= date_trunc('week', CURRENT_DATE) AND o.created_at < date_trunc('week', CURRENT_DATE) + INTERVAL '1 week' AND ${eligibleFilter}), 0)::numeric AS weekly_sales,
         COALESCE(SUM(oi.line_total) FILTER (WHERE o.created_at >= date_trunc('month', CURRENT_DATE) AND o.created_at < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month' AND ${eligibleFilter}), 0)::numeric AS monthly_sales,
-        COUNT(DISTINCT o.id) FILTER (WHERE o.status::text IN ('delivered', 'completed'))::int AS total_orders,
-        COUNT(DISTINCT o.id) FILTER (WHERE ${eligibleFilter})::int AS completed_orders
+        COUNT(DISTINCT o.id) FILTER (WHERE ${eligibleFilter})::int AS total_orders,
+        COUNT(DISTINCT o.id) FILTER (WHERE LOWER(COALESCE(o.status::text, '')) IN ('shipped', 'delivered', 'completed'))::int AS completed_orders
       FROM public.order_items oi
       JOIN public.orders o ON o.id = oi.order_id
       WHERE oi.seller_id = $1

@@ -33,6 +33,7 @@
 			font-family: "Inter", Arial, sans-serif;
 			background: var(--bg);
 			color: var(--text);
+			overflow-x: hidden;
 		}
 
 		.layout { display: block; min-height: 100vh; }
@@ -103,6 +104,31 @@
 			border-radius: var(--radius);
 			box-shadow: var(--shadow);
 			padding: 16px;
+		}
+
+		.section-head {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 12px;
+			flex-wrap: wrap;
+			margin-bottom: 12px;
+		}
+
+		.section-actions {
+			display: flex;
+			gap: 8px;
+			flex-wrap: wrap;
+		}
+
+		.table-wrap {
+			width: 100%;
+			overflow-x: auto;
+			-webkit-overflow-scrolling: touch;
+		}
+
+		.table-wrap table {
+			min-width: 760px;
 		}
 
 		.toolbar {
@@ -345,12 +371,32 @@
 		}
 
 		@media (max-width: 768px) {
+			.content { padding: 12px; }
 			.toolbar { flex-direction: column; align-items: stretch; }
 			.filters { width: 100%; }
-			.search { width: 100%; }
+			.search { width: 100%; min-width: 100%; }
 			.page-header { flex-direction: column; align-items: flex-start; }
-			.stats-grid { grid-template-columns: 1fr; }
+			.stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 			.form-row { grid-template-columns: 1fr; }
+			.section-head { flex-direction: column; align-items: flex-start; }
+			.section-actions { width: 100%; }
+			.section-actions .btn { flex: 1 1 auto; justify-content: center; }
+		}
+
+		@media (min-width: 1024px) {
+			.stats-grid {
+				grid-template-columns: repeat(4, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 640px) {
+			.tabs { flex-direction: column; }
+			.tab { width: 100%; justify-content: center; }
+			.page-header .actions { width: 100%; }
+			.page-header .actions .btn { flex: 1 1 auto; justify-content: center; }
+			.panel { padding: 12px; }
+			.popup-card { width: min(100%, 96vw); }
+			.popup-body { padding: 12px; }
 		}
 
 		.glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
@@ -392,32 +438,22 @@
 			</div>
 
 			<div class="flex items-center gap-3 shrink-0">
-				<button class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors group">
-					<i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
-					<span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-					<div class="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 p-0 dropdown-hidden z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
-						<div class="px-4 py-3 border-b border-gray-100">
+				<div class="relative group">
+					<button id="bellButton" class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors" type="button">
+						<i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
+						<span id="notificationDot" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+					</button>
+					<div class="notification-dropdown absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 p-0 z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
+						<div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
 							<p class="text-xs font-bold uppercase tracking-widest text-gray-600">Admin alerts</p>
+							<span id="notificationCount" class="text-[11px] font-semibold text-gray-500">0 new</span>
 						</div>
-						<div class="max-h-80 overflow-y-auto">
-							<div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
-								<p class="text-xs font-bold text-gray-900">New seller #S422</p>
-								<p class="text-xs text-gray-500 mt-1">Request pending verification</p>
-							</div>
-							<div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
-								<p class="text-xs font-bold text-gray-900">Order #2451 flagged</p>
-								<p class="text-xs text-gray-500 mt-1">Payment discrepancy</p>
-							</div>
-							<div class="px-4 py-3 hover:bg-gray-50 cursor-pointer">
-								<p class="text-xs font-bold text-gray-900">System update</p>
-								<p class="text-xs text-gray-500 mt-1">Analytics ready</p>
-							</div>
-						</div>
+						<div id="notificationList" class="max-h-80 overflow-y-auto"></div>
 						<div class="px-4 py-2 border-t border-gray-100 text-center">
-							<a href="#" class="text-xs font-bold text-gray-600 hover:text-black uppercase tracking-widest">View All</a>
+							<button id="viewAllNotifications" type="button" class="text-xs font-bold text-gray-600 hover:text-black uppercase tracking-widest">View All</button>
 						</div>
 					</div>
-				</button>
+				</div>
 
 				<div class="relative group">
 					<button class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -453,16 +489,24 @@
 					</div>
 				</div>
 
-				<button class="hidden sm:flex items-center gap-2 px-4 py-2 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-gray-900 transition-colors">
-					<i data-lucide="plus" class="w-4 h-4"></i>
-					<span class="hidden lg:block">New</span>
-				</button>
-				<button class="sm:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
-					<i data-lucide="plus" class="w-5 h-5 text-gray-700"></i>
-				</button>
 			</div>
 		</div>
 	</nav>
+
+	<div id="notificationsModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200] p-4">
+		<div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+			<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+				<div>
+					<h3 class="text-lg font-semibold text-gray-900">All notifications</h3>
+					<p class="text-sm text-gray-500">Recent admin activity and important alerts</p>
+				</div>
+				<button id="closeNotificationsModal" type="button" class="p-2 rounded-lg hover:bg-gray-100">
+					<i data-lucide="x" class="w-5 h-5 text-gray-700"></i>
+				</button>
+			</div>
+			<div id="notificationsModalBody" class="p-5 overflow-y-auto max-h-[60vh]"></div>
+		</div>
+	</div>
 
 	<aside id="sidebar" class="hidden md:block fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-100 z-50 overflow-y-auto">
 		<nav class="p-4 space-y-2">
@@ -502,7 +546,7 @@
 				<i data-lucide="credit-card" class="w-4 h-4"></i>
 				Payments
 			</a>
-			<a href="Dispute_Support_System.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+			<a href="dispute&support.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
 				<i data-lucide="shield-alert" class="w-4 h-4"></i>
 				Dispute & Support
 			</a>
@@ -513,13 +557,9 @@
 
 			<div class="h-px bg-gray-100 my-4"></div>
 
-			<a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+			<a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-lg transition-all">
 				<i data-lucide="settings" class="w-4 h-4"></i>
 				Settings
-			</a>
-			<a href="#" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
-				<i data-lucide="help-circle" class="w-4 h-4"></i>
-				Help
 			</a>
 		</nav>
 	</aside>
@@ -554,7 +594,7 @@
 
 			<div class="tab-content active" id="couriers">
 				<section class="panel">
-					<div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+					<div class="section-head">
 						<div>
 							<div style="font-weight:700; font-size:15px;">Courier Companies</div>
 							<p class="hint">Manage courier companies and their coverage details.</p>
@@ -586,7 +626,7 @@
 
 			<div class="tab-content" id="assignment">
 				<section class="panel">
-					<div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+					<div class="section-head">
 						<div>
 							<div style="font-weight:700; font-size:15px;">Assignment Monitoring</div>
 							<p class="hint">The backend assigns couriers automatically when an order reaches Ready for Pickup. This page only monitors the result.</p>
@@ -645,7 +685,7 @@
 
 			<div class="tab-content" id="tracking">
 				<section class="panel">
-					<div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+					<div class="section-head">
 						<div>
 							<div style="font-weight:700; font-size:15px;">Tracking Dashboard</div>
 							<p class="hint">Shipment progress is shown here after a courier has been assigned. Updates are read-only for the admin view.</p>
@@ -714,7 +754,7 @@
 							</div>
 							<div class="form-group"><label>Status</label><select class="select" id="assignment-status"><option value="Active">Active</option><option value="Inactive">Inactive</option></select></div>
 							<div style="display:flex; gap:8px; margin-top:8px;"><button class="btn primary" id="btn-add-assignment-rule" type="button">+ Add Rule</button><button class="btn ghost" id="btn-save-assignment-rules" type="button">Save Assignment Rules</button></div>
-							<div style="overflow:auto; margin-top:10px;"><table><thead><tr><th>State</th><th>City</th><th>Courier</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody id="assignment-rules-tbody"></tbody></table></div>
+							<div class="table-wrap" style="margin-top:10px;"><table><thead><tr><th>State</th><th>City</th><th>Courier</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody id="assignment-rules-tbody"></tbody></table></div>
 						</div>
 						<div>
 							<div style="font-weight:700; font-size:15px; margin-bottom:8px;">2) Shipping Charges Rules</div>
@@ -724,7 +764,7 @@
 							</div>
 							<div class="form-group"><label>Shipping Fee</label><input class="input" id="charge-fee" placeholder="Rs.200"></div>
 							<div style="display:flex; gap:8px; margin-top:8px;"><button class="btn primary" id="btn-add-charge-rule" type="button">+ Add Rule</button><button class="btn ghost" id="btn-save-charge-rules" type="button">Save Charges</button></div>
-							<div style="overflow:auto; margin-top:10px;"><table><thead><tr><th>State</th><th>City</th><th>Fee</th><th>Actions</th></tr></thead><tbody id="charge-rules-tbody"></tbody></table></div>
+							<div class="table-wrap" style="margin-top:10px;"><table><thead><tr><th>State</th><th>City</th><th>Fee</th><th>Actions</th></tr></thead><tbody id="charge-rules-tbody"></tbody></table></div>
 						</div>
 					</div>
 					<div style="margin-top:12px;">
@@ -747,12 +787,15 @@
 
 			<div class="tab-content" id="cod">
 				<section class="panel">
-					<div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+					<div class="section-head">
 						<div>
 							<div style="font-weight:700; font-size:15px;">5) Payments</div>
 							<p class="hint">View and manage payment records, especially COD settlements. This demo does not process real money.</p>
 						</div>
-						<button class="btn secondary" id="btn-refresh-payments" type="button">Refresh Payment Status</button>
+						<div class="section-actions">
+							<button class="btn secondary" id="btn-refresh-payments" type="button">Refresh Payment Status</button>
+							<a href="Payment_Payout_Management.html#cod-tracking" class="btn secondary">Open COD Tracking</a>
+						</div>
 					</div>
 
 					<div class="grid-two" style="margin-bottom:12px;">
@@ -914,7 +957,12 @@
 	</div>
 
 	<script src="../js/Logistics-Courier-Management.js"></script>
+	<script src="../js/adminAccess.js"></script>
 	<script>
+		if (!requireAdminAccess('logistics.view', '../../403.html')) {
+			throw new Error('Access denied');
+		}
+
 		lucide.createIcons();
 
 		const sidebarToggle = document.getElementById('sidebarToggle');
@@ -954,5 +1002,6 @@
 			});
 		}
 	</script>
+<script src="../js/notificationsUI.js"></script>
 </body>
 </html>

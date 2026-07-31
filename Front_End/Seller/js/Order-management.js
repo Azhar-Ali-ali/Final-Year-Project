@@ -1,8 +1,8 @@
-const ALLOWED_ORIGINS = ['http://localhost:5000', 'http://127.0.0.1:5000'];
-const API_BASE = `${window.location.origin}/api/seller/orders`;
+const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+const API_BASE = `${API_BASE_URL}/seller/orders`;
 
 function isServerRuntimeAllowed() {
-  return ALLOWED_ORIGINS.includes(window.location.origin);
+  return true;
 }
 
 function showRuntimeWarning() {
@@ -14,7 +14,7 @@ function showRuntimeWarning() {
   warning.style.borderRadius = '8px';
   warning.style.marginBottom = '14px';
   warning.style.fontSize = '13px';
-  warning.textContent = 'Database data is disabled in preview mode. Open this page from http://localhost:5000 to load live data.';
+  warning.textContent = 'Database data is disabled in preview mode. Open this page from the current site origin to load live data.';
 
   const pageRoot = document.querySelector('main') || document.body;
   pageRoot.insertBefore(warning, pageRoot.firstChild);

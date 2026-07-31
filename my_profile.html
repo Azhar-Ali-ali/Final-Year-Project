@@ -10,7 +10,7 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #111827; }
         .glass { background: rgba(255,255,255,0.94); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .account-flyout { width: 360px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
+        .account-flyout { width: min(360px, calc(100vw - 1rem)); background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
         .signin-btn { display: inline-block; width: 130px; text-align: center; background: #facc15; border: 1px solid #f59e0b; color: #111827; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 7px; }
         .signin-btn:hover { background: #fbbf24; }
         .account-col-title { font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
@@ -67,9 +67,10 @@
 <body>
     <nav class="fixed top-0 w-full z-[100] glass">
         <div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
-            <div class="flex items-center gap-2 shrink-0">
-                <button id="sidebarToggle" type="button" class="p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
-                <a href="homepage.html" class="text-2xl font-bold tracking-tighter uppercase shrink-0">Lumina</a>
+                <div class="flex items-center gap-2 shrink-0">
+                <button id="mobileSearchBtn" class="md:hidden p-2" aria-label="Search" type="button">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                </button>
             </div>
 
             <div class="hidden md:flex flex-grow relative max-w-2xl mx-auto">
@@ -78,12 +79,12 @@
             </div>
 
             <div class="flex items-center gap-2 lg:gap-6 shrink-0">
-                <div id="accountMenuWrap" class="relative group">
-                    <button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
+                <div id="accountMenuWrap" class="relative group max-sm:w-full">
+                    <button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors max-sm:justify-center max-sm:px-3">
                         <i data-lucide="user" class="w-5 h-5"></i>
                         <span id="accountMenuLabel" class="hidden sm:block text-xs font-bold uppercase tracking-widest">Account</span>
                     </button>
-                    <div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block">
+                    <div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block max-sm:fixed max-sm:inset-x-2 max-sm:top-20 max-sm:bottom-auto max-sm:rounded-2xl max-sm:shadow-2xl max-sm:max-h-[calc(100vh-5rem)] max-sm:overflow-y-auto">
                         <div id="accountMenuContent" class="account-flyout"></div>
                     </div>
                 </div>
@@ -150,7 +151,9 @@
                             <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-gray-500">Personal Information</p>
                             <h2 class="text-2xl font-extrabold text-[#232f3e] mt-1">Profile Details</h2>
                         </div>
-                        <span class="helper-pill locked"><i data-lucide="lock" class="w-3.5 h-3.5"></i>Email is system-managed</span>
+                        <button id="openEmailModal" type="button" class="helper-pill secure cursor-pointer hover:opacity-80 transition-opacity">
+                            <i data-lucide="mail" class="w-3.5 h-3.5"></i>Change Email
+                        </button>
                     </div>
 
                     <form id="profileForm" class="space-y-5">
@@ -186,6 +189,17 @@
                                     <input id="dateOfBirth" class="form-input" type="date" value="">
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="rounded-2xl border border-gray-100 bg-gray-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-bold text-[#232f3e]">Email address management</p>
+                                <p class="text-xs text-gray-500 mt-1">Update your email address and keep your account secure.</p>
+                            </div>
+                            <button id="openEmailChangeModal" type="button" class="action-btn secondary">
+                                <i data-lucide="mail" class="w-4 h-4"></i>
+                                Change Email
+                            </button>
                         </div>
 
                         <div class="rounded-2xl border border-gray-100 bg-gray-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -265,9 +279,83 @@
         </div>
     </div>
 
+    <div id="emailModal" class="hidden fixed inset-0 z-[120] modal-backdrop items-center justify-center px-4 py-6">
+        <div class="panel-card w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between p-5 lg:p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
+                <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-gray-500">Account Management</p>
+                    <h2 class="text-2xl font-extrabold text-[#232f3e] mt-1">Change Email Address</h2>
+                </div>
+                <button id="closeEmailModal" type="button" class="w-10 h-10 rounded-full border border-gray-200 hover:bg-gray-50 flex items-center justify-center">
+                    <i data-lucide="x" class="w-5 h-5 text-gray-700"></i>
+                </button>
+            </div>
+
+            <form id="emailForm" class="p-5 lg:p-6 space-y-5">
+                <div class="space-y-4">
+                    <div>
+                        <label for="currentEmailDisplay" class="form-label">Current Email</label>
+                        <div class="field-shell">
+                            <i data-lucide="mail" class="field-icon"></i>
+                            <input id="currentEmailDisplay" class="form-input" type="email" readonly placeholder="Loading...">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="newEmailInput" class="form-label">New Email Address</label>
+                        <div class="field-shell">
+                            <i data-lucide="mail" class="field-icon"></i>
+                            <input id="newEmailInput" class="form-input" type="email" placeholder="Enter your new email address" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="emailConfirmPassword" class="form-label">Confirm with Password</label>
+                        <div class="field-shell">
+                            <i data-lucide="lock" class="field-icon"></i>
+                            <input id="emailConfirmPassword" class="form-input" type="password" placeholder="Enter your password to confirm" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="emailErrorMessage" class="hidden rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700"></div>
+                <div id="emailSuccessMessage" class="hidden rounded-lg bg-green-50 border border-green-200 p-3 text-sm text-green-700"></div>
+
+                <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 pt-2">
+                    <button id="cancelEmail" type="button" class="action-btn secondary">
+                        Cancel
+                    </button>
+                    <button id="submitEmailChange" type="submit" class="action-btn primary">
+                        <i data-lucide="mail" class="w-4 h-4"></i>
+                        Change Email
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mobile Search Modal -->
+    <div id="mobileSearchModal" class="hidden fixed inset-0 z-[110] bg-black/50 flex items-start justify-center pt-20 md:hidden">
+        <div class="bg-white rounded-lg shadow-lg w-11/12 max-w-md">
+            <div class="p-4 border-b flex items-center justify-between">
+                <h3 class="font-bold text-sm">Search Products</h3>
+                <button id="closeMobileSearch" type="button" class="p-1 hover:bg-gray-100 rounded">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <div class="relative">
+                    <input id="mobileSearchInput" type="text" placeholder="Search for products..." class="w-full bg-gray-100 border border-gray-300 rounded-lg py-2.5 px-4 pl-10 text-sm outline-none focus:border-black focus:bg-white transition-all">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                </div>
+                <button id="submitMobileSearch" type="button" class="w-full mt-3 bg-black text-white py-2 rounded-lg font-bold text-sm uppercase tracking-wider hover:bg-gray-900">
+                    Search
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        const API_BASE_URL = 'http://localhost:5000/api';
-        const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+        const API_BASE_URL = `${window.location.origin}/api`;
+        const IS_LIVE_HOST = location.protocol !== 'file:';
 
         function resolveCurrentUserId() {
             try {
@@ -350,7 +438,7 @@
                             <a href="login_register.html" class="account-link">My Addresses</a>
                             <a href="login_register.html" class="account-link">Messages</a>
                             <a href="login_register.html" class="account-link">Returns & Refunds</a>
-                            <a href="login_register.html" class="account-link">Security Settings</a>
+
                             <a href="login_register.html" class="account-link">Help & Support</a>
                         </div>
                     </div>
@@ -379,7 +467,7 @@
                             <a href="my_addresses.html" class="account-link">My Addresses</a>
                             <a href="my_messages.html" class="account-link">Messages</a>
                             <a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
-                            <a href="security_settings.html" class="account-link">Security Settings</a>
+
                             <a href="help_support.html" class="account-link">Help & Support</a>
                         </div>
                     </div>
@@ -393,7 +481,11 @@
 
         if (accountMenuButton && accountMenuDropdown) {
             accountMenuButton.addEventListener('click', () => {
-                accountMenuDropdown.classList.toggle('hidden');
+                const isHidden = accountMenuDropdown.classList.contains('hidden');
+                accountMenuDropdown.classList.toggle('hidden', !isHidden);
+                if (!isHidden) {
+                    accountMenuDropdown.classList.add('hidden');
+                }
             });
 
             document.addEventListener('click', (event) => {
@@ -415,6 +507,7 @@
 
         const profileForm = document.getElementById('profileForm');
         const passwordForm = document.getElementById('passwordForm');
+        const emailForm = document.getElementById('emailForm');
         const passwordModal = document.getElementById('passwordModal');
         const profilePreview = document.getElementById('profilePreview');
         const profileImageInput = document.getElementById('profileImageInput');
@@ -628,6 +721,160 @@
         document.getElementById('resetProfile').addEventListener('click', () => fillProfileForm(defaultProfile));
         profileForm.addEventListener('submit', handleProfileUpdate);
         passwordForm.addEventListener('submit', handlePasswordSave);
+        emailForm.addEventListener('submit', handleEmailChange);
+
+        // Email change modal handlers
+        const openEmailChangeModalBtn = document.getElementById('openEmailChangeModal');
+        const openEmailModalBtn = document.getElementById('openEmailModal');
+        const closeEmailModalBtn = document.getElementById('closeEmailModal');
+        const cancelEmailBtn = document.getElementById('cancelEmail');
+        const emailModal = document.getElementById('emailModal');
+
+        if (openEmailChangeModalBtn) {
+            openEmailChangeModalBtn.addEventListener('click', () => {
+                emailModal.classList.remove('hidden');
+                emailModal.classList.add('flex');
+            });
+        }
+
+        if (openEmailModalBtn) {
+            openEmailModalBtn.addEventListener('click', () => {
+                emailModal.classList.remove('hidden');
+                emailModal.classList.add('flex');
+            });
+        }
+
+        if (closeEmailModalBtn) {
+            closeEmailModalBtn.addEventListener('click', () => {
+                emailModal.classList.add('hidden');
+                emailModal.classList.remove('flex');
+                document.getElementById('emailForm').reset();
+                document.getElementById('emailErrorMessage').classList.add('hidden');
+                document.getElementById('emailSuccessMessage').classList.add('hidden');
+            });
+        }
+
+        if (cancelEmailBtn) {
+            cancelEmailBtn.addEventListener('click', () => {
+                emailModal.classList.add('hidden');
+                emailModal.classList.remove('flex');
+                document.getElementById('emailForm').reset();
+                document.getElementById('emailErrorMessage').classList.add('hidden');
+                document.getElementById('emailSuccessMessage').classList.add('hidden');
+            });
+        }
+
+        async function handleEmailChange(event) {
+            event.preventDefault();
+            const newEmail = document.getElementById('newEmailInput').value.trim();
+            const password = document.getElementById('emailConfirmPassword').value.trim();
+            const errorEl = document.getElementById('emailErrorMessage');
+            const successEl = document.getElementById('emailSuccessMessage');
+
+            errorEl.classList.add('hidden');
+            successEl.classList.add('hidden');
+
+            if (!newEmail || !password) {
+                errorEl.textContent = 'Please fill in all fields.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const userId = resolveCurrentUserId();
+                const response = await fetchJson(`${API_BASE_URL}/customer/profile/email?userId=${encodeURIComponent(userId)}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ newEmail, password })
+                });
+
+                successEl.textContent = 'Email changed successfully! Your account has been updated.';
+                successEl.classList.remove('hidden');
+                document.getElementById('emailForm').reset();
+
+                setTimeout(() => {
+                    emailModal.classList.add('hidden');
+                    emailModal.classList.remove('flex');
+                    document.getElementById('emailAddress').value = newEmail;
+                    
+                    // Update auth storage
+                    try {
+                        const authRaw = localStorage.getItem('lumina.auth.user');
+                        if (authRaw) {
+                            const authUser = JSON.parse(authRaw);
+                            authUser.email = newEmail;
+                            localStorage.setItem('lumina.auth.user', JSON.stringify(authUser));
+                            localStorage.setItem('lumina.customer.session', JSON.stringify(authUser));
+                        }
+                    } catch (_) {}
+                }, 1500);
+            } catch (error) {
+                errorEl.textContent = error.message || 'Failed to change email.';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        // Load current email when modal opens
+        document.getElementById('openEmailChangeModal')?.addEventListener('click', () => {
+            const currentEmail = document.getElementById('emailAddress').value;
+            document.getElementById('currentEmailDisplay').value = currentEmail;
+        });
+
+        document.getElementById('openEmailModal')?.addEventListener('click', () => {
+            const currentEmail = document.getElementById('emailAddress').value;
+            document.getElementById('currentEmailDisplay').value = currentEmail;
+        });
+
+        // Mobile Search Handler
+        const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+        const mobileSearchModal = document.getElementById('mobileSearchModal');
+        const closeMobileSearchBtn = document.getElementById('closeMobileSearch');
+        const mobileSearchInput = document.getElementById('mobileSearchInput');
+        const submitMobileSearchBtn = document.getElementById('submitMobileSearch');
+
+        if (mobileSearchBtn) {
+            mobileSearchBtn.addEventListener('click', () => {
+                mobileSearchModal.classList.remove('hidden');
+                setTimeout(() => mobileSearchInput.focus(), 100);
+            });
+        }
+
+        if (closeMobileSearchBtn) {
+            closeMobileSearchBtn.addEventListener('click', () => {
+                mobileSearchModal.classList.add('hidden');
+                mobileSearchInput.value = '';
+            });
+        }
+
+        if (submitMobileSearchBtn) {
+            submitMobileSearchBtn.addEventListener('click', () => {
+                const searchValue = String(mobileSearchInput.value || '').trim();
+                if (searchValue) {
+                    const url = `all_product_spages.html?search=${encodeURIComponent(searchValue)}`;
+                    window.location.href = url;
+                }
+            });
+        }
+
+        if (mobileSearchInput) {
+            mobileSearchInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    const searchValue = String(mobileSearchInput.value || '').trim();
+                    if (searchValue) {
+                        const url = `all_product_spages.html?search=${encodeURIComponent(searchValue)}`;
+                        window.location.href = url;
+                    }
+                }
+            });
+        }
+
+        if (mobileSearchModal) {
+            mobileSearchModal.addEventListener('click', (event) => {
+                if (event.target === mobileSearchModal) {
+                    mobileSearchModal.classList.add('hidden');
+                    mobileSearchInput.value = '';
+                }
+            });
+        }
 
         if (IS_LIVE_HOST) {
             loadProfileFromApi();

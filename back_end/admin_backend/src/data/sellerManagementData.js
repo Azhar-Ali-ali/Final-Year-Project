@@ -92,6 +92,47 @@ async function ensureSupportTables(db) {
   `);
 }
 
+async function fetchSellerDocuments(db, sellerId = null) {
+  const publicQuery = db.query(
+    `
+      SELECT
+        seller_id,
+        document_type AS type,
+        verification_status AS status,
+        created_at::date::text AS "uploadedDate",
+        document_url AS url,
+        rejection_reason AS "rejectionReason"
+      FROM public.seller_documents
+      ${sellerId ? 'WHERE seller_id = $1' : ''}
+      ORDER BY created_at DESC
+    `,
+    sellerId ? [sellerId] : []
+  ).catch(() => ({ rows: [] }));
+
+  const luminaQuery = db.query(
+    `
+      SELECT
+        seller_id,
+        document_type AS type,
+        verification_status AS status,
+        created_at::date::text AS "uploadedDate",
+        document_url AS url,
+        rejection_reason AS "rejectionReason"
+      FROM lumina.seller_documents
+      ${sellerId ? 'WHERE seller_id = $1' : ''}
+      ORDER BY created_at DESC
+    `,
+    sellerId ? [sellerId] : []
+  ).catch(() => ({ rows: [] }));
+
+  const [publicResult, luminaResult] = await Promise.all([publicQuery, luminaQuery]);
+  return [...(publicResult.rows || []), ...(luminaResult.rows || [])].sort((left, right) => {
+    const leftDate = left.uploadedDate || '';
+    const rightDate = right.uploadedDate || '';
+    return String(rightDate).localeCompare(String(leftDate));
+  });
+}
+
 async function fetchSellers(db) {
   await ensureSupportTables(db);
 
@@ -103,9 +144,21 @@ async function fetchSellers(db) {
     ),
     order_metrics AS (
       SELECT oi.seller_id,
-             COALESCE(SUM(oi.line_total), 0)::numeric(12,2) AS revenue,
-             COALESCE(SUM(oi.quantity), 0)::int AS orders
+             COALESCE(SUM(oi.line_total) FILTER (
+               WHERE LOWER(COALESCE(o.status::text, 'pending')) = 'delivered'
+                  OR LOWER(COALESCE(p.payment_status, 'pending')) IN ('paid', 'authorized', 'completed', 'succeeded', 'settled', 'captured')
+             ), 0)::numeric(12,2) AS revenue,
+             COALESCE(SUM(oi.quantity) FILTER (
+               WHERE LOWER(COALESCE(o.status::text, 'pending')) = 'delivered'
+                  OR LOWER(COALESCE(p.payment_status, 'pending')) IN ('paid', 'authorized', 'completed', 'succeeded', 'settled', 'captured')
+             ), 0)::int AS orders
       FROM public.order_items oi
+      LEFT JOIN public.orders o ON o.id = oi.order_id
+      LEFT JOIN (
+        SELECT order_id, MAX(CASE WHEN LOWER(COALESCE(status::text, 'pending')) IN ('paid', 'authorized', 'completed', 'succeeded', 'settled', 'captured') THEN status::text ELSE NULL END) AS payment_status
+        FROM public.payments
+        GROUP BY order_id
+      ) p ON p.order_id = o.id
       GROUP BY oi.seller_id
     ),
     payout_metrics AS (
@@ -147,20 +200,10 @@ async function fetchSellers(db) {
     ORDER BY u.created_at DESC
   `);
 
-  const documentsResult = await db.query(`
-    SELECT
-      seller_id,
-      document_type AS type,
-      verification_status AS status,
-      created_at::date::text AS "uploadedDate",
-      document_url AS url,
-      rejection_reason AS "rejectionReason"
-    FROM public.seller_documents
-    ORDER BY seller_id, created_at DESC
-  `);
+  const documentsResult = await fetchSellerDocuments(db);
 
   const documentsBySeller = new Map();
-  documentsResult.rows.forEach((doc) => {
+  documentsResult.forEach((doc) => {
     const sellerId = String(doc.seller_id || '');
     if (!sellerId) return;
     if (!documentsBySeller.has(sellerId)) {
@@ -299,15 +342,7 @@ async function getSellerById(db, sellerId) {
       `,
       [sellerId]
     ),
-    db.query(
-      `
-        SELECT id, document_type AS type, verification_status AS status, created_at::date::text AS "uploadedDate", document_url AS url, rejection_reason AS "rejectionReason"
-        FROM public.seller_documents
-        WHERE seller_id = $1
-        ORDER BY created_at DESC
-      `,
-      [sellerId]
-    ),
+    fetchSellerDocuments(db, sellerId),
     db.query(
       `
         SELECT
@@ -430,9 +465,27 @@ async function getSellerById(db, sellerId) {
     ),
     db.query(
       `
-        SELECT COUNT(*)::int AS "totalOrders", COALESCE(SUM(quantity), 0)::int AS "unitsSold", COALESCE(SUM(line_total), 0)::numeric(12,2) AS revenue
-        FROM public.order_items
-        WHERE seller_id = $1
+        SELECT
+          COUNT(*) FILTER (
+            WHERE LOWER(COALESCE(o.status::text, 'pending')) = 'delivered'
+               OR LOWER(COALESCE(p.payment_status, 'pending')) IN ('paid', 'authorized', 'completed', 'succeeded', 'settled', 'captured')
+          )::int AS "totalOrders",
+          COALESCE(SUM(oi.quantity) FILTER (
+            WHERE LOWER(COALESCE(o.status::text, 'pending')) = 'delivered'
+               OR LOWER(COALESCE(p.payment_status, 'pending')) IN ('paid', 'authorized', 'completed', 'succeeded', 'settled', 'captured')
+          ), 0)::int AS "unitsSold",
+          COALESCE(SUM(oi.line_total) FILTER (
+            WHERE LOWER(COALESCE(o.status::text, 'pending')) = 'delivered'
+               OR LOWER(COALESCE(p.payment_status, 'pending')) IN ('paid', 'authorized', 'completed', 'succeeded', 'settled', 'captured')
+          ), 0)::numeric(12,2) AS revenue
+        FROM public.order_items oi
+        LEFT JOIN public.orders o ON o.id = oi.order_id
+        LEFT JOIN (
+          SELECT order_id, MAX(CASE WHEN LOWER(COALESCE(status::text, 'pending')) IN ('paid', 'authorized', 'completed', 'succeeded', 'settled', 'captured') THEN status::text ELSE NULL END) AS payment_status
+          FROM public.payments
+          GROUP BY order_id
+        ) p ON p.order_id = o.id
+        WHERE oi.seller_id = $1
       `,
       [sellerId]
     )
@@ -514,7 +567,7 @@ async function getSellerById(db, sellerId) {
     kyc: {
       status: seller.kycStatus,
       verified: seller.kycStatus === 'verified' || seller.kycStatus === 'approved',
-      documents: documentsResult.rows,
+      documents: documentsResult,
       riskLevel: seller.riskLevel,
       strikes: seller.strikes,
       compliance: compliance

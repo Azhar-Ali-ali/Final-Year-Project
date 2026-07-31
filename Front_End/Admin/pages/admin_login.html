@@ -92,8 +92,8 @@
 
 	<script>
 		lucide.createIcons();
-		const ADMIN_API_BASE_URL = window.ADMIN_API_BASE_URL || 'http://localhost:5000';
-		const IS_LOCALHOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+		const ADMIN_API_BASE_URL = window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
+		const IS_LOCALHOST = location.protocol !== 'file:';
 
 		function togglePasswordVisibility(inputId, icon) {
 			const input = document.getElementById(inputId);
@@ -131,7 +131,7 @@
 			submitBtn.textContent = 'Logging in...';
 
 			try {
-				const response = await fetch(`${ADMIN_API_BASE_URL}/api/admin/auth/login`, {
+				const response = await fetch(`${ADMIN_API_BASE_URL}/admin/auth/login`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ email, password, rememberMe })
@@ -147,6 +147,9 @@
 				localStorage.setItem('lumina.auth.token', result.data.token);
 				localStorage.setItem('lumina.admin.authExpiresAt', result.data.expiresAt);
 				localStorage.setItem('lumina.admin.profile', JSON.stringify(result.data.admin));
+				localStorage.setItem('lumina.admin.permissions', JSON.stringify(result.data.admin?.permissions || []));
+				localStorage.setItem('lumina.admin.type', result.data.admin?.type || 'CO_ADMIN');
+				localStorage.setItem('lumina.admin.roleName', result.data.admin?.roleName || result.data.admin?.role || 'Co-Admin');
 				localStorage.setItem('adminId', result.data.admin?.id || '');
 				localStorage.setItem('adminName', result.data.admin?.name || result.data.admin?.full_name || 'Admin');
 

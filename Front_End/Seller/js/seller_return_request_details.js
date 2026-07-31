@@ -1,4 +1,5 @@
-const API_BASE = 'http://localhost:5000/api/seller/returns';
+const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+const API_BASE = `${API_BASE_URL}/seller/returns`;
 
 function getSellerId() {
   const candidateKeys = ['sellerId', 'seller_id', 'currentSellerId', 'sellerUserId', 'userId'];

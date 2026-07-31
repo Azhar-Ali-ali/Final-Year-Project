@@ -19,7 +19,6 @@
         'my_addresses.html': true,
         'my_messages.html': true,
         'help_support.html': true,
-        'security_settings.html': true,
         'my_returns_refunds.html': true,
         'order_details.html': true,
         'return_request_details.html': true,
@@ -35,8 +34,34 @@
         }
     }
 
+    function getCookie(name) {
+        if (!name) return '';
+        var match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
+        return match ? decodeURIComponent(match[1]) : '';
+    }
+
+    function setCookie(name, value, maxAgeSeconds) {
+        if (!name) return;
+        var expires = '';
+        if (maxAgeSeconds) {
+            var date = new Date();
+            date.setTime(date.getTime() + maxAgeSeconds * 1000);
+            expires = '; expires=' + date.toUTCString();
+        }
+        var sameSite = (location.protocol === 'https:' && location.hostname !== 'localhost') ? 'None' : 'Lax';
+        var secure = (sameSite === 'None') ? '; Secure' : '';
+        document.cookie = name + '=' + encodeURIComponent(value) + expires + '; path=/; SameSite=' + sameSite + secure;
+    }
+
+    function clearCookie(name) {
+        if (!name) return;
+        document.cookie = name + '=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    }
+
     function getStoredUser() {
-        var user = parseJson(localStorage.getItem('lumina.auth.user')) ||
+        var cookieUser = parseJson(getCookie('lumina.auth.user'));
+        var user = cookieUser ||
+            parseJson(localStorage.getItem('lumina.auth.user')) ||
             parseJson(localStorage.getItem('lumina.customer.session')) ||
             parseJson(localStorage.getItem('lumina.seller.session')) ||
             parseJson(sessionStorage.getItem('lumina.auth.user'));
@@ -44,19 +69,19 @@
     }
 
     function getToken() {
-        return localStorage.getItem('lumina.auth.token') || sessionStorage.getItem('lumina.auth.token') || '';
+        return getCookie('lumina.auth.token') || localStorage.getItem('lumina.auth.token') || sessionStorage.getItem('lumina.auth.token') || '';
     }
 
     function isLoggedIn() {
         var user = getStoredUser();
         var token = getToken();
-        var flag = localStorage.getItem('lumina.isLoggedIn') === 'true' || sessionStorage.getItem('lumina.isLoggedIn') === 'true';
+        var flag = getCookie('lumina.isLoggedIn') === 'true' || localStorage.getItem('lumina.isLoggedIn') === 'true' || sessionStorage.getItem('lumina.isLoggedIn') === 'true';
         return Boolean(user || token || flag);
     }
 
     function getRole() {
         var user = getStoredUser();
-        var role = (user && user.role) || localStorage.getItem('lumina.auth.role') || sessionStorage.getItem('lumina.auth.role') || 'customer';
+        var role = (user && user.role) || getCookie('lumina.auth.role') || localStorage.getItem('lumina.auth.role') || sessionStorage.getItem('lumina.auth.role') || 'customer';
         return String(role).toLowerCase();
     }
 
@@ -111,12 +136,52 @@
         if (!authData || !authData.user) return;
 
         var user = authData.user;
+        var role = String(user.role || 'customer').toLowerCase();
+        var token = authData.token || '';
         localStorage.setItem('lumina.auth.user', JSON.stringify(user));
-        localStorage.setItem('lumina.customer.session', JSON.stringify(user));
-        localStorage.setItem('lumina.auth.role', String(user.role || 'customer'));
+        localStorage.setItem('lumina.auth.role', role);
         localStorage.setItem('lumina.isLoggedIn', 'true');
-        if (authData.token) {
-            localStorage.setItem('lumina.auth.token', authData.token);
+        localStorage.setItem('lumina.customer.session', JSON.stringify(user));
+        if (role === 'seller') {
+            localStorage.setItem('lumina.seller.session', JSON.stringify(user));
+        }
+        if (token) {
+            localStorage.setItem('lumina.auth.token', token);
+        }
+
+        setCookie('lumina.auth.user', JSON.stringify(user), 28800);
+        setCookie('lumina.auth.role', role, 28800);
+        setCookie('lumina.isLoggedIn', 'true', 28800);
+        if (token) {
+            setCookie('lumina.auth.token', token, 28800);
+        }
+    }
+
+    function syncCookieSessionToStorage() {
+        var cookieUser = parseJson(getCookie('lumina.auth.user'));
+        var cookieToken = getCookie('lumina.auth.token');
+        var cookieRole = getCookie('lumina.auth.role');
+        var cookieLoggedIn = getCookie('lumina.isLoggedIn') === 'true';
+
+        if (cookieUser) {
+            if (!localStorage.getItem('lumina.auth.user')) {
+                localStorage.setItem('lumina.auth.user', JSON.stringify(cookieUser));
+            }
+            if (!localStorage.getItem('lumina.customer.session')) {
+                localStorage.setItem('lumina.customer.session', JSON.stringify(cookieUser));
+            }
+        }
+
+        if (cookieToken && !localStorage.getItem('lumina.auth.token')) {
+            localStorage.setItem('lumina.auth.token', cookieToken);
+        }
+
+        if (cookieRole && !localStorage.getItem('lumina.auth.role')) {
+            localStorage.setItem('lumina.auth.role', cookieRole);
+        }
+
+        if (cookieLoggedIn && !localStorage.getItem('lumina.isLoggedIn')) {
+            localStorage.setItem('lumina.isLoggedIn', 'true');
         }
     }
 
@@ -132,6 +197,13 @@
         sessionStorage.removeItem('lumina.auth.token');
         sessionStorage.removeItem('lumina.auth.role');
         sessionStorage.removeItem('lumina.isLoggedIn');
+
+        clearCookie('lumina.auth.user');
+        clearCookie('lumina.auth.token');
+        clearCookie('lumina.auth.role');
+        clearCookie('lumina.isLoggedIn');
+        // also attempt to clear server session cookie
+        document.cookie = 'lumina_session=; Path=/; Max-Age=0; SameSite=Lax';
 
         window.location.href = '/customer-pages/homepage.html';
     }
@@ -209,7 +281,6 @@
             'my_addresses.html': true,
             'my_messages.html': true,
             'help_support.html': true,
-            'security_settings.html': true,
             'my_returns_refunds.html': true,
             'order_details.html': true,
             'return_request_details.html': true,
@@ -234,16 +305,63 @@
     }
 
     function init() {
+        syncCookieSessionToStorage();
         if (!enforceAccess()) return;
         applyHeaderState();
         guardProtectedLinks();
         bindLogoutTriggers();
         observeAccountMenuContent();
         setTimeout(function () {
+            syncCookieSessionToStorage();
             applyHeaderState();
             ensureDropdownLogoutButton();
         }, 0);
     }
+
+    // Global fetch wrapper: default to including credentials for same-origin requests.
+    (function () {
+        if (typeof window.fetch !== 'function') return;
+        var _origFetch = window.fetch.bind(window);
+        window.fetch = function (input, init) {
+            try {
+                var url = '';
+                var isRequestObj = false;
+                if (typeof input === 'string') {
+                    url = input;
+                } else if (input && input.url) {
+                    url = input.url;
+                    isRequestObj = (input.constructor && input.constructor.name === 'Request');
+                }
+
+                var include = false;
+                if (!url || url.charAt(0) === '/' || url.indexOf(window.location.origin) === 0) {
+                    include = true;
+                } else {
+                    try {
+                        include = (new URL(url)).origin === window.location.origin;
+                    } catch (e) {
+                        include = false;
+                    }
+                }
+
+                init = init || {};
+
+                if (include && typeof init.credentials === 'undefined') {
+                    // If input is a Request object, create a new Request preserving properties.
+                    if (isRequestObj && typeof Request === 'function') {
+                        var req = input;
+                        var newReq = new Request(req, { credentials: 'include' });
+                        return _origFetch(newReq, init);
+                    }
+                    init.credentials = 'include';
+                }
+
+                return _origFetch(input, init);
+            } catch (e) {
+                return _origFetch(input, init);
+            }
+        };
+    })();
 
     window.LuminaAuth = {
         isLoggedIn: isLoggedIn,

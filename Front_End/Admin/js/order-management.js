@@ -1,4 +1,4 @@
-const API_BASE_URL = window.ADMIN_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
 
 function apiUrl(path) {
   return `${API_BASE_URL}${path}`;
@@ -145,7 +145,7 @@ function parseDate(dateText) {
 
 async function loadMeta() {
   try {
-    const result = await fetchJson('/api/admin/orders/meta');
+    const result = await fetchJson(`${API_BASE_URL}/admin/orders/meta`);
     const data = result.data || {};
     shipmentStatuses = Array.isArray(data.shipmentStatuses) && data.shipmentStatuses.length ? data.shipmentStatuses : shipmentStatuses;
     metaData = {
@@ -160,7 +160,7 @@ async function loadMeta() {
 
 async function loadStats() {
   try {
-    const result = await fetchJson('/api/admin/orders/stats');
+    const result = await fetchJson(`${API_BASE_URL}/admin/orders/stats`);
     statsData = result.data || statsData;
   } catch (_) {
     statsData = { total: 0, delivered: 0, shipped: 0, returned: 0, cancelled: 0, codPending: 0 };
@@ -169,7 +169,7 @@ async function loadStats() {
 
 async function loadOrders() {
   try {
-    const result = await fetchJson('/api/admin/orders/orders');
+    const result = await fetchJson(`${API_BASE_URL}/admin/orders/orders`);
     orders = Array.isArray(result.data) ? result.data : [];
   } catch (_) {
     orders = [];
@@ -426,7 +426,7 @@ async function refreshAndRender(orderIdToKeep = null) {
 }
 
 async function callOrderEndpoint(orderId, method, suffix, body = null) {
-  return fetchJson(`/api/admin/orders/orders/${encodeURIComponent(orderId)}${suffix}`, {
+  return fetchJson(`/admin/orders/orders/${encodeURIComponent(orderId)}${suffix}`, {
     method,
     body: body ? JSON.stringify(body) : undefined
   });
@@ -621,7 +621,7 @@ async function addInternalNote(order) {
 
 async function openOrder(orderId) {
   try {
-    const result = await fetchJson(`/api/admin/orders/orders/${encodeURIComponent(orderId)}`);
+    const result = await fetchJson(`/admin/orders/orders/${encodeURIComponent(orderId)}`);
     const order = result.data;
     if (!order) return;
     selectedOrder = order;

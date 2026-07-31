@@ -165,8 +165,8 @@
     </div>
 
     <script>
-        const API_BASE_URL = 'http://localhost:5000/api';
-        const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+        const API_BASE_URL = `${window.location.origin}/api`;
+        const IS_LIVE_HOST = location.protocol !== 'file:';
         let currentOrderData = null;
 
         function resolveCurrentUserId() {
@@ -227,6 +227,16 @@
             const normalized = String(status || '').toLowerCase();
             if (normalized === 'ready_for_pickup') return 'status-shipped';
             return 'status-' + normalized;
+        }
+
+        function isDeliveredOrderStatus(statusOrContext) {
+            if (statusOrContext && typeof statusOrContext === 'object') {
+                const orderStatus = String(statusOrContext.status || statusOrContext.orderStatus || '').trim().toLowerCase();
+                const shipmentStatus = String(statusOrContext.shipmentStatus || statusOrContext.shipment_status || '').trim().toLowerCase();
+                const deliveredAt = statusOrContext.deliveredAt || statusOrContext.delivered_at;
+                return orderStatus === 'delivered' || shipmentStatus === 'delivered' || shipmentStatus === 'completed' || Boolean(deliveredAt);
+            }
+            return String(statusOrContext || '').trim().toLowerCase() === 'delivered';
         }
 
         function mapOrderDetails(apiData) {
@@ -293,7 +303,7 @@
                     <div class="text-sm"><span class="text-gray-500">Price:</span> <span class="font-semibold text-[#b12704]">${formatPrice(product.price)}</span></div>
                     <div class="text-sm flex flex-col gap-2">
                         <span class="font-semibold">${formatPrice(product.lineTotal || (product.price * product.qty))}</span>
-                        ${order.status === 'delivered' ? `<a href="products_details.html?id=${encodeURIComponent(product.productId || '')}&review=1" class="text-xs font-semibold text-indigo-600 hover:underline">Leave a Review</a>` : ''}
+                        ${isDeliveredOrderStatus(order) ? `<a href="products_details.html?id=${encodeURIComponent(product.productId || '')}&review=1" class="text-xs font-semibold text-indigo-600 hover:underline">Leave a Review</a>` : ''}
                     </div>
                 </div>
             `).join('');

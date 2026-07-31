@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>LUMINA | All Products</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script src="https://unpkg.com/lucide@latest"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+	<script src="/customer-pages/auth.js"></script>
+	<script src="/customer-pages/page-access.js"></script>
+	<style>
+		body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+		.serif { font-family: 'Playfair Display', serif; }
+		.glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+		.reveal { opacity: 0; transform: translateY(20px); transition: all 0.6s ease-out; }
+		.reveal.active { opacity: 1; transform: translateY(0); }
+		.no-scrollbar::-webkit-scrollbar { display: none; }
+		.slider-dot.active { width: 24px; background: white; }
+		.filter-item { cursor: pointer; transition: color 0.2s; }
+		.filter-item:hover { color: #ea8323; }
+		.star-filled { color: #ffa41c; }
+		.limited-deal { background: linear-gradient(135deg, #b12704 0%, #8b1907 100%); }
+		.sponsored-badge { background: #f0f0f0; color: #565959; font-size: 11px; padding: 2px 6px; }
+		#productsGrid {
+			align-items: start;
+			align-content: start;
+			grid-auto-flow: dense;
+			grid-auto-rows: auto;
+		}
+		.product-card {
+			display: flex;
+			flex-direction: column;
+			height: auto;
+			min-height: 0;
+			align-self: start;
+			border: 1px solid rgba(0, 0, 0, 0.06);
+		}
+		.product-card-image {
+			aspect-ratio: 1 / 1;
+			min-height: 180px;
+			max-height: 220px;
+		}
+		.account-flyout { width: min(360px, calc(100vw - 1rem)); background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
+		.signin-btn { display: inline-block; width: 130px; text-align: center; background: #facc15; border: 1px solid #f59e0b; color: #111827; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 7px; }
+		.signin-btn:hover { background: #fbbf24; }
+		.account-col-title { font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
+		.account-link { display: block; font-size: 12px; color: #374151; line-height: 1.55; }
+		.account-link:hover { color: #111827; text-decoration: underline; }
+		@media (max-width: 639px) {
+			.product-card-image { min-height: 160px; max-height: 200px; }
+		}
+	</style>
+</head>
+<body class="bg-[#fafafa] text-[#1a1a1a]">
+
+	<!-- Header (Navigation Bar) -->
+	<nav class="fixed top-0 w-full z-[100] glass">
+		<div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
+			<!-- Left Nav Controls -->
+					<div class="flex items-center gap-2 shrink-0">
+					<button id="mobileSearchBtn" class="md:hidden p-2" aria-label="Search" type="button">
+						<i data-lucide="search" class="w-5 h-5"></i>
+					</button>
+			<a href="homepage.html" class="text-2xl font-bold tracking-tighter uppercase shrink-0">Lumina</a>
+			</div>
+
+			<!-- Search Bar (Center - Important) -->
+			<div class="hidden md:flex flex-grow relative max-w-2xl mx-auto">
+				<input id="headerSearchInput" type="text" placeholder="Search for unique products, clothing or artisans..." class="w-full bg-gray-100 border-transparent border focus:border-black focus:bg-white rounded-full py-2.5 px-6 pl-12 text-sm transition-all outline-none">
+				<i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+				<!-- Image search button -->
+				<button id="headerImageSearchBtn" title="Search by image" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 p-1">
+					<i data-lucide="camera" class="w-4 h-4 text-gray-500"></i>
+				</button>
+				<input id="headerImageInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" />
+			</div>
+
+			<!-- Actions -->
+			<div class="flex items-center gap-2 lg:gap-6 shrink-0">
+				<div id="accountMenuWrap" class="relative group">
+					<button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
+						<i data-lucide="user" class="w-5 h-5"></i>
+						<span id="accountMenuLabel" class="hidden sm:block text-xs font-bold uppercase tracking-widest">Account</span>
+					</button>
+					<div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block max-sm:fixed max-sm:inset-x-2 max-sm:top-20 max-sm:bottom-auto max-sm:rounded-2xl max-sm:shadow-2xl max-sm:max-h-[calc(100vh-5rem)] max-sm:overflow-y-auto">
+						<div id="accountMenuContent" class="account-flyout"></div>
+					</div>
+				</div>
+				<a href="cart.html" class="relative p-2">
+					<i data-lucide="shopping-cart" class="w-5 h-5"></i>
+					<span id="cartCountBadge" class="absolute top-0 right-0 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
+				</a>
+				<a href="wishlist.html" class="relative p-2">
+					<i data-lucide="heart" class="w-5 h-5"></i>
+				</a>
+						
+			</div>
+		</div>
+	</nav>
+
+	<main class="mt-20">
+		<section class="py-8">
+			<div class="flex items-center justify-between gap-4 mb-6 px-4">
+				<div>
+					<h1 id="catalogTitle" class="serif text-2xl md:text-3xl lg:text-4xl">All Products</h1>
+					<p id="resultsMeta" class="text-xs md:text-sm text-gray-500">Loading live catalog...</p>
+				</div>
+				<button id="filterToggle" class="lg:hidden flex items-center gap-2 text-xs font-bold uppercase tracking-widest border border-black/10 px-4 py-2 rounded-full hover:bg-gray-50">
+					<i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+					Filters
+				</button>
+			</div>
+
+			<div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-3 px-4 relative">
+				<!-- Mobile Filter Overlay -->
+				<div id="filterOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"></div>
+				
+				<!-- Sidebar Filters -->
+				<aside id="filterSidebar" class="bg-white rounded-lg p-3 shadow-sm h-fit text-xs fixed lg:static top-0 left-0 bottom-0 w-80 max-w-[85vw] z-50 lg:z-auto -translate-x-full lg:translate-x-0 transition-transform duration-300 overflow-y-auto lg:w-auto">
+					<div class="mb-3 border-b pb-3">
+						<h2 id="sidebarHeading" class="text-xs font-bold uppercase tracking-wide">Category Filters</h2>
+						<p id="sidebarSubheading" class="text-[11px] text-gray-500 mt-1">Use filters to refine the catalog.</p>
+					</div>
+
+					<div class="mb-3">
+						<h3 id="mainCategorySectionHeading" class="text-xs font-bold uppercase tracking-wide mb-2">Category Filter</h3>
+						<ul id="mainCategoryFilters" class="space-y-1 text-xs text-gray-700"></ul>
+					</div>
+
+					<div class="mb-3">
+						<h3 class="text-xs font-bold uppercase tracking-wide mb-2">Popular Shopping Ideas</h3>
+						<ul id="ideaFilters" class="space-y-1 text-xs text-gray-700"></ul>
+					</div>
+
+					<div class="mb-3 border-t pt-3">
+						<h3 id="productTypeSectionHeading" class="text-xs font-bold uppercase tracking-wide mb-2">Popular Categories</h3>
+						<ul id="categoryFilters" class="space-y-1 text-xs text-gray-700"></ul>
+					</div>
+
+					<div class="mb-3 border-t pt-3">
+						<h3 class="text-xs font-bold uppercase tracking-wide mb-2">Customer Reviews</h3>
+						<ul id="ratingFilters" class="space-y-1 text-xs text-gray-700"></ul>
+					</div>
+
+					<div class="mb-3 border-t pt-3">
+						<h3 class="text-xs font-bold uppercase tracking-wide mb-2">Limited Time Deals</h3>
+						<ul id="dealFilters" class="space-y-1 text-xs text-gray-700"></ul>
+					</div>
+
+					<div class="mb-3 border-t pt-3">
+						<h3 class="text-xs font-bold uppercase tracking-wide mb-2">Brands</h3>
+						<ul id="brandFilters" class="space-y-1 text-xs text-gray-700"></ul>
+					</div>
+
+					<div class="mb-3 border-t pt-3">
+						<h3 id="sizeSectionHeading" class="text-xs font-bold uppercase tracking-wide mb-2">Size</h3>
+						<ul id="sizeFilters" class="space-y-1 text-xs text-gray-700"></ul>
+					</div>
+
+					<div class="mb-3 border-t pt-3">
+						<h3 class="text-xs font-bold uppercase tracking-wide mb-2">Color</h3>
+						<ul id="colorFilters" class="space-y-1 text-xs text-gray-700"></ul>
+					</div>
+
+					<div class="mb-3 border-t pt-3">
+						<h3 class="text-xs font-bold uppercase tracking-wide mb-2">Price</h3>
+						<ul id="priceFilters" class="space-y-1 text-xs text-gray-700"></ul>
+					</div>
+
+					<div class="mb-3 border-t pt-3">
+						<h3 class="text-xs font-bold uppercase tracking-wide mb-2">Material</h3>
+						<ul id="materialFilters" class="space-y-1 text-xs text-gray-700"></ul>
+					</div>
+
+					<div class="mb-3 border-t pt-3">
+						<h3 id="fitTypeSectionHeading" class="text-xs font-bold uppercase tracking-wide mb-2">Fit Type</h3>
+						<ul id="fitTypeFilters" class="space-y-1 text-xs text-gray-700"></ul>
+					</div>
+
+					<div class="mb-3 border-t pt-3">
+						<h3 class="text-xs font-bold uppercase tracking-wide mb-2">Occasion</h3>
+						<ul id="occasionFilters" class="space-y-1 text-xs text-gray-700"></ul>
+					</div>
+
+					<div class="mb-3 border-t pt-3">
+						<h3 id="styleThemeSectionHeading" class="text-xs font-bold uppercase tracking-wide mb-2">Style / Theme</h3>
+						<ul id="styleThemeFilters" class="space-y-1 text-xs text-gray-700"></ul>
+					</div>
+
+					<!-- Close button for mobile -->
+					<button id="closeFilter" class="lg:hidden absolute top-3 right-3 p-1 hover:bg-gray-100 rounded-full">
+						<i data-lucide="x" class="w-5 h-5"></i>
+					</button>
+				</aside>
+
+				<!-- Products Area -->
+				<section id="productsGrid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4 md:gap-5">
+					<div id="productsLoading" class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">Loading products...</div>
+				</section>
+				<div id="paginationControls" class="col-span-full mt-6 flex items-center justify-center gap-3 hidden">
+					<button id="prevPageBtn" type="button" class="px-4 py-2 text-xs font-bold uppercase tracking-widest border border-black/10 rounded-full hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" disabled>Previous</button>
+					<span id="pageInfo" class="text-xs text-gray-600">Page 1 of 1</span>
+					<button id="nextPageBtn" type="button" class="px-4 py-2 text-xs font-bold uppercase tracking-widest border border-black/10 rounded-full hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" disabled>Next</button>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<!-- Mobile Search Modal -->
+	<div id="mobileSearchModal" class="hidden fixed inset-0 z-[110] bg-black/50 flex items-start justify-center pt-20 md:hidden">
+		<div class="bg-white rounded-lg shadow-lg w-11/12 max-w-md">
+			<div class="p-4 border-b flex items-center justify-between">
+				<h3 class="font-bold text-sm">Search Products</h3>
+				<button id="closeMobileSearch" type="button" class="p-1 hover:bg-gray-100 rounded">
+					<i data-lucide="x" class="w-5 h-5"></i>
+				</button>
+			</div>
+			<div class="p-4">
+				<div class="relative">
+					<input id="mobileSearchInput" type="text" placeholder="Search for products..." class="w-full bg-gray-100 border border-gray-300 rounded-lg py-2.5 px-4 pl-10 text-sm outline-none focus:border-black focus:bg-white transition-all">
+					<i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+				</div>
+				<button id="submitMobileSearch" type="button" class="w-full mt-3 bg-black text-white py-2 rounded-lg font-bold text-sm uppercase tracking-wider hover:bg-gray-900">
+					Search
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Footer -->
+	<footer class="pt-24 pb-12 bg-white">
+		<div class="px-4">
+			<div class="grid grid-cols-1 lg:grid-cols-4 gap-16 mb-24">
+				<div>
+					<a href="#" class="text-3xl font-bold tracking-tighter uppercase mb-8 block">Lumina</a>
+					<p class="text-gray-500 text-sm leading-relaxed mb-8">Empowering local artisans to reach a global audience. Curated with soul, delivered with care.</p>
+					<div class="flex gap-4">
+						<a href="#" class="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center hover:bg-black hover:text-white transition-all"><i data-lucide="instagram" class="w-4 h-4"></i></a>
+						<a href="#" class="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center hover:bg-black hover:text-white transition-all"><i data-lucide="facebook" class="w-4 h-4"></i></a>
+					</div>
+				</div>
+				<div>
+					<h5 class="font-bold text-xs uppercase tracking-widest mb-8">About</h5>
+					<ul class="space-y-4 text-sm text-gray-500">
+						<li>Our Story</li>
+						<li>Ethics & Sustainability</li>
+						<li>Contact Us</li>
+						<li>Careers</li>
+					</ul>
+				</div>
+				<div>
+					<h5 class="font-bold text-xs uppercase tracking-widest mb-8">Terms</h5>
+					<ul class="space-y-4 text-sm text-gray-500">
+						<li>Privacy Policy</li>
+						<li>Terms & Conditions</li>
+						<li>Vendor Agreement</li>
+						<li>Shipping Policy</li>
+					</ul>
+				</div>
+				<div>
+					<h5 class="font-bold text-xs uppercase tracking-widest mb-8">Join the Collective</h5>
+					<p class="text-xs text-gray-400 mb-6">Marketplace updates and artisan spotlights.</p>
+					<div class="flex border-b border-black pb-2">
+						<input type="email" placeholder="Email address" class="w-full focus:outline-none text-sm">
+						<button><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+					</div>
+				</div>
+			</div>
+			<div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-400">
+				<p>&copy; 2024 LUMINA MARKETPLACE INC.</p>
+				<div class="flex gap-8 items-center">
+					<img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" class="h-3 opacity-30 grayscale" alt="PayPal">
+					<img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" class="h-2 opacity-30 grayscale" alt="Visa">
+				</div>
+			</div>
+		</div>
+	</footer>
+
+	<script>
+		lucide.createIcons();
+
+		const observer = new IntersectionObserver((entries) => {
+			entries.forEach(entry => {
+				if (entry.isIntersecting) entry.target.classList.add('active');
+			});
+		}, { threshold: 0.1 });
+
+		const API_BASE_URL = `${window.location.origin}/api`;
+		const IS_LIVE_HOST = location.protocol !== 'file:';
+		const urlParams = new URLSearchParams(window.location.search);
+		const initialSearchQuery = String(urlParams.get('search') || urlParams.get('q') || '').trim();
+		const requestedCategory = String(urlParams.get('category') || '').trim().toLowerCase();
+		const requestedSortBy = String(urlParams.get('sortBy') || '').trim().toLowerCase();
+		const requestedFilter = String(urlParams.get('filter') || '').trim().toLowerCase();
+		const normalizedSortBy = requestedSortBy === 'new-arrivals' || requestedSortBy === 'new' ? 'newest' : (requestedSortBy || 'relevance');
+		const isMenCatalogMode = ['men', "men's", 'mens', 'male', 'gents'].includes(requestedCategory);
+		const isWomenCatalogMode = ['women', "women's", 'womens', 'female', 'ladies'].includes(requestedCategory);
+		const isKidsCatalogMode = ['kids', 'kid', "kid's", 'children', 'child', 'baby', 'babies'].includes(requestedCategory);
+		const isAccessoriesCatalogMode = ['accessories', 'accessory'].includes(requestedCategory);
+		const hasCategoryMode = isMenCatalogMode || isWomenCatalogMode || isKidsCatalogMode || isAccessoriesCatalogMode;
+		const GLOBAL_FILTERS = {
+			topCategories: ['Men', 'Women', 'Kids', 'Accessories'],
+			ideas: ['Trending Now', 'New Arrivals', 'Best Sellers', 'Summer Collection', 'Winter Collection', 'Casual Wear', 'Party Wear', 'Office Wear', 'Street Style'],
+			productTypes: ['T-Shirts', 'Shirts', 'Dresses', 'Jeans', 'Hoodies', 'Jackets', 'Shoes', 'Bags & Accessories'],
+			brands: ['Zara', 'H&M', 'Nike', 'Adidas', 'Gucci', "Levi's", 'Uniqlo', 'Local Brands'],
+			colors: ['Black', 'White', 'Blue', 'Red', 'Pink', 'Green', 'Beige', 'Multi-color'],
+			prices: ['Under $10', '$10 - $25', '$25 - $50', '$50 - $100', '$100+'],
+			materials: ['Cotton', 'Denim', 'Polyester', 'Wool', 'Silk', 'Leather', 'Linen'],
+			occasions: ['Casual', 'Formal', 'Party', 'Wedding', 'Office', 'Sports', 'Outdoor'],
+			defaultSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+			kidsSizes: ['Newborn (0-3M)', 'Infant (3-12M)', 'Toddler (1-3Y)', 'Kids (4-6Y)', 'Kids (7-10Y)', 'Pre-Teen (11-14Y)'],
+			fitBase: ['Slim Fit', 'Regular Fit', 'Oversized', 'Relaxed Fit']
+		};
+		const MEN_FILTERS = {
+			ideas: ['Casual Wear', 'Formal Wear', 'Office Wear', 'Party Wear', 'Street Style', 'Summer Collection', 'Winter Collection', 'Gym Wear', 'Athleisure', 'Travel Outfit'],
+			categories: ['T-Shirts', 'Shirts', 'Polo Shirts', 'Hoodies', 'Sweatshirts', 'Jeans', 'Trousers', 'Shorts', 'Jackets', 'Coats', 'Suits', 'Blazers'],
+			brands: ['Nike', 'Adidas', 'Zara', 'H&M', "Levi's", 'Puma', 'Uniqlo', 'Gucci'],
+			sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
+			colors: ['Black', 'White', 'Grey', 'Blue', 'Navy Blue', 'Brown', 'Green', 'Red'],
+			prices: ['Under $20', '$20 - $50', '$50 - $100', '$100 - $200', '$200+'],
+			materials: ['Cotton', 'Denim', 'Wool', 'Polyester', 'Linen', 'Leather'],
+			fitTypes: ['Slim Fit', 'Regular Fit', 'Relaxed Fit', 'Oversized Fit', 'Athletic Fit'],
+			occasions: ['Casual', 'Office', 'Formal', 'Party', 'Sports', 'Outdoor', 'Wedding'],
+			heading: 'MEN Category Filters',
+			subheading: 'Popular Shopping Ideas this for men',
+			title: "Men's Clothing",
+			searchPlaceholder: 'Search men clothing...',
+			searchKeyword: 'men',
+			keywordRegex: /(\bmen\b|\bmens\b|\bmale\b|\bgents\b|casual|formal|office|party|street|summer|winter|gym|athleisure|travel|t-shirt|shirts?|polo|hoodies?|sweatshirts?|jeans|trousers?|shorts|jackets?|coats?|suits?|blazers?)/i
+		};
+		const WOMEN_FILTERS = {
+			ideas: ['Casual Wear', 'Office Wear', 'Party Wear', 'Wedding Wear', 'Summer Collection', 'Winter Collection', 'Minimal Style', 'Street Style', 'Elegant Fashion', 'Modest Wear', 'Athleisure'],
+			categories: ['Dresses', 'Tops', 'Blouses', 'T-Shirts', 'Jeans', 'Skirts', 'Leggings', 'Hoodies', 'Sweaters', 'Jackets', 'Coats', 'Jumpsuits'],
+			brands: ['Zara', 'H&M', 'Gucci', 'Prada', "Levi's", 'Uniqlo', 'Mango', 'Chanel'],
+			sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+			colors: ['Black', 'White', 'Pink', 'Red', 'Blue', 'Beige', 'Green', 'Purple', 'Yellow'],
+			prices: ['Under $20', '$20 - $50', '$50 - $100', '$100 - $200', '$200+'],
+			materials: ['Cotton', 'Denim', 'Polyester', 'Wool', 'Silk', 'Linen', 'Satin'],
+			fitTypes: ['Slim Fit', 'Regular Fit', 'Oversized Fit', 'Bodycon', 'Relaxed Fit', 'A-Line'],
+			occasions: ['Casual', 'Office', 'Party', 'Wedding', 'Formal', 'Sports', 'Outdoor'],
+			heading: 'WOMEN Category Filters',
+			subheading: 'Popular Shopping Ideas this for women',
+			title: "Women's Clothing",
+			searchPlaceholder: 'Search women clothing...',
+			searchKeyword: 'women',
+			keywordRegex: /(\bwomen\b|\bwomens\b|\bfemale\b|\bladies\b|dress(es)?|tops?|blouses?|hoodies?|sweaters?|jeans|skirts?|leggings?|jackets?|coats?|office|party|athleisure|minimal|summer|winter|street)/i
+		};
+		const KIDS_FILTERS = {
+			ideas: ['School Wear', 'Party Wear', 'Casual Wear', 'Winter Collection', 'Summer Collection', 'Cartoon Theme Outfits', 'Birthday Dresses', 'Daily Wear Sets', 'Matching Siblings Outfits', 'Newborn Essentials'],
+			categories: ['T-Shirts', 'Shirts', 'Hoodies', 'Sweaters', 'Jeans', 'Pants', 'Shorts', 'Dresses (Girls)', 'Rompers (Babies)', 'Tracksuits', 'Jackets', 'Coats'],
+			brands: ['H&M Kids', 'Zara Kids', 'Adidas Kids', 'Nike Kids', "Carter's", 'Gap Kids'],
+			sizes: ['Newborn (0-3M)', 'Infant (3-12M)', 'Toddler (1-3Y)', 'Kids (4-6Y)', 'Kids (7-10Y)', 'Pre-Teen (11-14Y)'],
+			colors: ['Red', 'Blue', 'Pink', 'Yellow', 'Green', 'White', 'Black', 'Multi-color'],
+			prices: ['Under $10', '$10 - $25', '$25 - $50', '$50+'],
+			materials: ['Cotton', 'Wool', 'Polyester', 'Fleece', 'Denim', 'Linen'],
+			fitTypes: ['Regular Fit', 'Relaxed Fit', 'Loose Fit', 'Stretchable'],
+			occasions: ['School', 'Party', 'Casual', 'Sports', 'Outdoor Play', 'Wedding / Formal'],
+			styleThemes: ['Cartoon Prints', 'Animal Theme', 'Superhero Style', 'Minimal Style', 'Bright & Colorful', 'Soft Pastel'],
+			heading: 'KIDS Category Filters',
+			subheading: 'Popular Shopping Ideas this for kids',
+			title: "Kids' Clothing",
+			sizeHeading: 'Age / Size',
+			styleThemeHeading: 'Style / Theme',
+			searchPlaceholder: 'Search kids clothing...',
+			searchKeyword: 'kids',
+			keywordRegex: /(\bkids?\b|\bchild\b|\bchildren\b|\bbaby\b|\bbabies\b|newborn|infant|toddler|school|party|cartoon|superhero|romper|tracksuit|play|siblings?)/i
+		};
+		const ACCESSORIES_FILTERS = {
+			ideas: ['Fashion Accessories', 'Daily Essentials', 'Party Accessories', 'Winter Accessories', 'Summer Accessories', 'Minimal Style Add-ons', 'Street Style Accessories', 'Luxury Fashion Pieces'],
+			categories: ['Caps & Hats', 'Belts', 'Scarves', 'Gloves', 'Sunglasses', 'Watches', 'Wallets', 'Handbags', 'Backpacks', 'Hair Accessories (Clips, Bands)', 'Jewelry (Rings, Chains, Earrings)'],
+			brands: ['Zara Accessories', 'H&M Accessories', 'Gucci', 'Prada', 'Nike Accessories', 'Adidas Accessories', 'Local Brands'],
+			sizes: [],
+			colors: ['Black', 'Brown', 'White', 'Gold', 'Silver', 'Pink', 'Red', 'Blue'],
+			prices: ['Under $10', '$10 - $25', '$25 - $50', '$50 - $100', '$100+'],
+			materials: ['Leather', 'Faux Leather', 'Cotton', 'Metal', 'Stainless Steel', 'Fabric', 'Wool'],
+			fitTypes: ['Casual', 'Formal', 'Luxury', 'Minimal', 'Vintage', 'Street Style'],
+			occasions: ['Daily Use', 'Office', 'Party', 'Wedding', 'Travel', 'Outdoor'],
+			styleThemes: [],
+			heading: 'ACCESSORIES Category Filters',
+			subheading: 'Popular Shopping Ideas this for accessories',
+			title: 'Accessories',
+			sizeHeading: 'Size',
+			fitTypeHeading: 'Style Type',
+			styleThemeHeading: 'Style / Theme',
+			searchPlaceholder: 'Search accessories...',
+			searchKeyword: 'accessories',
+			keywordRegex: /(accessor(y|ies)|caps?|hats?|belts?|scarves?|gloves?|sunglasses|watches?|wallets?|handbags?|backpacks?|hair|clips?|bands?|jewelry|rings?|chains?|earrings?)/i
+		};
+		const activeCatalogFilters = isMenCatalogMode
+			? MEN_FILTERS
+			: (isWomenCatalogMode
+				? WOMEN_FILTERS
+				: (isKidsCatalogMode
+					? KIDS_FILTERS
+					: (isAccessoriesCatalogMode ? ACCESSORIES_FILTERS : null)));
+
+		const productsGrid = document.getElementById('productsGrid');
+		const resultsMeta = document.getElementById('resultsMeta');
+		const catalogTitle = document.getElementById('catalogTitle');
+		const sidebarHeading = document.getElementById('sidebarHeading');
+		const sidebarSubheading = document.getElementById('sidebarSubheading');
+		const mainCategorySectionHeading = document.getElementById('mainCategorySectionHeading');
+		const productTypeSectionHeading = document.getElementById('productTypeSectionHeading');
+		const sizeSectionHeading = document.getElementById('sizeSectionHeading');
+
+		// Header image-search controls
+		const headerImageBtn = document.getElementById('headerImageSearchBtn');
+		const headerImageInput = document.getElementById('headerImageInput');
+
+		headerImageBtn.addEventListener('click', () => headerImageInput.click());
+
+		headerImageInput.addEventListener('change', async (ev) => {
+			const file = ev.target.files && ev.target.files[0];
+			if (!file) return;
+			await performVisualSearch(file);
+			// clear input so same file can be reselected later
+			headerImageInput.value = '';
+		});
+
+		async function performVisualSearch(file) {
+			resultsMeta.textContent = 'Searching similar products...';
+			try {
+				const form = new FormData();
+				form.append('image', file);
+				const resp = await fetch(`${API_BASE_URL}/visual-search?top_k=12`, {
+					method: 'POST',
+					body: form
+				});
+				const data = await resp.json();
+				// expose for debugging
+				try { window.lastVisualSearchData = data; } catch (e) { /* ignore */ }
+				if (!resp.ok) throw new Error(data.detail || 'Visual search failed');
+
+				// Build enrichment map from DB products returned by the unified backend
+				const enrichmentMap = {};
+				if (Array.isArray(data.products) && data.products.length) {
+					for (const p of data.products) {
+						const key = String(p.id || p.product_id || p.productId || p.productId || '').trim();
+						if (key) enrichmentMap[key] = p;
+					}
+					resultsMeta.textContent = `${data.products.length} similar products found`;
+					// Render DB-enriched products in the grid (these are authoritative)
+					renderRecommendations(data.products, enrichmentMap);
+				} else {
+					resultsMeta.textContent = `${data.number_of_results || (data.recommendations || []).length} similar products found`;
+					// If no DB products were returned, but AI recommendations exist, map them into the grid
+					if ((!Array.isArray(data.products) || data.products.length === 0) && Array.isArray(data.recommendations) && data.recommendations.length) {
+						const mapped = data.recommendations.map(r => ({
+							id: r.product_id || r.id || '',
+							product_id: r.product_id || r.id || '',
+							name: r.title || r.name || '',
+							title: r.title || r.name || '',
+							image_url: r.image_url || r.image_path || '',
+							price: r.price || 0,
+							product_url: r.product_url || '#',
+							similarity: r.similarity_percentage || r.similarity || null
+						}));
+						renderRecommendations(mapped, enrichmentMap);
+					}
+				}
+
+				// Render visual strip of AI recommendations (non-destructive), enrich with DB rows when available
+				if (Array.isArray(data.recommendations) && data.recommendations.length) {
+					renderVisualSearchStrip(data.recommendations, file, enrichmentMap);
+				}
+			} catch (err) {
+				resultsMeta.textContent = err.message || 'Search failed';
+				console.error(err);
+			}
+		}
+
+		function createVisualResultsContainer() {
+			let container = document.getElementById('visualSearchResults');
+			if (!container) {
+				container = document.createElement('div');
+				container.id = 'visualSearchResults';
+				container.className = 'col-span-full';
+				container.innerHTML = `
+					<div class="bg-white rounded-lg p-4 mb-4">
+						<div class="flex items-center justify-between mb-3">
+							<strong>Visual Search Results</strong>
+							<button id="closeVisualSearch" class="text-xs text-gray-500">Close</button>
+						</div>
+						<div id="visualSearchStrip" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3"></div>
+					</div>
+				`;
+				// insert the visual results block as the first child of the main grid
+				const gridParent = productsGrid.parentNode;
+				gridParent.insertBefore(container, gridParent.firstChild);
+				const closeBtn = container.querySelector('#closeVisualSearch');
+				closeBtn.addEventListener('click', () => container.remove());
+				// scroll to top of visual results so it appears above the filters
+				setTimeout(() => {
+					try { container.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { /* ignore */ }
+				}, 80);
+			}
+			return container.querySelector('#visualSearchStrip');
+		}
+
+		function renderVisualSearchStrip(recs, file, enrichMap = {}) {
+			const strip = createVisualResultsContainer();
+			strip.innerHTML = '';
+			if (!recs || !recs.length) {
+				strip.innerHTML = '<div class="col-span-full text-sm text-gray-500">No matching products.</div>';
+				return;
+			}
+			recs.forEach(product => {
+				const enrich = (product && product.product_id) ? (enrichMap[String(product.product_id)] || null) : null;
+				const src = enrich || product;
+				const productId = (src && (src.id || src.product_id || src.productId)) || '';
+				const name = (src && (src.name || src.title || src.product_name)) || '';
+				const desc = (src && (src.short_description || src.description || src.summary)) || '';
+				const seller = (src && (src.seller_name || src.seller || src.vendor)) || '';
+				const image = (src && (src.image_url || src.image_path)) || product.image_url || '';
+				const priceVal = (src && (src.base_price || src.price || src.price_display || src.price_amount)) || 0;
+				const priceNumber = Number(priceVal) || 0;
+				const priceText = 'PKR ' + (priceNumber ? priceNumber.toLocaleString() + '.00' : '0.00');
+				const sim = product.similarity_percentage || product.similarity || src?.similarity_percentage || src?.similarity;
+
+				const card = document.createElement('article');
+				card.className = 'product-card bg-white rounded-lg overflow-hidden';
+				card.innerHTML = `
+					<div class="p-3 flex flex-col gap-3">
+						<div class="relative overflow-hidden rounded-lg bg-gray-50 h-[180px]">
+							<img src="${image}" alt="${name}" class="w-full h-full object-cover">
+							<button data-product-id="${productId}" class="absolute top-3 right-3 z-10 bg-white/80 rounded-full p-1 shadow add-to-wishlist-btn" title="Add to favorites">
+								<i data-lucide="heart" class="w-4 h-4 text-gray-500"></i>
+							</button>
+						</div>
+						<div>
+							<div class="flex items-start justify-between gap-3">
+								<div>
+									<div class="text-lg font-bold text-black">${priceText}</div>
+									<div class="text-sm text-gray-700 line-clamp-2">${name}</div>
+								</div>
+								<div class="text-right text-[12px] text-gray-500">${sim ? `Similarity: ${Math.round(Number(sim))}%` : ''}</div>
+							</div>
+							<p class="text-sm text-gray-600 mt-2 line-clamp-2">${desc}</p>
+							<div class="mt-3 text-xs text-gray-500">${seller}</div>
+						</div>
+						<div class="mt-4 flex flex-col gap-2">
+							<a href="products_details.html?id=${productId}" class="w-full py-2.5 bg-[#FFD814] hover:bg-[#F7CA00] rounded-full text-xs font-semibold text-center">View Details</a>
+							<button type="button" data-product-id="${productId}" class="w-full py-2.5 border border-gray-300 rounded-full text-xs font-semibold">Add to Cart</button>
+						</div>
+					</div>
+				`;
+
+				card.addEventListener('click', (e) => {
+					if (e.target.closest('a') || e.target.closest('button')) return;
+					showProductDetails(src || product);
+				});
+
+				strip.appendChild(card);
+			});
+		}
+
+		function renderRecommendations(recs, enrichMap = {}) {
+			productsGrid.innerHTML = '';
+			if (!recs || !recs.length) {
+				productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">No products found.</div>';
+				return;
+			}
+
+			recs.forEach(product => {
+				const enrich = (product && (product.id || product.product_id)) ? (enrichMap[String(product.id || product.product_id)] || null) : null;
+				const src = enrich || product;
+				const productId = (src && (src.id || src.product_id || src.productId)) || '';
+				const name = (src && (src.name || src.title || src.product_name)) || '';
+				const desc = (src && (src.short_description || src.description || src.summary)) || '';
+				const seller = (src && (src.seller_name || src.seller || src.vendor)) || '';
+				const image = (src && (src.image_url || src.image_path)) || '';
+				const priceVal = (src && (src.base_price || src.price || src.price_display || src.price_amount)) || 0;
+				const priceNumber = Number(priceVal) || 0;
+				const priceText = 'PKR ' + (priceNumber ? priceNumber.toLocaleString() + '.00' : '0.00');
+				const sim = src?.similarity_percentage || src?.similarity;
+
+				const card = document.createElement('article');
+				card.className = 'product-card bg-white rounded-lg overflow-hidden reveal hover:shadow-lg transition-all duration-300 cursor-pointer';
+				card.innerHTML = `
+					<div class="p-4 flex flex-col gap-3">
+						<div class="relative overflow-hidden rounded-lg bg-gray-50 h-[220px]">
+							<img src="${image}" alt="${name}" class="w-full h-full object-cover">
+						</div>
+						<div>
+							<div class="text-lg font-bold text-black">${priceText}</div>
+							<div class="text-sm text-gray-700 mt-1 line-clamp-2">${name}</div>
+							<p class="text-xs text-gray-500 mt-2 line-clamp-2">${desc}</p>
+							<div class="flex items-center gap-2 mt-3 text-xs text-gray-500">
+								<div class="rating-stars">★★★★★</div>
+								<div>0</div>
+							</div>
+							<div class="text-xs text-gray-500 mt-1">FREE delivery on eligible orders</div>
+							<div class="text-xs text-gray-500 mt-1">${seller}</div>
+						</div>
+						<div class="mt-4 flex flex-col gap-2">
+							<a href="products_details.html?id=${productId}" class="w-full py-2.5 bg-[#FFD814] hover:bg-[#F7CA00] rounded-full text-xs font-semibold text-center">View Details</a>
+							<button type="button" data-product-id="${productId}" class="w-full py-2.5 border border-gray-300 rounded-full text-xs font-semibold">Add to Cart</button>
+						</div>
+						<div class="mt-2 text-right text-[12px] text-gray-500">${typeof sim !== 'undefined' && sim !== null ? `Similarity: ${Math.round(Number(sim))}%` : ''}</div>
+					</div>
+				`;
+
+				card.addEventListener('click', (e) => { if (e.target.closest('a') || e.target.closest('button')) return; showProductDetails(src || product); });
+
+				productsGrid.appendChild(card);
+			});
+		}
+
+		function showProductDetails(product) {
+			// Build a simple modal showing key product fields
+			const existing = document.getElementById('productDetailModal');
+			if (existing) existing.remove();
+			const modal = document.createElement('div');
+			modal.id = 'productDetailModal';
+			modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/40';
+			const content = document.createElement('div');
+			content.className = 'bg-white rounded-lg max-w-2xl w-[95%] p-4';
+			const priceVal = product.base_price || product.price || product.price_display || product.price_amount || 0;
+			const priceNumber = Number(priceVal) || 0;
+			const priceText = priceNumber ? priceNumber.toLocaleString() : (product.currency ? product.currency : priceVal || '0');
+			content.innerHTML = `
+				<div class="flex gap-4">
+					<div class="w-1/3">
+						<img src="${product.image_url || product.image_path || ''}" alt="${product.name || product.title || ''}" class="w-full h-auto object-cover rounded-md">
+					</div>
+					<div class="flex-1">
+						<h2 class="text-lg font-bold mb-2">${product.name || product.title || ''}</h2>
+						<p class="text-sm text-gray-600 mb-2">${product.description || product.long_description || product.summary || ''}</p>
+						<p class="text-xl font-bold mb-4">Rs. ${priceText}</p>
+						<p class="text-[12px] text-gray-500 mb-4">Similarity: ${Math.round(Number(product.similarity_percentage || product.similarity || 0))}%</p>
+						<div class="flex gap-2">
+							<a href="${product.product_url || '#'}" class="px-3 py-2 bg-black text-white rounded text-sm">Open product page</a>
+							<button id="closeProductDetail" class="px-3 py-2 border rounded text-sm">Close</button>
+						</div>
+					</div>
+				</div>
+			`;
+			modal.appendChild(content);
+			document.body.appendChild(modal);
+			document.getElementById('closeProductDetail').addEventListener('click', () => modal.remove());
+			modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+		}
+		const fitTypeSectionHeading = document.getElementById('fitTypeSectionHeading');
+		const styleThemeSectionHeading = document.getElementById('styleThemeSectionHeading');
+		const productSearchInput = document.querySelector('input[placeholder^="Search for unique products"]');
+		const paginationControls = document.getElementById('paginationControls');
+		const prevPageBtn = document.getElementById('prevPageBtn');
+		const nextPageBtn = document.getElementById('nextPageBtn');
+		const pageInfo = document.getElementById('pageInfo');
+		const filterSidebar = document.getElementById('filterSidebar');
+		const filterOverlay = document.getElementById('filterOverlay');
+		const closeFilter = document.getElementById('closeFilter');
+		const filterToggle = document.getElementById('filterToggle');
+		const mainCategoryFilterList = document.getElementById('mainCategoryFilters');
+		const categoryFilterList = document.getElementById('categoryFilters');
+		const brandFilterList = document.getElementById('brandFilters');
+		const ideaFilterList = document.getElementById('ideaFilters');
+		const ratingFilterList = document.getElementById('ratingFilters');
+		const dealFilterList = document.getElementById('dealFilters');
+		const sizeFilterList = document.getElementById('sizeFilters');
+		const colorFilterList = document.getElementById('colorFilters');
+		const priceFilterList = document.getElementById('priceFilters');
+		const materialFilterList = document.getElementById('materialFilters');
+		const fitTypeFilterList = document.getElementById('fitTypeFilters');
+		const occasionFilterList = document.getElementById('occasionFilters');
+		const styleThemeFilterList = document.getElementById('styleThemeFilters');
+
+		function formatRatingStars(ratingValue) {
+			const rating = Math.max(0, Math.min(5, Number(ratingValue) || 0));
+			let starsHtml = '';
+			for (let i = 1; i <= 5; i += 1) {
+				const activeClass = i <= Math.round(rating) ? 'star-filled' : 'text-gray-300';
+				starsHtml += `<span class="${activeClass} text-sm">${i <= Math.round(rating) ? '★' : '☆'}</span>`;
+			}
+			return starsHtml;
+		}
+
+		function money(value) {
+			const amount = Number(value) || 0;
+			const fixed = amount.toFixed(2);
+			const [whole, fraction] = fixed.split('.');
+			return `PKR ${whole}<sup class="text-sm">.${fraction}</sup>`;
+		}
+
+		function renderProductCard(rawProduct) {
+			const productId = rawProduct.id;
+			const name = rawProduct.name || 'Product';
+			const image = rawProduct.image || rawProduct.imageUrl || 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&q=80&w=600';
+			const rating = Number(rawProduct.rating ?? rawProduct.averageRating ?? 0);
+			const reviewCount = Number(rawProduct.reviewCount) || 0;
+			const price = Number(rawProduct.price ?? rawProduct.basePrice ?? 0);
+			const originalPrice = Number(rawProduct.originalPrice ?? rawProduct.compareAtPrice ?? price);
+			const hasDiscount = originalPrice > price;
+			const sponsored = Boolean(rawProduct.sponsored);
+			const limitedDeal = Boolean(rawProduct.limitedDeal) || hasDiscount;
+			const couponDiscount = Number(rawProduct.couponDiscount) || 0;
+			const hasCoupon = couponDiscount > 0;
+			const deliveryLine = 'FREE delivery on eligible orders';
+			const sellerId = String(rawProduct.sellerId || rawProduct.seller_id || '').trim();
+			const sellerSlug = String(rawProduct.sellerSlug || rawProduct.storeSlug || '').trim();
+			const sellerName = String(rawProduct.sellerName || rawProduct.storeName || 'Store').trim();
+			const sellerProfileUrl = sellerId
+				? `sellerprofile.html?sellerId=${encodeURIComponent(sellerId)}`
+				: sellerSlug
+					? `sellerprofile.html?slug=${encodeURIComponent(sellerSlug)}`
+					: `sellerprofile.html?seller=${encodeURIComponent(sellerName)}`;
+
+			return `
+				<div class="product-card bg-white rounded-2xl p-3 shadow-sm reveal hover:shadow-lg transition-all duration-300">
+					<div class="product-card-image bg-gray-50 rounded-xl overflow-hidden mb-3 relative">
+						<img src="${image}" class="w-full h-full object-cover" alt="${name}">
+						${sponsored ? '<span class="sponsored-badge inline-block rounded absolute top-2 left-2">Sponsored</span>' : ''}
+						<button data-product-id="${productId}" class="absolute top-3 right-3 z-10 bg-white/80 rounded-full p-1 shadow hover:bg-white add-to-wishlist-btn" title="Add to favorites">
+							<i data-lucide="heart" class="w-4 h-4 text-gray-500"></i>
+						</button>
+					</div>
+					<div class="flex flex-col flex-1">
+						${limitedDeal ? '<div class="mb-2"><span class="limited-deal text-white text-xs px-2 py-1 rounded inline-block font-semibold">Limited time deal</span></div>' : ''}
+						<div class="flex items-baseline gap-2 mb-2">
+							<span class="text-xl font-bold ${hasDiscount ? 'text-[#b12704]' : ''}">${money(price)}</span>
+							${hasDiscount ? `<span class="text-sm text-gray-500 line-through">$${originalPrice.toFixed(2)}</span>` : ''}
+						</div>
+						${hasCoupon ? `<div class="text-xs text-gray-600 mb-2">Save ${couponDiscount}% with coupon</div>` : ''}
+						<h3 class="font-normal text-sm mb-2 line-clamp-2 min-h-[2.75rem]">${name}</h3>
+						<div class="flex items-center gap-2 mb-2">
+							<div class="flex items-center">${formatRatingStars(rating)}</div>
+							<span class="text-xs text-blue-600">${reviewCount.toLocaleString()}</span>
+						</div>
+						<div class="text-xs text-gray-600 mb-3">${deliveryLine}</div>
+						<a href="${sellerProfileUrl}" class="text-xs font-semibold text-gray-500 hover:text-black transition-colors mb-3 inline-block">${sellerName}</a>
+						<div class="mt-auto space-y-2">
+							<a href="products_details.html?id=${productId}" class="w-full py-2.5 bg-[#FFD814] hover:bg-[#F7CA00] rounded-full text-xs font-semibold transition-colors text-center block">View Details</a>
+							<button type="button" data-product-id="${productId}" class="w-full py-2.5 border border-gray-300 rounded-full text-xs font-semibold transition-colors add-to-cart-btn">Add to Cart</button>
+						</div>
+					</div>
+				</div>
+			`;
+		}
+
+		function renderProducts(products, totalCount) {
+			if (!productsGrid) return;
+
+			if (!products || products.length === 0) {
+				productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">No products found.</div>';
+				if (resultsMeta) resultsMeta.textContent = '0 results';
+				renderPaginationControls();
+				return;
+			}
+
+			productsGrid.innerHTML = products.map(renderProductCard).join('');
+			document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+			if (resultsMeta) {
+				const start = ((filterState.page - 1) * filterState.limit) + 1;
+				const end = Math.min(start + products.length - 1, totalCount);
+				resultsMeta.textContent = `${start}-${end} of ${totalCount.toLocaleString()} results`;
+			}
+			renderPaginationControls();
+		}
+
+		const filterState = {
+			search: initialSearchQuery,
+			sortBy: normalizedSortBy,
+			filter: requestedFilter,
+			topCategory: '',
+			brands: [],
+			categories: [],
+			ideas: [],
+			sizes: [],
+			colors: [],
+			priceBands: [],
+			materials: [],
+			fitTypes: [],
+			occasions: [],
+			styleThemes: [],
+			minRating: 0,
+			limitedDeal: null,
+			minDiscount: 0,
+			page: 1,
+			limit: 24
+		};
+
+		// If a category was requested via URL, apply it to filterState so page loads filtered results
+		if (hasCategoryMode) {
+			if (isMenCatalogMode) filterState.topCategory = 'men';
+			if (isWomenCatalogMode) filterState.topCategory = 'women';
+			if (isKidsCatalogMode) filterState.topCategory = 'kids';
+			if (isAccessoriesCatalogMode) filterState.topCategory = 'accessories';
+		}
+
+		let searchDebounceTimer;
+		let lastPagination = {
+			currentPage: 1,
+			totalPages: 1,
+			hasNextPage: false,
+			hasPrevPage: false,
+			totalProducts: 0
+		};
+
+		function normalizeText(value) {
+			return String(value || '').trim().toLowerCase();
+		}
+
+		function renderCheckboxList(container, items, groupName) {
+			if (!container) return;
+
+			const listItems = Array.isArray(items) ? items : [];
+			container.innerHTML = listItems.length
+				? listItems.map((item) => `
+					<li class="filter-item flex items-center gap-1.5">
+						<input type="checkbox" value="${String(item.value ?? item.label ?? '').replace(/"/g, '&quot;')}" data-group="${groupName}" class="w-3 h-3 cursor-pointer">
+						<span class="text-gray-700">${item.label || item.value || ''}</span>
+					</li>
+				`).join('')
+				: '<li class="text-gray-400">No options available</li>';
+		}
+
+		function renderRadioList(container, items, groupName) {
+			if (!container) return;
+			const listItems = Array.isArray(items) ? items : [];
+			container.innerHTML = listItems.length
+				? listItems.map((label) => `
+					<li class="filter-item flex items-center gap-1.5">
+						<input type="radio" name="${groupName}" value="${String(label).replace(/"/g, '&quot;')}" data-group="${groupName}" class="w-3 h-3 cursor-pointer">
+						<span class="text-gray-700">${label}</span>
+					</li>
+				`).join('')
+				: '<li class="text-gray-400">No options available</li>';
+		}
+
+		function toggleSectionByList(listEl, isVisible) {
+			const section = listEl?.closest('div.mb-3');
+			if (!section) return;
+			section.classList.toggle('hidden', !isVisible);
+		}
+
+		function renderRatingFilters() {
+			if (!ratingFilterList) return;
+			ratingFilterList.innerHTML = [5, 4, 3, 2].map((stars) => `
+				<li data-rating="${stars}" class="filter-item flex items-center gap-1 cursor-pointer">
+					<span class="text-gray-800">${'★'.repeat(stars)}${'☆'.repeat(5 - stars)} & Up</span>
+				</li>
+			`).join('');
+		}
+
+		function renderDealFilters() {
+			if (!dealFilterList) return;
+			dealFilterList.innerHTML = [
+				{ label: "Today's Deals", value: 'today-deals' },
+				{ label: 'Discount 10%+', value: '10' },
+				{ label: 'Discount 25%+', value: '25' },
+				{ label: 'Discount 50%+', value: '50' },
+				{ label: 'Clearance Sale', value: 'clearance' }
+			].map((item) => `
+				<li class="filter-item flex items-center gap-1.5">
+					<input type="checkbox" value="${item.value}" data-group="deals" class="w-3 h-3 cursor-pointer">
+					<span class="text-gray-700">${item.label}</span>
+				</li>
+			`).join('');
+		}
+
+		function selectedGlobalCategory() {
+			const selected = mainCategoryFilterList?.querySelector('input[type="radio"]:checked');
+			return String(selected?.value || '').trim().toLowerCase();
+		}
+
+		function globalDynamicSizes() {
+			const selected = selectedGlobalCategory();
+			if (selected === 'kids') return GLOBAL_FILTERS.kidsSizes;
+			if (selected === 'accessories') return [];
+			return GLOBAL_FILTERS.defaultSizes;
+		}
+
+		function globalDynamicFitTypes() {
+			const selected = selectedGlobalCategory();
+			const values = [...GLOBAL_FILTERS.fitBase];
+			if (selected === 'women') values.push('Bodycon');
+			if (selected === 'men') values.push('Athletic Fit');
+			return values;
+		}
+
+		function refreshGlobalDynamicFilters() {
+			if (hasCategoryMode) return;
+			renderCheckboxList(sizeFilterList, globalDynamicSizes().map((label) => ({ label, value: label })), 'sizes');
+			renderCheckboxList(fitTypeFilterList, globalDynamicFitTypes().map((label) => ({ label, value: label })), 'fitTypes');
+			toggleSectionByList(sizeFilterList, globalDynamicSizes().length > 0);
+			toggleSectionByList(styleThemeFilterList, false);
+		}
+
+		function populateSidebarFilters(options) {
+			if (activeCatalogFilters) {
+				if (catalogTitle) catalogTitle.textContent = activeCatalogFilters.title;
+				if (sidebarHeading) sidebarHeading.textContent = activeCatalogFilters.heading;
+				if (sidebarSubheading) sidebarSubheading.textContent = activeCatalogFilters.subheading;
+				if (sizeSectionHeading) sizeSectionHeading.textContent = activeCatalogFilters.sizeHeading || 'Size';
+				if (fitTypeSectionHeading) fitTypeSectionHeading.textContent = activeCatalogFilters.fitTypeHeading || 'Fit Type';
+				if (styleThemeSectionHeading) styleThemeSectionHeading.textContent = activeCatalogFilters.styleThemeHeading || 'Style / Theme';
+				if (productSearchInput) productSearchInput.placeholder = activeCatalogFilters.searchPlaceholder;
+
+				renderCheckboxList(ideaFilterList, activeCatalogFilters.ideas.map((label) => ({ label, value: label })), 'ideas');
+				renderCheckboxList(categoryFilterList, activeCatalogFilters.categories.map((label) => ({ label, value: label })), 'categories');
+				renderCheckboxList(brandFilterList, activeCatalogFilters.brands.map((label) => ({ label, value: label })), 'brands');
+				renderCheckboxList(sizeFilterList, activeCatalogFilters.sizes.map((label) => ({ label, value: label })), 'sizes');
+				renderCheckboxList(colorFilterList, activeCatalogFilters.colors.map((label) => ({ label, value: label })), 'colors');
+				renderCheckboxList(priceFilterList, activeCatalogFilters.prices.map((label) => ({ label, value: label })), 'priceBands');
+				renderCheckboxList(materialFilterList, activeCatalogFilters.materials.map((label) => ({ label, value: label })), 'materials');
+				renderCheckboxList(fitTypeFilterList, activeCatalogFilters.fitTypes.map((label) => ({ label, value: label })), 'fitTypes');
+				renderCheckboxList(occasionFilterList, activeCatalogFilters.occasions.map((label) => ({ label, value: label })), 'occasions');
+				renderCheckboxList(styleThemeFilterList, (activeCatalogFilters.styleThemes || []).map((label) => ({ label, value: label })), 'styleThemes');
+				toggleSectionByList(sizeFilterList, (activeCatalogFilters.sizes || []).length > 0);
+				toggleSectionByList(styleThemeFilterList, (activeCatalogFilters.styleThemes || []).length > 0);
+				renderRatingFilters();
+				renderDealFilters();
+				return;
+			}
+
+			if (sidebarHeading) sidebarHeading.textContent = 'All Products Filters';
+			if (sidebarSubheading) sidebarSubheading.textContent = 'Global filtering system for catalog browsing';
+			if (mainCategorySectionHeading) mainCategorySectionHeading.textContent = 'Category Filter';
+			if (productTypeSectionHeading) productTypeSectionHeading.textContent = 'Product Type';
+			if (sizeSectionHeading) sizeSectionHeading.textContent = 'Size';
+			if (fitTypeSectionHeading) fitTypeSectionHeading.textContent = 'Fit / Style';
+			if (styleThemeSectionHeading) styleThemeSectionHeading.textContent = 'Style / Theme';
+			if (productSearchInput) productSearchInput.placeholder = 'Search all products...';
+
+			renderRadioList(mainCategoryFilterList, GLOBAL_FILTERS.topCategories, 'topCategory');
+			renderCheckboxList(ideaFilterList, GLOBAL_FILTERS.ideas.map((label) => ({ label, value: label })), 'ideas');
+			renderCheckboxList(categoryFilterList, GLOBAL_FILTERS.productTypes.map((label) => ({ label, value: label })), 'categories');
+			renderCheckboxList(brandFilterList, GLOBAL_FILTERS.brands.map((label) => ({ label, value: label })), 'brands');
+			renderCheckboxList(colorFilterList, GLOBAL_FILTERS.colors.map((label) => ({ label, value: label })), 'colors');
+			renderCheckboxList(priceFilterList, GLOBAL_FILTERS.prices.map((label) => ({ label, value: label })), 'priceBands');
+			renderCheckboxList(materialFilterList, GLOBAL_FILTERS.materials.map((label) => ({ label, value: label })), 'materials');
+			renderCheckboxList(occasionFilterList, GLOBAL_FILTERS.occasions.map((label) => ({ label, value: label })), 'occasions');
+			renderCheckboxList(styleThemeFilterList, [], 'styleThemes');
+			refreshGlobalDynamicFilters();
+			toggleSectionByList(mainCategoryFilterList, true);
+			toggleSectionByList(styleThemeFilterList, false);
+			renderRatingFilters();
+			renderDealFilters();
+			return;
+
+			toggleSectionByList(sizeFilterList, true);
+			toggleSectionByList(styleThemeFilterList, true);
+
+			renderCheckboxList(categoryFilterList, options?.categories || [], 'categories');
+			renderCheckboxList(brandFilterList, options?.brands || [], 'brands');
+			renderCheckboxList(ideaFilterList, [], 'ideas');
+			renderCheckboxList(sizeFilterList, [], 'sizes');
+			renderCheckboxList(colorFilterList, [], 'colors');
+			renderCheckboxList(priceFilterList, [], 'priceBands');
+			renderCheckboxList(materialFilterList, [], 'materials');
+			renderCheckboxList(fitTypeFilterList, [], 'fitTypes');
+			renderCheckboxList(occasionFilterList, [], 'occasions');
+			renderCheckboxList(styleThemeFilterList, [], 'styleThemes');
+			renderRatingFilters();
+			renderDealFilters();
+		}
+
+		function setLoadingState() {
+			if (!productsGrid) return;
+			productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">Loading products...</div>';
+		}
+
+		function renderPaginationControls() {
+			if (!paginationControls || !prevPageBtn || !nextPageBtn || !pageInfo) return;
+
+			const totalPages = Math.max(Number(lastPagination.totalPages) || 1, 1);
+			const currentPage = Math.max(Number(lastPagination.currentPage) || 1, 1);
+
+			if (totalPages <= 1) {
+				paginationControls.classList.add('hidden');
+				return;
+			}
+
+			paginationControls.classList.remove('hidden');
+			pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+			prevPageBtn.disabled = !Boolean(lastPagination.hasPrevPage);
+			nextPageBtn.disabled = !Boolean(lastPagination.hasNextPage);
+		}
+
+		function normalizeSearchTokens(value) {
+			return String(value || '')
+				.toLowerCase()
+				.replace(/[^a-z0-9]+/g, ' ')
+				.trim();
+		}
+
+		function escapeRegExp(value) {
+			return String(value || '').replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
+		}
+
+		function toTagToken(value) {
+			return String(value || '')
+				.toLowerCase()
+				.trim()
+				.replace(/[^a-z0-9]+/g, '-')
+				.replace(/^-+|-+$/g, '');
+		}
+
+		const FILTER_TAG_ALIASES = {
+			'T-Shirts': 'tshirt',
+			'T-Shirt': 'tshirt',
+			'Tshirts': 'tshirt',
+			'Shirts': 'shirt',
+			'Tops': 'tshirt',
+			'Pants': 'trousers',
+			'Trousers': 'trousers',
+			'Shorts': 'shorts',
+			'Jeans': 'jeans',
+			'Dresses': 'dress',
+			'Skirts': 'skirt',
+			'Hoodies': 'hoodie',
+			'Sweatshirts': 'sweatshirt',
+			'Jackets': 'jacket',
+			'Coats': 'coat',
+			'Bags': 'bag',
+			'Hats': 'cap',
+			'Belts': 'belt',
+			'Sunglasses': 'sunglasses',
+			'Watches': 'watch',
+			'Jewelry': 'jewelry',
+			'Cartoon Prints': 'cartoon',
+			'Cartoon': 'cartoon',
+			'Anime': 'anime',
+			'Animal Theme': 'animal',
+			'Superhero Style': 'superhero',
+			'Superhero': 'superhero',
+			'Princess': 'princess',
+			'Wedding Wear': 'wedding',
+			'Wedding': 'wedding',
+			'Casual': 'casual',
+			'Party': 'party',
+			'Formal': 'formal',
+			'Sports': 'sports',
+			'Summer': 'summer',
+			'Winter': 'winter',
+			'Office': 'office',
+			'Travel': 'travel',
+			'Outdoor': 'outdoor'
+		};
+
+		function resolveTagToken(value) {
+			const raw = String(value || '').trim();
+			if (!raw) return '';
+			if (FILTER_TAG_ALIASES[raw]) {
+				return FILTER_TAG_ALIASES[raw];
+			}
+			return toTagToken(raw);
+		}
+
+		function resolveTagsFromFilterValues(values) {
+			const tags = new Set();
+			(values || []).forEach((value) => {
+				const token = resolveTagToken(value);
+				if (token) tags.add(token);
+			});
+			return Array.from(tags);
+		}
+
+		function splitFilterValues(values) {
+			const categoryValues = [];
+			const tagValues = [];
+			const knownCategoryNames = new Set([
+				'men', 'women', 'kids', 'accessories',
+				'blazers', 'jackets', 'coats', 'hats', 'bags', 'shoes', 'watches', 'wallets'
+			]);
+
+			(values || []).forEach((value) => {
+				const raw = String(value || '').trim();
+				if (!raw) return;
+				const normalized = normalizeSearchTokens(raw);
+				const isCategoryLike = knownCategoryNames.has(normalized) || ['men', 'women', 'kids', 'accessories'].includes(normalized);
+				if (isCategoryLike) {
+					categoryValues.push(raw);
+					return;
+				}
+				tagValues.push(...resolveTagsFromFilterValues([raw]));
+			});
+
+			return {
+				categoryValues: Array.from(new Set(categoryValues)),
+				tagValues: Array.from(new Set(tagValues.filter(Boolean)))
+			};
+		}
+
+		function buildProductsQueryParams() {
+			const params = new URLSearchParams();
+			params.set('page', hasCategoryMode ? '1' : '1');
+			params.set('limit', hasCategoryMode ? '500' : '500');
+
+			// Pass topCategory to API as categories parameter
+			if (filterState.topCategory) {
+				params.set('categories', filterState.topCategory);
+			}
+
+			// Pass search query separately
+			if (filterState.search) {
+				params.set('search', filterState.search);
+			}
+
+			if (filterState.sortBy && filterState.sortBy !== 'relevance') {
+				params.set('sortBy', filterState.sortBy);
+			}
+
+			if (filterState.minRating > 0) params.set('minRating', String(filterState.minRating));
+			if (filterState.brands.length) params.set('brands', filterState.brands.join(','));
+			if (filterState.limitedDeal === true) params.set('limitedDeal', 'true');
+
+			// Collect all tag values from multiple sources
+			const tagValues = [];
+			const splitValues = splitFilterValues(filterState.categories);
+			
+			// Product type categories become tags
+			if (splitValues.categoryValues.length) {
+				tagValues.push(...splitValues.categoryValues);
+			}
+			
+			// Other tag values
+			if (splitValues.tagValues.length) {
+				tagValues.push(...splitValues.tagValues);
+			}
+			
+			// Style themes as tags
+			const styleThemeTags = resolveTagsFromFilterValues(filterState.styleThemes);
+			if (styleThemeTags.length) {
+				tagValues.push(...styleThemeTags);
+			}
+
+			// Deduplicate and send
+			const uniqueTagValues = Array.from(new Set(tagValues.filter(Boolean)));
+			if (uniqueTagValues.length) {
+				params.set('tags', uniqueTagValues.join(','));
+			}
+
+			return params;
+		}
+
+		function extractTextTokens(rawProduct) {
+			const tagText = Array.isArray(rawProduct.tags)
+				? rawProduct.tags.map(toTagToken).filter(Boolean).join(' ')
+				: String(rawProduct.tags || '').toLowerCase();
+
+			return [
+				rawProduct.name,
+				rawProduct.category,
+				rawProduct.brand,
+				rawProduct.description,
+				rawProduct.material,
+				rawProduct.fitType,
+				rawProduct.occasion,
+				rawProduct.color,
+				rawProduct.size,
+				tagText
+			].map((value) => String(value || '').toLowerCase()).join(' ');
+		}
+
+		function matchesAnyKeyword(values, productText) {
+			if (!values.length) return true;
+			const normalizedText = String(productText || '').toLowerCase();
+			return values.some((value) => {
+				const raw = String(value || '').toLowerCase().trim();
+				if (!raw) return false;
+				const aliases = [
+					raw,
+					raw.replace(/[^a-z0-9]+/g, ''),
+					raw.replace(/s$/, ''),
+					raw.replace(/-/, ' ')
+				].filter(Boolean);
+				return aliases.some((alias) => {
+					if (!alias) return false;
+					if (normalizedText.includes(alias)) return true;
+					const escaped = escapeRegExp(alias);
+					const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+					return regex.test(normalizedText);
+				});
+			});
+		}
+
+		function matchPriceBand(price, selectedBands) {
+			if (!selectedBands.length) return true;
+			return selectedBands.some((band) => {
+				if (band === 'Under $10') return price < 10;
+				if (band === '$10 - $25') return price >= 10 && price <= 25;
+				if (band === '$25 - $50') return price > 25 && price <= 50;
+				if (band === '$50+') return price > 50;
+				if (band === 'Under $20') return price < 20;
+				if (band === '$20 - $50') return price >= 20 && price <= 50;
+				if (band === '$50 - $100') return price > 50 && price <= 100;
+				if (band === '$100 - $200') return price > 100 && price <= 200;
+				if (band === '$200+') return price > 200;
+				if (band === '$100+') return price > 100;
+				return true;
+			});
+		}
+
+		function matchesCategoryFilter(product, categoryKey) {
+			const normalizedCategory = String(categoryKey || '').toLowerCase();
+			if (!normalizedCategory) return true;
+
+			// If product has genderCategory field, use it for exact matching
+			if (product.genderCategory) {
+				const productGender = String(product.genderCategory || '').toLowerCase().trim();
+				return productGender === normalizedCategory;
+			}
+
+			// Fallback to text-based matching if no genderCategory field
+			const text = extractTextTokens(product);
+			const categoryText = `${product.category || ''} ${product.name || ''} ${product.description || ''} ${Array.isArray(product.tags) ? product.tags.join(' ') : String(product.tags || '')}`.toLowerCase();
+
+			if (normalizedCategory === 'men') {
+				return MEN_FILTERS.keywordRegex.test(text) || /\bmen\b|\bmale\b|\bgents\b/.test(categoryText);
+			}
+			if (normalizedCategory === 'women') {
+				return WOMEN_FILTERS.keywordRegex.test(text) || /\bwomen\b|\bfemale\b|\bladies\b/.test(categoryText);
+			}
+			if (normalizedCategory === 'kids') {
+				return KIDS_FILTERS.keywordRegex.test(text) || /\bkids?\b|\bchild\b|\bbaby\b|\bnewborn\b|\btoddler\b/.test(categoryText);
+			}
+			if (normalizedCategory === 'accessories') {
+				return ACCESSORIES_FILTERS.keywordRegex.test(text) || /(accessor(y|ies)|bag|bags|wallet|watch|belt|scarves?|gloves?|hat|hats|cap|caps|jewelry|ring|earrings?|necklace)/.test(categoryText);
+			}
+
+			return true;
+		}
+
+		function applyCategoryClientFilters(products) {
+			return products.filter((product) => {
+				const text = extractTextTokens(product);
+				const price = Number(product.price ?? product.basePrice ?? 0) || 0;
+				const originalPrice = Number(product.originalPrice ?? product.compareAtPrice ?? price) || price;
+				const discountPct = originalPrice > price && originalPrice > 0
+					? ((originalPrice - price) / originalPrice) * 100
+					: 0;
+
+				// ALWAYS apply gender category filter if topCategory is set (even from sidebar selection)
+				if (filterState.topCategory) {
+					if (!matchesCategoryFilter(product, filterState.topCategory)) return false;
+				}
+
+				if (!hasCategoryMode) {
+					if (!matchesAnyKeyword(filterState.ideas, text)) return false;
+					if (!matchesAnyKeyword(filterState.categories, text)) return false;
+					if (!matchesAnyKeyword(filterState.brands, text)) return false;
+					if (!matchesAnyKeyword(filterState.sizes, text)) return false;
+					if (!matchesAnyKeyword(filterState.colors, text)) return false;
+					if (!matchesAnyKeyword(filterState.materials, text)) return false;
+					if (!matchesAnyKeyword(filterState.fitTypes, text)) return false;
+					if (!matchesAnyKeyword(filterState.occasions, text)) return false;
+					if (!matchPriceBand(price, filterState.priceBands)) return false;
+					if (filterState.minDiscount > 0 && discountPct < filterState.minDiscount) return false;
+					if (filterState.limitedDeal === true && !(Boolean(product.limitedDeal) || discountPct >= 10)) return false;
+					return true;
+				}
+
+				if (!matchesAnyKeyword(filterState.ideas, text)) return false;
+				if (!matchesAnyKeyword(filterState.categories, text)) return false;
+				if (!matchesAnyKeyword(filterState.brands, text)) return false;
+				if (!matchesAnyKeyword(filterState.sizes, text)) return false;
+				if (!matchesAnyKeyword(filterState.colors, text)) return false;
+				if (!matchesAnyKeyword(filterState.materials, text)) return false;
+				if (!matchesAnyKeyword(filterState.fitTypes, text)) return false;
+				if (!matchesAnyKeyword(filterState.occasions, text)) return false;
+				if (!matchesAnyKeyword(filterState.styleThemes, text)) return false;
+				if (!matchPriceBand(price, filterState.priceBands)) return false;
+				if (filterState.minDiscount > 0 && discountPct < filterState.minDiscount) return false;
+				if (filterState.limitedDeal === true && !(Boolean(product.limitedDeal) || discountPct >= 10)) return false;
+
+				return true;
+			});
+		}
+
+		function syncFiltersFromSidebar() {
+			// Only update topCategory if a radio button is actually checked (don't reset to empty)
+			const selectedCategory = selectedGlobalCategory();
+			if (selectedCategory) {
+				filterState.topCategory = selectedCategory;
+			}
+
+			filterState.ideas = Array.from(ideaFilterList?.querySelectorAll('input[type="checkbox"]:checked') || [])
+				.map((input) => String(input.value || '').trim())
+				.filter(Boolean);
+
+			filterState.categories = Array.from(categoryFilterList?.querySelectorAll('input[type="checkbox"]:checked') || [])
+				.map((input) => String(input.value || '').trim())
+				.filter(Boolean);
+
+			filterState.brands = Array.from(brandFilterList?.querySelectorAll('input[type="checkbox"]:checked') || [])
+				.map((input) => String(input.value || '').trim())
+				.filter(Boolean);
+
+			filterState.sizes = Array.from(sizeFilterList?.querySelectorAll('input[type="checkbox"]:checked') || [])
+				.map((input) => String(input.value || '').trim())
+				.filter(Boolean);
+
+			filterState.colors = Array.from(colorFilterList?.querySelectorAll('input[type="checkbox"]:checked') || [])
+				.map((input) => String(input.value || '').trim())
+				.filter(Boolean);
+
+			filterState.priceBands = Array.from(priceFilterList?.querySelectorAll('input[type="checkbox"]:checked') || [])
+				.map((input) => String(input.value || '').trim())
+				.filter(Boolean);
+
+			filterState.materials = Array.from(materialFilterList?.querySelectorAll('input[type="checkbox"]:checked') || [])
+				.map((input) => String(input.value || '').trim())
+				.filter(Boolean);
+
+			filterState.fitTypes = Array.from(fitTypeFilterList?.querySelectorAll('input[type="checkbox"]:checked') || [])
+				.map((input) => String(input.value || '').trim())
+				.filter(Boolean);
+
+			filterState.occasions = Array.from(occasionFilterList?.querySelectorAll('input[type="checkbox"]:checked') || [])
+				.map((input) => String(input.value || '').trim())
+				.filter(Boolean);
+
+			filterState.styleThemes = Array.from(styleThemeFilterList?.querySelectorAll('input[type="checkbox"]:checked') || [])
+				.map((input) => String(input.value || '').trim())
+				.filter(Boolean);
+
+			const selectedDeals = Array.from(dealFilterList?.querySelectorAll('input[type="checkbox"]:checked') || [])
+				.map((input) => String(input.value || '').trim());
+			filterState.limitedDeal = (selectedDeals.includes('today-deals') || selectedDeals.includes('clearance')) ? true : null;
+			filterState.minDiscount = selectedDeals.includes('50') ? 50 : selectedDeals.includes('25') ? 25 : selectedDeals.includes('10') ? 10 : 0;
+		}
+
+		function setupRatingFilter() {
+			const items = Array.from(ratingFilterList?.querySelectorAll('li[data-rating]') || []);
+			items.forEach((item, index) => {
+				const ratingThreshold = Number(item.dataset.rating || (5 - index));
+				item.dataset.minRating = String(ratingThreshold);
+				item.addEventListener('click', () => {
+					const current = Number(item.dataset.minRating || 0);
+					filterState.minRating = filterState.minRating === current ? 0 : current;
+
+					items.forEach((node) => node.classList.remove('font-semibold', 'text-black'));
+					if (filterState.minRating === current) {
+						item.classList.add('font-semibold', 'text-black');
+					}
+
+					filterState.page = 1;
+					loadProductsFromApi();
+				});
+			});
+		}
+
+		function setupSearchFilter() {
+			if (!productSearchInput) return;
+
+			productSearchInput.addEventListener('input', (event) => {
+				const nextValue = String(event.target.value || '').trim();
+				clearTimeout(searchDebounceTimer);
+				searchDebounceTimer = setTimeout(() => {
+					filterState.search = nextValue;
+					filterState.page = 1;
+					loadProductsFromApi();
+				}, 300);
+			});
+
+			const searchIcon = productSearchInput.parentElement?.querySelector('svg[data-lucide="search"]');
+			if (searchIcon) {
+				searchIcon.style.cursor = 'pointer';
+				searchIcon.addEventListener('click', (event) => {
+					event.preventDefault();
+					filterState.search = String(productSearchInput.value || '').trim();
+					filterState.page = 1;
+					loadProductsFromApi();
+				});
+			}
+		}
+
+		function setupMobileSearch() {
+			const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+			const mobileSearchModal = document.getElementById('mobileSearchModal');
+			const closeMobileSearchBtn = document.getElementById('closeMobileSearch');
+			const mobileSearchInput = document.getElementById('mobileSearchInput');
+			const submitMobileSearchBtn = document.getElementById('submitMobileSearch');
+
+			if (!mobileSearchBtn || !mobileSearchModal) return;
+
+			mobileSearchBtn.addEventListener('click', () => {
+				mobileSearchModal.classList.remove('hidden');
+				setTimeout(() => mobileSearchInput.focus(), 100);
+			});
+
+			closeMobileSearchBtn.addEventListener('click', () => {
+				mobileSearchModal.classList.add('hidden');
+				mobileSearchInput.value = '';
+			});
+
+			submitMobileSearchBtn.addEventListener('click', () => {
+				const searchValue = String(mobileSearchInput.value || '').trim();
+				if (searchValue) {
+					filterState.search = searchValue;
+					filterState.page = 1;
+					loadProductsFromApi();
+					mobileSearchModal.classList.add('hidden');
+					mobileSearchInput.value = '';
+				}
+			});
+
+			mobileSearchInput.addEventListener('keypress', (event) => {
+				if (event.key === 'Enter') {
+					const searchValue = String(mobileSearchInput.value || '').trim();
+					if (searchValue) {
+						filterState.search = searchValue;
+						filterState.page = 1;
+						loadProductsFromApi();
+						mobileSearchModal.classList.add('hidden');
+						mobileSearchInput.value = '';
+					}
+				}
+			});
+
+			mobileSearchModal.addEventListener('click', (event) => {
+				if (event.target === mobileSearchModal) {
+					mobileSearchModal.classList.add('hidden');
+					mobileSearchInput.value = '';
+				}
+			});
+		}
+
+		function setupFilters() {
+			setupRatingFilter();
+			setupSearchFilter();
+			setupMobileSearch();
+
+			const filterLists = [
+				mainCategoryFilterList,
+				categoryFilterList,
+				brandFilterList,
+				ideaFilterList,
+				sizeFilterList,
+				colorFilterList,
+				priceFilterList,
+				materialFilterList,
+				fitTypeFilterList,
+				occasionFilterList,
+				styleThemeFilterList,
+				dealFilterList
+			].filter(Boolean);
+
+			filterLists.forEach((list) => {
+				list.addEventListener('change', (event) => {
+					if (!(event.target instanceof HTMLInputElement)) return;
+					syncFiltersFromSidebar();
+					filterState.page = 1;
+					loadProductsFromApi();
+				});
+			});
+		}
+
+		async function loadSidebarFilters() {
+			if (!IS_LIVE_HOST) return;
+			try {
+				const response = await fetch(`${API_BASE_URL}/products/filters`);
+				if (!response.ok) {
+					throw new Error(`Failed to load filters (${response.status})`);
+				}
+
+				const result = await response.json();
+				const options = result?.data || {};
+				populateSidebarFilters(options);
+				lucide.createIcons();
+			} catch (error) {
+				console.warn('Falling back to product-driven filters:', error);
+			}
+		}
+
+		function populateFallbackFilters(products) {
+			if (!categoryFilterList || !brandFilterList) return;
+			if (hasCategoryMode) return;
+
+			if (!categoryFilterList.children.length || !brandFilterList.children.length) {
+				const categories = [];
+				const brands = [];
+
+				products.forEach((product) => {
+					if (product.category && !categories.some((item) => item.value === product.category)) {
+						categories.push({ label: product.category, value: product.category });
+					}
+					if (product.brand && !brands.some((item) => item.value === product.brand)) {
+						brands.push({ label: product.brand, value: product.brand });
+					}
+				});
+
+				if (!categoryFilterList.children.length) {
+					renderCheckboxList(categoryFilterList, categories, 'categories');
+				}
+
+				if (!brandFilterList.children.length) {
+					renderCheckboxList(brandFilterList, brands, 'brands');
+				}
+			}
+		}
+
+		async function loadProductsFromApi() {
+			try {
+				setLoadingState();
+
+				// Handle recommended products filter
+				if (filterState.filter === 'recommended') {
+					const userId = (() => {
+						try {
+							const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+							if (rawUser) {
+								const parsed = JSON.parse(rawUser);
+								return String(parsed.id || parsed.userId || parsed.customerId || '').trim();
+							}
+						} catch (_) {}
+						return '';
+					})();
+
+					if (!userId) {
+						if (productsGrid) {
+							productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">Please sign in to view recommended products.</div>';
+						}
+						return;
+					}
+
+					const recommendedResponse = await fetch(`${API_BASE_URL}/homepage?userId=${encodeURIComponent(userId)}&sectionLimit=50&flashDealLimit=0`);
+					if (!recommendedResponse.ok) throw new Error('Failed to load recommendations');
+					const recommendedData = await recommendedResponse.json();
+					const rows = Array.isArray(recommendedData?.data?.productRows) ? recommendedData.data.productRows : [];
+					const recRow = rows.find((r) => r.id === 'recommended-for-you');
+					const recommendedProducts = recRow?.products || [];
+
+					if (!recommendedProducts.length) {
+						if (productsGrid) {
+							productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">No recommendations available yet. Browse more products to get personalized suggestions.</div>';
+						}
+						return;
+					}
+
+					const pageSize = 24;
+					const totalCount = recommendedProducts.length;
+					const totalPages = Math.max(Math.ceil(totalCount / pageSize), 1);
+					const currentPage = Math.min(Math.max(filterState.page, 1), totalPages);
+					const startIndex = (currentPage - 1) * pageSize;
+					const pageItems = recommendedProducts.slice(startIndex, startIndex + pageSize);
+
+					lastPagination = {
+						currentPage,
+						totalPages,
+						hasNextPage: currentPage < totalPages,
+						hasPrevPage: currentPage > 1,
+						totalProducts: totalCount
+					};
+
+					filterState.page = currentPage;
+					renderProducts(pageItems, totalCount);
+					lucide.createIcons();
+					return;
+				}
+
+				// Handle trending products filter
+				if (filterState.filter === 'trending') {
+					const trendingResponse = await fetch(`${API_BASE_URL}/homepage?sectionLimit=500&flashDealLimit=0`);
+					if (!trendingResponse.ok) throw new Error('Failed to load trending products');
+					const trendingData = await trendingResponse.json();
+					const rows = Array.isArray(trendingData?.data?.productRows) ? trendingData.data.productRows : [];
+					const trendRow = rows.find((r) => r.id === 'trending-products');
+					const trendingProducts = trendRow?.products || [];
+
+					if (!trendingProducts.length) {
+						if (productsGrid) {
+							productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">No trending products available at the moment.</div>';
+						}
+						return;
+					}
+
+					const pageSize = 24;
+					const totalCount = trendingProducts.length;
+					const totalPages = Math.max(Math.ceil(totalCount / pageSize), 1);
+					const currentPage = Math.min(Math.max(filterState.page, 1), totalPages);
+					const startIndex = (currentPage - 1) * pageSize;
+					const pageItems = trendingProducts.slice(startIndex, startIndex + pageSize);
+
+					lastPagination = {
+						currentPage,
+						totalPages,
+						hasNextPage: currentPage < totalPages,
+						hasPrevPage: currentPage > 1,
+						totalProducts: totalCount
+					};
+
+					filterState.page = currentPage;
+					renderProducts(pageItems, totalCount);
+					lucide.createIcons();
+					return;
+				}
+
+				// Handle best-sellers products filter
+				if (filterState.filter === 'best-sellers') {
+					const bestSellersResponse = await fetch(`${API_BASE_URL}/homepage?sectionLimit=500&flashDealLimit=0`);
+					if (!bestSellersResponse.ok) throw new Error('Failed to load best sellers');
+					const bestSellersData = await bestSellersResponse.json();
+					const rows = Array.isArray(bestSellersData?.data?.productRows) ? bestSellersData.data.productRows : [];
+					const bestRow = rows.find((r) => r.id === 'best-sellers');
+					const bestSellerProducts = bestRow?.products || [];
+
+					if (!bestSellerProducts.length) {
+						if (productsGrid) {
+							productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">No best sellers available at the moment.</div>';
+						}
+						return;
+					}
+
+					const pageSize = 24;
+					const totalCount = bestSellerProducts.length;
+					const totalPages = Math.max(Math.ceil(totalCount / pageSize), 1);
+					const currentPage = Math.min(Math.max(filterState.page, 1), totalPages);
+					const startIndex = (currentPage - 1) * pageSize;
+					const pageItems = bestSellerProducts.slice(startIndex, startIndex + pageSize);
+
+					lastPagination = {
+						currentPage,
+						totalPages,
+						hasNextPage: currentPage < totalPages,
+						hasPrevPage: currentPage > 1,
+						totalProducts: totalCount
+					};
+
+					filterState.page = currentPage;
+					renderProducts(pageItems, totalCount);
+					lucide.createIcons();
+					return;
+				}
+
+				// Handle limited-time-deals products filter
+				if (filterState.filter === 'limited-time-deals') {
+					const dealsResponse = await fetch(`${API_BASE_URL}/homepage?sectionLimit=500&flashDealLimit=0`);
+					if (!dealsResponse.ok) throw new Error('Failed to load limited time deals');
+					const dealsData = await dealsResponse.json();
+					const rows = Array.isArray(dealsData?.data?.productRows) ? dealsData.data.productRows : [];
+					const dealsRow = rows.find((r) => r.id === 'limited-time-deals');
+					const limitedDealsProducts = dealsRow?.products || [];
+
+					if (!limitedDealsProducts.length) {
+						if (productsGrid) {
+							productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">No limited time deals available at the moment.</div>';
+						}
+						return;
+					}
+
+					const pageSize = 24;
+					const totalCount = limitedDealsProducts.length;
+					const totalPages = Math.max(Math.ceil(totalCount / pageSize), 1);
+					const currentPage = Math.min(Math.max(filterState.page, 1), totalPages);
+					const startIndex = (currentPage - 1) * pageSize;
+					const pageItems = limitedDealsProducts.slice(startIndex, startIndex + pageSize);
+
+					lastPagination = {
+						currentPage,
+						totalPages,
+						hasNextPage: currentPage < totalPages,
+						hasPrevPage: currentPage > 1,
+						totalProducts: totalCount
+					};
+
+					filterState.page = currentPage;
+					renderProducts(pageItems, totalCount);
+					lucide.createIcons();
+					return;
+				}
+
+				// Handle seasonal products filter
+				if (filterState.filter === 'seasonal') {
+					const seasonalResponse = await fetch(`${API_BASE_URL}/homepage?sectionLimit=500&flashDealLimit=0`);
+					if (!seasonalResponse.ok) throw new Error('Failed to load seasonal products');
+					const seasonalData = await seasonalResponse.json();
+					const rows = Array.isArray(seasonalData?.data?.productRows) ? seasonalData.data.productRows : [];
+					const seasonalRow = rows.find((r) => r.id === 'seasonal-collection');
+					const seasonalProducts = seasonalRow?.products || [];
+
+					if (!seasonalProducts.length) {
+						if (productsGrid) {
+							productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">No seasonal products available at the moment.</div>';
+						}
+						return;
+					}
+
+					const pageSize = 24;
+					const totalCount = seasonalProducts.length;
+					const totalPages = Math.max(Math.ceil(totalCount / pageSize), 1);
+					const currentPage = Math.min(Math.max(filterState.page, 1), totalPages);
+					const startIndex = (currentPage - 1) * pageSize;
+					const pageItems = seasonalProducts.slice(startIndex, startIndex + pageSize);
+
+					lastPagination = {
+						currentPage,
+						totalPages,
+						hasNextPage: currentPage < totalPages,
+						hasPrevPage: currentPage > 1,
+						totalProducts: totalCount
+					};
+
+					filterState.page = currentPage;
+					renderProducts(pageItems, totalCount);
+					lucide.createIcons();
+					return;
+				}
+				const params = buildProductsQueryParams();
+				const response = await fetch(`${API_BASE_URL}/products?${params.toString()}`);
+				if (!response.ok) {
+					throw new Error(`Failed to load products (${response.status})`);
+				}
+
+				const result = await response.json();
+				const data = result?.data || {};
+				const products = Array.isArray(data.products) ? data.products : [];
+				const pagination = data?.pagination || {};
+
+				if (hasCategoryMode || !hasCategoryMode) {
+					const filteredProducts = applyCategoryClientFilters(products);
+					const totalCount = filteredProducts.length;
+					const pageSize = 24;
+					const totalPages = Math.max(Math.ceil(totalCount / pageSize), 1);
+					const currentPage = Math.min(Math.max(filterState.page, 1), totalPages);
+					const startIndex = (currentPage - 1) * pageSize;
+					const pageItems = filteredProducts.slice(startIndex, startIndex + pageSize);
+
+					lastPagination = {
+						currentPage,
+						totalPages,
+						hasNextPage: currentPage < totalPages,
+						hasPrevPage: currentPage > 1,
+						totalProducts: totalCount
+					};
+
+					filterState.page = currentPage;
+					renderProducts(pageItems, totalCount);
+					lucide.createIcons();
+					return;
+				}
+			} catch (error) {
+				console.error('Failed to load products:', error);
+				if (productsGrid) {
+					productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">Unable to load products from database right now. Please make sure customer backend and PostgreSQL are running.</div>';
+				}
+				if (resultsMeta) {
+					resultsMeta.textContent = 'Database unavailable';
+				}
+				if (paginationControls) {
+					paginationControls.classList.add('hidden');
+				}
+			}
+		}
+
+		prevPageBtn?.addEventListener('click', () => {
+			if (filterState.page <= 1) return;
+			filterState.page -= 1;
+			loadProductsFromApi();
+		});
+
+		nextPageBtn?.addEventListener('click', () => {
+			if (!lastPagination.hasNextPage) return;
+			filterState.page += 1;
+			loadProductsFromApi();
+		});
+
+		// Mobile Filter Toggle
+		function openFilter() {
+			filterSidebar.classList.remove('-translate-x-full');
+			filterOverlay.classList.remove('hidden');
+			document.body.style.overflow = 'hidden';
+		}
+
+		function closeFilterFunc() {
+			filterSidebar.classList.add('-translate-x-full');
+			filterOverlay.classList.add('hidden');
+			document.body.style.overflow = '';
+		}
+
+		filterToggle?.addEventListener('click', openFilter);
+		closeFilter?.addEventListener('click', closeFilterFunc);
+		filterOverlay?.addEventListener('click', closeFilterFunc);
+
+		async function initializeProductPage() {
+			if (filterState.filter === 'recommended') {
+				if (catalogTitle) catalogTitle.textContent = 'Recommended For You';
+				if (resultsMeta) resultsMeta.textContent = 'Products based on your browsing history';
+			} else if (filterState.filter === 'trending') {
+				if (catalogTitle) catalogTitle.textContent = 'Trending Products';
+				if (resultsMeta) resultsMeta.textContent = 'Popular products right now';
+			} else if (filterState.filter === 'best-sellers') {
+				if (catalogTitle) catalogTitle.textContent = 'Best Sellers';
+				if (resultsMeta) resultsMeta.textContent = 'Most purchased products';
+			} else if (filterState.filter === 'seasonal') {
+				if (catalogTitle) catalogTitle.textContent = 'Seasonal Collection';
+				if (resultsMeta) resultsMeta.textContent = 'Products for the current season';
+			} else if (filterState.filter === 'limited-time-deals') {
+				if (catalogTitle) catalogTitle.textContent = 'Limited Time Deals';
+				if (resultsMeta) resultsMeta.textContent = 'Active discounts and special offers';
+			} else if (normalizedSortBy === 'newest') {
+				if (catalogTitle) catalogTitle.textContent = 'New Arrivals';
+				if (resultsMeta) resultsMeta.textContent = 'Showing the latest arrivals';
+			}
+			if (productSearchInput && filterState.search) {
+				productSearchInput.value = filterState.search;
+			}
+
+			try {
+				await loadSidebarFilters();
+			} catch (error) {
+				console.warn('Sidebar filter load skipped:', error);
+			}
+			
+			// Pre-check the category radio button if loaded from URL with category parameter
+			if (hasCategoryMode && filterState.topCategory) {
+				const radioInput = mainCategoryFilterList?.querySelector(`input[type="radio"][value="${filterState.topCategory}"]`);
+				if (radioInput) {
+					radioInput.checked = true;
+				}
+			}
+			
+			setupFilters();
+			loadProductsFromApi();
+
+			// Cart helpers and event delegation for Add to Cart buttons
+			function resolveCurrentUserId() {
+				try {
+					const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+					if (rawUser) {
+						const parsed = JSON.parse(rawUser);
+						return String(parsed.id || parsed.userId || parsed.customerId || '1').trim();
+					}
+				} catch (_) {}
+				return '1';
+			}
+
+			async function updateCartCount() {
+				if (!IS_LIVE_HOST) return;
+				try {
+					const userId = resolveCurrentUserId();
+					const res = await fetch(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
+					if (!res.ok) return;
+					const payload = await res.json().catch(() => ({}));
+					const data = payload?.data || payload;
+					const badge = document.querySelector('#productsGrid ~ .page-badge #cartCountBadge') || document.getElementById('cartCountBadge');
+					if (badge) badge.textContent = String(Number(data.totalItems || data.totals?.itemCount || 0));
+				} catch (_) {/* ignore */}
+			}
+
+			async function addToCart(productId, quantity = 1) {
+				if (!IS_LIVE_HOST) {
+					alert('Open site on localhost to add products to cart');
+					return;
+				}
+				try {
+					const userId = resolveCurrentUserId();
+					const token = localStorage.getItem('lumina_session_token') || localStorage.getItem('lumina.session.token');
+					const res = await fetch(`${API_BASE_URL}/cart/items?userId=${encodeURIComponent(userId)}`, {
+						method: 'POST',
+						credentials: 'include',
+						headers: { 
+							'Content-Type': 'application/json',
+							...(token ? { 'Authorization': `Bearer ${token}` } : {})
+						},
+						body: JSON.stringify({ productId, quantity })
+					});
+					const payload = await res.json().catch(() => ({}));
+					if (!res.ok || payload.success === false) {
+						throw new Error(payload.message || `Failed to add (${res.status})`);
+					}
+					await updateCartCount();
+					alert('Added to cart.');
+				} catch (err) {
+					alert(err.message || 'Unable to add to cart');
+				}
+			}
+
+			async function addToWishlist(productId) {
+				if (!IS_LIVE_HOST) {
+					alert('Open site on localhost to add favorites');
+					return;
+				}
+				try {
+					const userId = resolveCurrentUserId();
+					const token = localStorage.getItem('lumina_session_token') || localStorage.getItem('lumina.session.token') || localStorage.getItem('lumina.auth.token');
+					const res = await fetch(`${API_BASE_URL}/wishlist/${encodeURIComponent(userId)}`, {
+						method: 'POST',
+						credentials: 'include',
+						headers: { 
+							'Content-Type': 'application/json',
+							...(token ? { 'Authorization': `Bearer ${token}` } : {})
+						},
+						body: JSON.stringify({ productId })
+					});
+					const payload = await res.json().catch(() => ({}));
+					if (!res.ok || payload.success === false) throw new Error(payload.message || 'Failed to add to favorites');
+					alert('Added to favorites!');
+				} catch (err) {
+					alert(err.message || 'Unable to add to favorites');
+				}
+			}
+
+			// Delegated listener for action buttons inside productsGrid
+			productsGrid?.addEventListener('click', (event) => {
+				const wishBtn = event.target.closest('.add-to-wishlist-btn');
+				if (wishBtn) {
+					event.preventDefault();
+					const pid = wishBtn.getAttribute('data-product-id');
+					if (!pid) return;
+					addToWishlist(pid);
+					return;
+				}
+
+				const btn = event.target.closest('.add-to-cart-btn');
+				if (!btn) return;
+				event.preventDefault();
+				const pid = btn.getAttribute('data-product-id');
+				if (!pid) return;
+				addToCart(pid, 1);
+			});
+
+			// Initial cart count
+			updateCartCount();
+		}
+
+		// Account Menu Functions
+		function resolveAuthState() {
+			const state = { isLoggedIn: false, fullName: '' };
+
+			try {
+				const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+				const isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+				if (rawUser) {
+					const parsed = JSON.parse(rawUser);
+					const name = String(parsed.fullName || parsed.name || '').trim();
+					state.isLoggedIn = Boolean(name) || isLoggedIn;
+					state.fullName = name;
+				} else {
+					state.isLoggedIn = isLoggedIn;
+				}
+			} catch (_) {
+				state.isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+			}
+
+			return state;
+		}
+
+		function renderAccountFlyout() {
+			const auth = resolveAuthState();
+			const content = document.getElementById('accountMenuContent');
+			const label = document.getElementById('accountMenuLabel');
+			if (!content || !label) return;
+
+			if (!auth.isLoggedIn) {
+				label.textContent = 'Account';
+				content.innerHTML = `
+					<div class="px-4 py-3 border-b border-gray-200 text-center">
+						<a href="login_register.html" class="signin-btn">Sign in</a>
+						<p class="text-[10px] text-gray-500 mt-1">New customer? <a href="login_register.html" class="text-blue-600 hover:underline">Start here.</a></p>
+					</div>
+					<div class="grid grid-cols-2 gap-0">
+						<div class="px-4 py-3 border-r border-gray-200">
+							<h4 class="account-col-title">Your Lists</h4>
+							<a href="wishlist.html" class="account-link">Create a List</a>
+							<a href="login_register.html" class="account-link">Find a List or Registry</a>
+						</div>
+						<div class="px-4 py-3">
+							<h4 class="account-col-title">Your Account</h4>
+							<a href="login_register.html" class="account-link">Customer Dashboard</a>
+							<a href="login_register.html" class="account-link">My Profile</a>
+							<a href="login_register.html" class="account-link">My Orders</a>
+							<a href="login_register.html" class="account-link">Cart</a>
+							<a href="login_register.html" class="account-link">My Addresses</a>
+							<a href="login_register.html" class="account-link">Messages</a>
+							<a href="login_register.html" class="account-link">Returns & Refunds</a>
+							<a href="login_register.html" class="account-link">Security Settings</a>
+							<a href="login_register.html" class="account-link">Help & Support</a>
+						</div>
+					</div>
+				`;
+			} else {
+				const firstName = auth.fullName ? auth.fullName.split(' ')[0] : 'Account';
+				label.textContent = firstName;
+				content.innerHTML = `
+					<div class="px-4 py-3 border-b border-gray-200 text-center">
+						<a href="Customer_Dashboard.html" class="signin-btn">Go to Dashboard</a>
+						<p class="text-[10px] text-gray-500 mt-1">Signed in as ${auth.fullName || 'Customer'}</p>
+					</div>
+					<div class="grid grid-cols-2 gap-0">
+						<div class="px-4 py-3 border-r border-gray-200">
+							<h4 class="account-col-title">Your Lists</h4>
+							<a href="wishlist.html" class="account-link">Wishlist</a>
+							<a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+							<a href="my_messages.html" class="account-link">Messages</a>
+						</div>
+						<div class="px-4 py-3">
+							<h4 class="account-col-title">Your Account</h4>
+							<a href="Customer_Dashboard.html" class="account-link">Customer Dashboard</a>
+							<a href="my_profile.html" class="account-link">My Profile</a>
+							<a href="my_orders.html" class="account-link">My Orders</a>
+							<a href="cart.html" class="account-link">Cart</a>
+							<a href="my_addresses.html" class="account-link">My Addresses</a>
+							<a href="my_messages.html" class="account-link">Messages</a>
+							<a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+
+							<a href="help_support.html" class="account-link">Help & Support</a>
+						</div>
+					</div>
+				`;
+			}
+		}
+
+		const accountMenuButton = document.getElementById('accountMenuButton');
+		const accountMenuDropdown = document.getElementById('accountMenuDropdown');
+		const accountMenuWrap = document.getElementById('accountMenuWrap');
+
+		if (accountMenuButton && accountMenuDropdown) {
+			accountMenuButton.addEventListener('click', () => {
+				const isHidden = accountMenuDropdown.classList.contains('hidden');
+				accountMenuDropdown.classList.toggle('hidden', !isHidden);
+				if (!isHidden) {
+					accountMenuDropdown.classList.add('hidden');
+				}
+			});
+
+			document.addEventListener('click', (event) => {
+				if (accountMenuWrap && !accountMenuWrap.contains(event.target)) {
+					accountMenuDropdown.classList.add('hidden');
+				}
+			});
+		}
+
+		renderAccountFlyout();
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initializeProductPage, { once: true });
+		} else {
+			initializeProductPage();
+		}
+	</script>
+</body>
+</html>

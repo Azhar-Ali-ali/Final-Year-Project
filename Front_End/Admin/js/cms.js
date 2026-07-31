@@ -1,7 +1,7 @@
 // cms.js - CMS Page Data Management
 // Fetches CMS content from backend API
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`;
 
 console.log('CMS API base URL set to', API_BASE_URL);
 
@@ -25,7 +25,7 @@ async function fetchJson(path, options = {}) {
   }
 
   const url = apiUrl(path);
-  let res = await fetch(url, { ...options, headers });
+  let res = await fetch(url, { ...options, headers, credentials: 'include' });
   let text = await res.text().catch(() => '');
 
   if (!res.ok) {
@@ -35,7 +35,7 @@ async function fetchJson(path, options = {}) {
       const fallbackUrl = `${window.location.origin}${path}`;
       if (fallbackUrl !== url) {
         console.warn('Retrying API request on fallback URL', fallbackUrl);
-        res = await fetch(fallbackUrl, { ...options, headers });
+        res = await fetch(fallbackUrl, { ...options, headers, credentials: 'include' });
         text = await res.text().catch(() => '');
       }
     }
@@ -157,14 +157,14 @@ async function saveBanner() {
 
     let assetResult;
     if (editingBannerId) {
-      console.log('Updating banner asset to', apiUrl(`/api/admin/cms/assets/${editingBannerId}`));
-      assetResult = await fetchJson(`/api/admin/cms/assets/${editingBannerId}`, {
+      console.log('Updating banner asset to', apiUrl(`/admin/cms/assets/${editingBannerId}`));
+      assetResult = await fetchJson(`/admin/cms/assets/${editingBannerId}`, {
         method: 'PUT',
         body: JSON.stringify(assetPayload)
       });
     } else {
-      console.log('Saving banner asset to', apiUrl('/api/admin/cms/assets'));
-      assetResult = await fetchJson('/api/admin/cms/assets', {
+      console.log('Saving banner asset to', apiUrl('/admin/cms/assets'));
+      assetResult = await fetchJson(`${API_BASE_URL}/admin/cms/assets`, {
         method: 'POST',
         body: JSON.stringify(assetPayload)
       });
@@ -195,8 +195,8 @@ async function saveBanner() {
       isVisible: true
     };
 
-    console.log('Saving hero section to', apiUrl('/api/admin/cms/sections'));
-    const sectionResult = await fetchJson('/api/admin/cms/sections', {
+    console.log('Saving hero section to', apiUrl('/admin/cms/sections'));
+    const sectionResult = await fetchJson(`${API_BASE_URL}/admin/cms/sections`, {
       method: 'POST',
       body: JSON.stringify(sectionPayload)
     });
@@ -238,11 +238,11 @@ function setupBannerModal() {
 async function loadCMSData() {
   try {
     const [pagesRes, sectionsRes, navRes, assetsRes, announcementsRes] = await Promise.all([
-      fetchJson('/api/admin/cms/pages'),
-      fetchJson('/api/admin/cms/sections'),
-      fetchJson('/api/admin/cms/navigation'),
-      fetchJson('/api/admin/cms/assets'),
-      fetchJson('/api/admin/cms/announcements')
+      fetchJson(`${API_BASE_URL}/admin/cms/pages`),
+      fetchJson(`${API_BASE_URL}/admin/cms/sections`),
+      fetchJson(`${API_BASE_URL}/admin/cms/navigation`),
+      fetchJson(`${API_BASE_URL}/admin/cms/assets`),
+      fetchJson(`${API_BASE_URL}/admin/cms/announcements`)
     ]);
 
     cmsData.pages = pagesRes.data || [];
@@ -528,7 +528,8 @@ function prefillBannerModal(banner) {
 
   document.getElementById('banner-title').value = banner.file_name || '';
   document.getElementById('banner-location').value = banner.location || '';
-  document.getElementById('banner-headline').value = banner.headline || banner.file_name || '';
+  const headlineEl = document.getElementById('banner-headline');
+  if (headlineEl) headlineEl.value = banner.headline || banner.file_name || '';
   document.getElementById('banner-subtext').value = banner.subtext || '';
   document.getElementById('banner-cta-text').value = banner.ctaText || '';
   document.getElementById('banner-cta-link').value = banner.ctaLink || '';
@@ -566,8 +567,8 @@ async function deleteBanner(id) {
   }
 
   try {
-    console.log('Deleting banner asset', apiUrl(`/api/admin/cms/assets/${id}`));
-    const result = await fetchJson(`/api/admin/cms/assets/${id}`, {
+    console.log('Deleting banner asset', apiUrl(`/admin/cms/assets/${id}`));
+    const result = await fetchJson(`/admin/cms/assets/${id}`, {
       method: 'DELETE'
     });
 

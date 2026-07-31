@@ -24,13 +24,19 @@
 		.sponsored-badge { background: #f0f0f0; color: #565959; font-size: 11px; padding: 2px 6px; }
 		#productsGrid {
 			align-items: start;
+			align-content: start;
+			grid-auto-flow: dense;
 			grid-auto-rows: auto;
+		}
+		#catalogLayoutGrid.visual-panel-open {
+			grid-template-columns: 280px minmax(0,1fr) 360px;
 		}
 		.product-card {
 			display: flex;
 			flex-direction: column;
 			height: auto;
 			min-height: 0;
+			align-self: start;
 			border: 1px solid rgba(0, 0, 0, 0.06);
 		}
 		.product-card-image {
@@ -38,6 +44,12 @@
 			min-height: 180px;
 			max-height: 220px;
 		}
+		.account-flyout { width: min(360px, calc(100vw - 1rem)); background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15); }
+		.signin-btn { display: inline-block; width: 130px; text-align: center; background: #facc15; border: 1px solid #f59e0b; color: #111827; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 7px; }
+		.signin-btn:hover { background: #fbbf24; }
+		.account-col-title { font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
+		.account-link { display: block; font-size: 12px; color: #374151; line-height: 1.55; }
+		.account-link:hover { color: #111827; text-decoration: underline; }
 		@media (max-width: 639px) {
 			.product-card-image { min-height: 160px; max-height: 200px; }
 		}
@@ -47,27 +59,45 @@
 
 	<!-- Header (Navigation Bar) -->
 	<nav class="fixed top-0 w-full z-[100] glass">
-		<div class="px-4 h-20 flex items-center justify-between gap-6">
+		<div class="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
+			<!-- Left Nav Controls -->
+					<div class="flex items-center gap-2 shrink-0">
+					<button id="mobileSearchBtn" class="md:hidden p-2" aria-label="Search" type="button">
+						<i data-lucide="search" class="w-5 h-5"></i>
+					</button>
 			<a href="homepage.html" class="text-2xl font-bold tracking-tighter uppercase shrink-0">Lumina</a>
-
-			<div class="hidden md:flex flex-grow relative max-w-2xl mx-auto">
-				<input type="text" placeholder="Search for unique products, clothing or artisans..." class="w-full bg-gray-100 border-transparent border focus:border-black focus:bg-white rounded-full py-2.5 px-6 pl-12 text-sm transition-all outline-none">
-				<i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
 			</div>
 
+			<!-- Search Bar (Center - Important) -->
+			<div class="hidden md:flex flex-grow relative max-w-2xl mx-auto">
+				<input id="headerSearchInput" type="text" placeholder="Search for unique products, clothing or artisans..." class="w-full bg-gray-100 border-transparent border focus:border-black focus:bg-white rounded-full py-2.5 px-6 pl-12 text-sm transition-all outline-none">
+				<i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+				<!-- Image search button -->
+				<button id="headerImageSearchBtn" title="Search by image" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 p-1">
+					<i data-lucide="camera" class="w-4 h-4 text-gray-500"></i>
+				</button>
+				<input id="headerImageInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" />
+			</div>
+
+			<!-- Actions -->
 			<div class="flex items-center gap-2 lg:gap-6 shrink-0">
-				<a id="headerAuthLink" href="login_register.html" class="flex items-center gap-2 cursor-pointer group">
-					<i data-lucide="user" class="w-5 h-5"></i>
-					<span id="headerAuthLabel" class="hidden sm:block text-xs font-bold uppercase tracking-widest">Login</span>
-				</a>
+				<div id="accountMenuWrap" class="relative group">
+					<button id="accountMenuButton" type="button" class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
+						<i data-lucide="user" class="w-5 h-5"></i>
+						<span id="accountMenuLabel" class="hidden sm:block text-xs font-bold uppercase tracking-widest">Account</span>
+					</button>
+					<div id="accountMenuDropdown" class="absolute top-full right-0 mt-1 z-50 hidden group-hover:block max-sm:fixed max-sm:inset-x-2 max-sm:top-20 max-sm:bottom-auto max-sm:rounded-2xl max-sm:shadow-2xl max-sm:max-h-[calc(100vh-5rem)] max-sm:overflow-y-auto">
+						<div id="accountMenuContent" class="account-flyout"></div>
+					</div>
+				</div>
 				<a href="cart.html" class="relative p-2">
 					<i data-lucide="shopping-cart" class="w-5 h-5"></i>
-					<span class="absolute top-0 right-0 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">2</span>
+					<span id="cartCountBadge" class="absolute top-0 right-0 bg-red-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
 				</a>
 				<a href="wishlist.html" class="relative p-2">
 					<i data-lucide="heart" class="w-5 h-5"></i>
 				</a>
-				<button class="md:hidden p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
+						
 			</div>
 		</div>
 	</nav>
@@ -85,7 +115,7 @@
 				</button>
 			</div>
 
-			<div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-3 px-4 relative">
+			<div id="catalogLayoutGrid" class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-3 px-4 relative">
 				<!-- Mobile Filter Overlay -->
 				<div id="filterOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"></div>
 				
@@ -168,7 +198,7 @@
 				</aside>
 
 				<!-- Products Area -->
-				<section id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+				<section id="productsGrid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-4 md:gap-5">
 					<div id="productsLoading" class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">Loading products...</div>
 				</section>
 				<div id="paginationControls" class="col-span-full mt-6 flex items-center justify-center gap-3 hidden">
@@ -179,6 +209,33 @@
 			</div>
 		</section>
 	</main>
+
+	<!-- Mobile Search Modal -->
+	<div id="mobileSearchModal" class="hidden fixed inset-0 z-[110] bg-black/50 flex items-start justify-center pt-20 md:hidden">
+		<div class="bg-white rounded-lg shadow-lg w-11/12 max-w-md">
+			<div class="p-4 border-b flex items-center justify-between">
+				<h3 class="font-bold text-sm">Search Products</h3>
+				<button id="closeMobileSearch" type="button" class="p-1 hover:bg-gray-100 rounded">
+					<i data-lucide="x" class="w-5 h-5"></i>
+				</button>
+			</div>
+			<div class="p-4">
+				<div class="relative">
+					<input id="mobileSearchInput" type="text" placeholder="Search for products..." class="w-full bg-gray-100 border border-gray-300 rounded-lg py-2.5 px-4 pl-10 text-sm outline-none focus:border-black focus:bg-white transition-all">
+					<i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+				</div>
+				<div class="mt-3 flex items-center gap-3">
+					<button id="submitMobileSearch" type="button" class="flex-1 bg-black text-white py-2 rounded-lg font-bold text-sm uppercase tracking-wider hover:bg-gray-900">
+						Search
+					</button>
+					<button id="mobileModalImageSearchBtn" type="button" class="flex-none bg-white border border-gray-300 text-gray-700 py-2 px-3 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+						<i data-lucide="camera" class="w-4 h-4"></i>
+						Image
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
 	<!-- Footer -->
 	<footer class="pt-24 pb-12 bg-white">
@@ -238,11 +295,14 @@
 			});
 		}, { threshold: 0.1 });
 
-		const API_BASE_URL = 'http://localhost:5000';
-		const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+        const API_BASE_URL = `${window.location.origin}/api`;
+		const IS_LIVE_HOST = location.protocol !== 'file:';
 		const urlParams = new URLSearchParams(window.location.search);
 		const initialSearchQuery = String(urlParams.get('search') || urlParams.get('q') || '').trim();
 		const requestedCategory = String(urlParams.get('category') || '').trim().toLowerCase();
+		const requestedSortBy = String(urlParams.get('sortBy') || '').trim().toLowerCase();
+		const requestedFilter = String(urlParams.get('filter') || '').trim().toLowerCase();
+		const normalizedSortBy = requestedSortBy === 'new-arrivals' || requestedSortBy === 'new' ? 'newest' : (requestedSortBy || 'relevance');
 		const isMenCatalogMode = ['men', "men's", 'mens', 'male', 'gents'].includes(requestedCategory);
 		const isWomenCatalogMode = ['women', "women's", 'womens', 'female', 'ladies'].includes(requestedCategory);
 		const isKidsCatalogMode = ['kids', 'kid', "kid's", 'children', 'child', 'baby', 'babies'].includes(requestedCategory);
@@ -352,6 +412,270 @@
 		const mainCategorySectionHeading = document.getElementById('mainCategorySectionHeading');
 		const productTypeSectionHeading = document.getElementById('productTypeSectionHeading');
 		const sizeSectionHeading = document.getElementById('sizeSectionHeading');
+
+		// Header image-search controls
+		const headerImageBtn = document.getElementById('headerImageSearchBtn');
+		const headerImageInput = document.getElementById('headerImageInput');
+		const mobileModalImageSearchBtn = document.getElementById('mobileModalImageSearchBtn');
+
+		headerImageBtn.addEventListener('click', () => headerImageInput.click());
+		if (mobileModalImageSearchBtn) {
+			mobileModalImageSearchBtn.addEventListener('click', () => headerImageInput.click());
+		}
+
+		headerImageInput.addEventListener('change', async (ev) => {
+			const file = ev.target.files && ev.target.files[0];
+			if (!file) return;
+			await performVisualSearch(file);
+			// clear input so same file can be reselected later
+			headerImageInput.value = '';
+		});
+
+		async function performVisualSearch(file) {
+			resultsMeta.textContent = 'Searching similar products...';
+			try {
+				const form = new FormData();
+				form.append('image', file);
+				const resp = await fetch(`${API_BASE_URL}/visual-search?top_k=12`, {
+					method: 'POST',
+					body: form
+				});
+				const data = await resp.json();
+				// expose for debugging
+				try { window.lastVisualSearchData = data; } catch (e) { /* ignore */ }
+				if (!resp.ok) throw new Error(data.detail || 'Visual search failed');
+
+				// Build enrichment map from DB products returned by the unified backend
+				const enrichmentMap = {};
+				if (Array.isArray(data.products) && data.products.length) {
+					for (const p of data.products) {
+						const key = String(p.id || p.product_id || p.productId || p.productId || '').trim();
+						if (key) enrichmentMap[key] = p;
+					}
+					resultsMeta.textContent = `${data.products.length} similar products found`;
+					// Render DB-enriched products in the grid (these are authoritative)
+					renderRecommendations(data.products, enrichmentMap);
+				} else {
+					resultsMeta.textContent = `${data.number_of_results || (data.recommendations || []).length} similar products found`;
+					// If no DB products were returned, but AI recommendations exist, map them into the grid
+					if ((!Array.isArray(data.products) || data.products.length === 0) && Array.isArray(data.recommendations) && data.recommendations.length) {
+						const mapped = data.recommendations.map(r => ({
+							id: r.product_id || r.id || '',
+							product_id: r.product_id || r.id || '',
+							name: r.title || r.name || '',
+							title: r.title || r.name || '',
+							image_url: r.image_url || r.image_path || '',
+							price: r.price || 0,
+							product_url: r.product_url || '#',
+							similarity: r.similarity_percentage || r.similarity || null
+						}));
+						renderRecommendations(mapped, enrichmentMap);
+					}
+				}
+
+				// Render visual strip of AI recommendations (non-destructive), enrich with DB rows when available
+				if (Array.isArray(data.recommendations) && data.recommendations.length) {
+					renderVisualSearchStrip(data.recommendations, file, enrichmentMap);
+				}
+			} catch (err) {
+				resultsMeta.textContent = err.message || 'Search failed';
+				console.error(err);
+			}
+		}
+
+		function createVisualResultsContainer(file) {
+			let container = document.getElementById('visualSearchResults');
+			if (!container) {
+				container = document.createElement('div');
+				container.id = 'visualSearchResults';
+				container.className = 'col-span-full bg-white/50 backdrop-blur-xl border border-gray-200/80 rounded-3xl p-4 shadow-sm h-full';
+				container.innerHTML = `
+					<div class="flex flex-col h-full">
+						<div class="flex items-center justify-between gap-4 mb-4">
+							<div class="flex items-center gap-3">
+								<div class="w-14 h-14 rounded-3xl bg-gray-100 overflow-hidden border border-gray-200">
+									<img id="visualSearchPreview" src="" alt="Search image" class="w-full h-full object-cover">
+								</div>
+								<div>
+									<p class="text-[11px] uppercase tracking-[0.24em] text-gray-500 mb-1">Image Search</p>
+									<h2 class="text-base font-semibold text-slate-900">Search results by image</h2>
+									<p id="visualSearchCount" class="text-xs text-gray-500">Showing matching products</p>
+								</div>
+							</div>
+							<button id="closeVisualSearch" class="text-xs text-gray-500 hover:text-black">Close</button>
+						</div>
+						<div id="visualSearchStrip" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4"></div>
+					</div>
+				`;
+				const productsGrid = document.getElementById('productsGrid');
+				if (productsGrid) {
+					productsGrid.insertBefore(container, productsGrid.firstChild);
+				}
+				const closeBtn = container.querySelector('#closeVisualSearch');
+				closeBtn.addEventListener('click', () => {
+					container.remove();
+					rightPanel?.classList.add('hidden');
+					layoutGrid?.classList.remove('visual-panel-open');
+				});
+			}
+			const preview = container.querySelector('#visualSearchPreview');
+			if (preview && file) {
+				preview.src = URL.createObjectURL(file);
+			}
+			return container.querySelector('#visualSearchStrip');
+		}
+
+		function renderVisualSearchStrip(recs, file, enrichMap = {}) {
+			const strip = createVisualResultsContainer(file);
+			strip.innerHTML = '';
+			const countText = document.getElementById('visualSearchCount');
+			if (countText) {
+				countText.textContent = `${recs?.length || 0} products found`;
+			}
+			if (!recs || !recs.length) {
+				strip.innerHTML = '<div class="col-span-full text-sm text-gray-500">No matching products found.</div>';
+				return;
+			}
+			recs.forEach(product => {
+				const enrich = (product && product.product_id) ? (enrichMap[String(product.product_id)] || null) : null;
+				const src = enrich || product;
+				const productId = (src && (src.id || src.product_id || src.productId)) || '';
+				const name = (src && (src.name || src.title || src.product_name)) || '';
+				const desc = (src && (src.short_description || src.description || src.summary)) || '';
+				const seller = (src && (src.seller_name || src.seller || src.vendor)) || '';
+				const image = (src && (src.image_url || src.image_path)) || product.image_url || '';
+				const priceVal = (src && (src.base_price || src.price || src.price_display || src.price_amount)) || 0;
+				const priceNumber = Number(priceVal) || 0;
+				const priceText = 'PKR ' + (priceNumber ? priceNumber.toLocaleString() + '.00' : '0.00');
+				const sim = product.similarity_percentage || product.similarity || src?.similarity_percentage || src?.similarity;
+
+				const card = document.createElement('article');
+				card.className = 'product-card bg-white rounded-lg overflow-hidden';
+				card.innerHTML = `
+					<div class="p-3 flex flex-col gap-3">
+						<div class="relative overflow-hidden rounded-lg bg-gray-50 h-[180px]">
+							<img src="${image}" alt="${name}" class="w-full h-full object-cover">
+							<button data-product-id="${productId}" class="absolute top-3 right-3 z-10 bg-white/80 rounded-full p-1 shadow hover:bg-white add-to-wishlist-btn" title="Add to favorites">
+								<i data-lucide="heart" class="w-4 h-4 text-gray-500"></i>
+							</button>
+						</div>
+						<div>
+							<div class="flex items-start justify-between gap-3">
+								<div>
+									<div class="text-lg font-bold text-black">${priceText}</div>
+									<div class="text-sm text-gray-700 line-clamp-2">${name}</div>
+								</div>
+								<div class="text-right text-[12px] text-gray-500">${sim ? `Similarity: ${Math.round(Number(sim))}%` : ''}</div>
+							</div>
+							<p class="text-sm text-gray-600 mt-2 line-clamp-2">${desc}</p>
+							<div class="mt-3 text-xs text-gray-500">${seller}</div>
+						</div>
+						<div class="mt-4 flex flex-col gap-2">
+							<a href="products_details.html?id=${productId}" class="w-full py-2.5 bg-[#FFD814] hover:bg-[#F7CA00] rounded-full text-xs font-semibold text-center">View Details</a>
+							<button type="button" data-product-id="${productId}" class="w-full py-2.5 border border-gray-300 rounded-full text-xs font-semibold">Add to Cart</button>
+						</div>
+					</div>
+				`;
+
+				card.addEventListener('click', (e) => {
+					if (e.target.closest('a') || e.target.closest('button')) return;
+					showProductDetails(src || product);
+				});
+
+				strip.appendChild(card);
+			});
+
+			if (window.lucide && typeof window.lucide.createIcons === 'function') {
+				window.lucide.createIcons();
+			}
+		}
+
+		function renderRecommendations(recs, enrichMap = {}) {
+			productsGrid.innerHTML = '';
+			if (!recs || !recs.length) {
+				productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">No products found.</div>';
+				return;
+			}
+
+			recs.forEach(product => {
+				const enrich = (product && (product.id || product.product_id)) ? (enrichMap[String(product.id || product.product_id)] || null) : null;
+				const src = enrich || product;
+				const productId = (src && (src.id || src.product_id || src.productId)) || '';
+				const name = (src && (src.name || src.title || src.product_name)) || '';
+				const desc = (src && (src.short_description || src.description || src.summary)) || '';
+				const seller = (src && (src.seller_name || src.seller || src.vendor)) || '';
+				const image = (src && (src.image_url || src.image_path)) || '';
+				const priceVal = (src && (src.base_price || src.price || src.price_display || src.price_amount)) || 0;
+				const priceNumber = Number(priceVal) || 0;
+				const priceText = 'PKR ' + (priceNumber ? priceNumber.toLocaleString() + '.00' : '0.00');
+				const sim = src?.similarity_percentage || src?.similarity;
+
+				const card = document.createElement('article');
+				card.className = 'product-card bg-white rounded-lg overflow-hidden reveal hover:shadow-lg transition-all duration-300 cursor-pointer';
+				card.innerHTML = `
+					<div class="p-4 flex flex-col gap-3">
+						<div class="relative overflow-hidden rounded-lg bg-gray-50 h-[220px]">
+							<img src="${image}" alt="${name}" class="w-full h-full object-cover">
+						</div>
+						<div>
+							<div class="text-lg font-bold text-black">${priceText}</div>
+							<div class="text-sm text-gray-700 mt-1 line-clamp-2">${name}</div>
+							<p class="text-xs text-gray-500 mt-2 line-clamp-2">${desc}</p>
+							<div class="flex items-center gap-2 mt-3 text-xs text-gray-500">
+								<div class="rating-stars">★★★★★</div>
+								<div>0</div>
+							</div>
+							<div class="text-xs text-gray-500 mt-1">FREE delivery on eligible orders</div>
+							<div class="text-xs text-gray-500 mt-1">${seller}</div>
+						</div>
+						<div class="mt-4 flex flex-col gap-2">
+							<a href="products_details.html?id=${productId}" class="w-full py-2.5 bg-[#FFD814] hover:bg-[#F7CA00] rounded-full text-xs font-semibold text-center">View Details</a>
+							<button type="button" data-product-id="${productId}" class="w-full py-2.5 border border-gray-300 rounded-full text-xs font-semibold">Add to Cart</button>
+						</div>
+						<div class="mt-2 text-right text-[12px] text-gray-500">${typeof sim !== 'undefined' && sim !== null ? `Similarity: ${Math.round(Number(sim))}%` : ''}</div>
+					</div>
+				`;
+
+				card.addEventListener('click', (e) => { if (e.target.closest('a') || e.target.closest('button')) return; showProductDetails(src || product); });
+
+				productsGrid.appendChild(card);
+			});
+		}
+
+		function showProductDetails(product) {
+			// Build a simple modal showing key product fields
+			const existing = document.getElementById('productDetailModal');
+			if (existing) existing.remove();
+			const modal = document.createElement('div');
+			modal.id = 'productDetailModal';
+			modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/40';
+			const content = document.createElement('div');
+			content.className = 'bg-white rounded-lg max-w-2xl w-[95%] p-4';
+			const priceVal = product.base_price || product.price || product.price_display || product.price_amount || 0;
+			const priceNumber = Number(priceVal) || 0;
+			const priceText = priceNumber ? priceNumber.toLocaleString() : (product.currency ? product.currency : priceVal || '0');
+			content.innerHTML = `
+				<div class="flex gap-4">
+					<div class="w-1/3">
+						<img src="${product.image_url || product.image_path || ''}" alt="${product.name || product.title || ''}" class="w-full h-auto object-cover rounded-md">
+					</div>
+					<div class="flex-1">
+						<h2 class="text-lg font-bold mb-2">${product.name || product.title || ''}</h2>
+						<p class="text-sm text-gray-600 mb-2">${product.description || product.long_description || product.summary || ''}</p>
+						<p class="text-xl font-bold mb-4">Rs. ${priceText}</p>
+						<p class="text-[12px] text-gray-500 mb-4">Similarity: ${Math.round(Number(product.similarity_percentage || product.similarity || 0))}%</p>
+						<div class="flex gap-2">
+							<a href="${product.product_url || '#'}" class="px-3 py-2 bg-black text-white rounded text-sm">Open product page</a>
+							<button id="closeProductDetail" class="px-3 py-2 border rounded text-sm">Close</button>
+						</div>
+					</div>
+				</div>
+			`;
+			modal.appendChild(content);
+			document.body.appendChild(modal);
+			document.getElementById('closeProductDetail').addEventListener('click', () => modal.remove());
+			modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+		}
 		const fitTypeSectionHeading = document.getElementById('fitTypeSectionHeading');
 		const styleThemeSectionHeading = document.getElementById('styleThemeSectionHeading');
 		const productSearchInput = document.querySelector('input[placeholder^="Search for unique products"]');
@@ -471,6 +795,8 @@
 
 		const filterState = {
 			search: initialSearchQuery,
+			sortBy: normalizedSortBy,
+			filter: requestedFilter,
 			topCategory: '',
 			brands: [],
 			categories: [],
@@ -488,6 +814,14 @@
 			page: 1,
 			limit: 24
 		};
+
+		// If a category was requested via URL, apply it to filterState so page loads filtered results
+		if (hasCategoryMode) {
+			if (isMenCatalogMode) filterState.topCategory = 'men';
+			if (isWomenCatalogMode) filterState.topCategory = 'women';
+			if (isKidsCatalogMode) filterState.topCategory = 'kids';
+			if (isAccessoriesCatalogMode) filterState.topCategory = 'accessories';
+		}
 
 		let searchDebounceTimer;
 		let lastPagination = {
@@ -679,23 +1013,168 @@
 			nextPageBtn.disabled = !Boolean(lastPagination.hasNextPage);
 		}
 
+		function normalizeSearchTokens(value) {
+			return String(value || '')
+				.toLowerCase()
+				.replace(/[^a-z0-9]+/g, ' ')
+				.trim();
+		}
+
+		function escapeRegExp(value) {
+			return String(value || '').replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
+		}
+
+		function toTagToken(value) {
+			return String(value || '')
+				.toLowerCase()
+				.trim()
+				.replace(/[^a-z0-9]+/g, '-')
+				.replace(/^-+|-+$/g, '');
+		}
+
+		const FILTER_TAG_ALIASES = {
+			'T-Shirts': 'tshirt',
+			'T-Shirt': 'tshirt',
+			'Tshirts': 'tshirt',
+			'Shirts': 'shirt',
+			'Tops': 'tshirt',
+			'Pants': 'trousers',
+			'Trousers': 'trousers',
+			'Shorts': 'shorts',
+			'Jeans': 'jeans',
+			'Dresses': 'dress',
+			'Skirts': 'skirt',
+			'Hoodies': 'hoodie',
+			'Sweatshirts': 'sweatshirt',
+			'Jackets': 'jacket',
+			'Coats': 'coat',
+			'Bags': 'bag',
+			'Hats': 'cap',
+			'Belts': 'belt',
+			'Sunglasses': 'sunglasses',
+			'Watches': 'watch',
+			'Jewelry': 'jewelry',
+			'Cartoon Prints': 'cartoon',
+			'Cartoon': 'cartoon',
+			'Anime': 'anime',
+			'Animal Theme': 'animal',
+			'Superhero Style': 'superhero',
+			'Superhero': 'superhero',
+			'Princess': 'princess',
+			'Wedding Wear': 'wedding',
+			'Wedding': 'wedding',
+			'Casual': 'casual',
+			'Party': 'party',
+			'Formal': 'formal',
+			'Sports': 'sports',
+			'Summer': 'summer',
+			'Winter': 'winter',
+			'Office': 'office',
+			'Travel': 'travel',
+			'Outdoor': 'outdoor'
+		};
+
+		function resolveTagToken(value) {
+			const raw = String(value || '').trim();
+			if (!raw) return '';
+			if (FILTER_TAG_ALIASES[raw]) {
+				return FILTER_TAG_ALIASES[raw];
+			}
+			return toTagToken(raw);
+		}
+
+		function resolveTagsFromFilterValues(values) {
+			const tags = new Set();
+			(values || []).forEach((value) => {
+				const token = resolveTagToken(value);
+				if (token) tags.add(token);
+			});
+			return Array.from(tags);
+		}
+
+		function splitFilterValues(values) {
+			const categoryValues = [];
+			const tagValues = [];
+			const knownCategoryNames = new Set([
+				'men', 'women', 'kids', 'accessories',
+				'blazers', 'jackets', 'coats', 'hats', 'bags', 'shoes', 'watches', 'wallets'
+			]);
+
+			(values || []).forEach((value) => {
+				const raw = String(value || '').trim();
+				if (!raw) return;
+				const normalized = normalizeSearchTokens(raw);
+				const isCategoryLike = knownCategoryNames.has(normalized) || ['men', 'women', 'kids', 'accessories'].includes(normalized);
+				if (isCategoryLike) {
+					categoryValues.push(raw);
+					return;
+				}
+				tagValues.push(...resolveTagsFromFilterValues([raw]));
+			});
+
+			return {
+				categoryValues: Array.from(new Set(categoryValues)),
+				tagValues: Array.from(new Set(tagValues.filter(Boolean)))
+			};
+		}
+
 		function buildProductsQueryParams() {
 			const params = new URLSearchParams();
 			params.set('page', hasCategoryMode ? '1' : '1');
 			params.set('limit', hasCategoryMode ? '500' : '500');
 
-			const effectiveSearch = filterState.search;
-			if (effectiveSearch) params.set('search', effectiveSearch);
+			// Pass topCategory to API as categories parameter
+			if (filterState.topCategory) {
+				params.set('categories', filterState.topCategory);
+			}
+
+			// Pass search query separately
+			if (filterState.search) {
+				params.set('search', filterState.search);
+			}
+
+			if (filterState.sortBy && filterState.sortBy !== 'relevance') {
+				params.set('sortBy', filterState.sortBy);
+			}
+
 			if (filterState.minRating > 0) params.set('minRating', String(filterState.minRating));
 			if (filterState.brands.length) params.set('brands', filterState.brands.join(','));
-			if (!hasCategoryMode && filterState.categories.length) params.set('categories', filterState.categories.join(','));
-			if (!hasCategoryMode && filterState.topCategory) params.set('search', [filterState.topCategory, filterState.search].filter(Boolean).join(' '));
 			if (filterState.limitedDeal === true) params.set('limitedDeal', 'true');
+
+			// Collect all tag values from multiple sources
+			const tagValues = [];
+			const splitValues = splitFilterValues(filterState.categories);
+			
+			// Product type categories become tags
+			if (splitValues.categoryValues.length) {
+				tagValues.push(...splitValues.categoryValues);
+			}
+			
+			// Other tag values
+			if (splitValues.tagValues.length) {
+				tagValues.push(...splitValues.tagValues);
+			}
+			
+			// Style themes as tags
+			const styleThemeTags = resolveTagsFromFilterValues(filterState.styleThemes);
+			if (styleThemeTags.length) {
+				tagValues.push(...styleThemeTags);
+			}
+
+			// Deduplicate and send
+			const uniqueTagValues = Array.from(new Set(tagValues.filter(Boolean)));
+			if (uniqueTagValues.length) {
+				params.set('tags', uniqueTagValues.join(','));
+			}
 
 			return params;
 		}
 
 		function extractTextTokens(rawProduct) {
+			const tagText = Array.isArray(rawProduct.tags)
+				? rawProduct.tags.map(toTagToken).filter(Boolean).join(' ')
+				: String(rawProduct.tags || '').toLowerCase();
+
 			return [
 				rawProduct.name,
 				rawProduct.category,
@@ -706,13 +1185,30 @@
 				rawProduct.occasion,
 				rawProduct.color,
 				rawProduct.size,
-				Array.isArray(rawProduct.tags) ? rawProduct.tags.join(' ') : rawProduct.tags
+				tagText
 			].map((value) => String(value || '').toLowerCase()).join(' ');
 		}
 
 		function matchesAnyKeyword(values, productText) {
 			if (!values.length) return true;
-			return values.some((value) => productText.includes(String(value || '').toLowerCase()));
+			const normalizedText = String(productText || '').toLowerCase();
+			return values.some((value) => {
+				const raw = String(value || '').toLowerCase().trim();
+				if (!raw) return false;
+				const aliases = [
+					raw,
+					raw.replace(/[^a-z0-9]+/g, ''),
+					raw.replace(/s$/, ''),
+					raw.replace(/-/, ' ')
+				].filter(Boolean);
+				return aliases.some((alias) => {
+					if (!alias) return false;
+					if (normalizedText.includes(alias)) return true;
+					const escaped = escapeRegExp(alias);
+					const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+					return regex.test(normalizedText);
+				});
+			});
 		}
 
 		function matchPriceBand(price, selectedBands) {
@@ -732,26 +1228,51 @@
 			});
 		}
 
+		function matchesCategoryFilter(product, categoryKey) {
+			const normalizedCategory = String(categoryKey || '').toLowerCase();
+			if (!normalizedCategory) return true;
+
+			// If product has genderCategory field, use it for exact matching
+			if (product.genderCategory) {
+				const productGender = String(product.genderCategory || '').toLowerCase().trim();
+				return productGender === normalizedCategory;
+			}
+
+			// Fallback to text-based matching if no genderCategory field
+			const text = extractTextTokens(product);
+			const categoryText = `${product.category || ''} ${product.name || ''} ${product.description || ''} ${Array.isArray(product.tags) ? product.tags.join(' ') : String(product.tags || '')}`.toLowerCase();
+
+			if (normalizedCategory === 'men') {
+				return MEN_FILTERS.keywordRegex.test(text) || /\bmen\b|\bmale\b|\bgents\b/.test(categoryText);
+			}
+			if (normalizedCategory === 'women') {
+				return WOMEN_FILTERS.keywordRegex.test(text) || /\bwomen\b|\bfemale\b|\bladies\b/.test(categoryText);
+			}
+			if (normalizedCategory === 'kids') {
+				return KIDS_FILTERS.keywordRegex.test(text) || /\bkids?\b|\bchild\b|\bbaby\b|\bnewborn\b|\btoddler\b/.test(categoryText);
+			}
+			if (normalizedCategory === 'accessories') {
+				return ACCESSORIES_FILTERS.keywordRegex.test(text) || /(accessor(y|ies)|bag|bags|wallet|watch|belt|scarves?|gloves?|hat|hats|cap|caps|jewelry|ring|earrings?|necklace)/.test(categoryText);
+			}
+
+			return true;
+		}
+
 		function applyCategoryClientFilters(products) {
-			if (!hasCategoryMode) {
-				return products.filter((product) => {
-					const text = extractTextTokens(product);
-					const price = Number(product.price ?? product.basePrice ?? 0) || 0;
-					const originalPrice = Number(product.originalPrice ?? product.compareAtPrice ?? price) || price;
-					const discountPct = originalPrice > price && originalPrice > 0
-						? ((originalPrice - price) / originalPrice) * 100
-						: 0;
+			return products.filter((product) => {
+				const text = extractTextTokens(product);
+				const price = Number(product.price ?? product.basePrice ?? 0) || 0;
+				const originalPrice = Number(product.originalPrice ?? product.compareAtPrice ?? price) || price;
+				const discountPct = originalPrice > price && originalPrice > 0
+					? ((originalPrice - price) / originalPrice) * 100
+					: 0;
 
-					if (filterState.topCategory && filterState.topCategory !== '') {
-						const hasSpecificFilters = filterState.ideas.length > 0 || filterState.categories.length > 0 || filterState.brands.length > 0 || filterState.sizes.length > 0 || filterState.colors.length > 0 || filterState.materials.length > 0 || filterState.fitTypes.length > 0 || filterState.occasions.length > 0;
-						if (hasSpecificFilters) {
-							if (filterState.topCategory === 'men' && !MEN_FILTERS.keywordRegex.test(text)) return false;
-							if (filterState.topCategory === 'women' && !WOMEN_FILTERS.keywordRegex.test(text)) return false;
-							if (filterState.topCategory === 'kids' && !KIDS_FILTERS.keywordRegex.test(text)) return false;
-							if (filterState.topCategory === 'accessories' && !ACCESSORIES_FILTERS.keywordRegex.test(text)) return false;
-						}
-					}
+				// ALWAYS apply gender category filter if topCategory is set (even from sidebar selection)
+				if (filterState.topCategory) {
+					if (!matchesCategoryFilter(product, filterState.topCategory)) return false;
+				}
 
+				if (!hasCategoryMode) {
 					if (!matchesAnyKeyword(filterState.ideas, text)) return false;
 					if (!matchesAnyKeyword(filterState.categories, text)) return false;
 					if (!matchesAnyKeyword(filterState.brands, text)) return false;
@@ -763,20 +1284,8 @@
 					if (!matchPriceBand(price, filterState.priceBands)) return false;
 					if (filterState.minDiscount > 0 && discountPct < filterState.minDiscount) return false;
 					if (filterState.limitedDeal === true && !(Boolean(product.limitedDeal) || discountPct >= 10)) return false;
-
 					return true;
-				});
-			}
-
-			return products.filter((product) => {
-				const text = extractTextTokens(product);
-				if (!activeCatalogFilters.keywordRegex.test(text)) return false;
-
-				const price = Number(product.price ?? product.basePrice ?? 0) || 0;
-				const originalPrice = Number(product.originalPrice ?? product.compareAtPrice ?? price) || price;
-				const discountPct = originalPrice > price && originalPrice > 0
-					? ((originalPrice - price) / originalPrice) * 100
-					: 0;
+				}
 
 				if (!matchesAnyKeyword(filterState.ideas, text)) return false;
 				if (!matchesAnyKeyword(filterState.categories, text)) return false;
@@ -796,7 +1305,11 @@
 		}
 
 		function syncFiltersFromSidebar() {
-			filterState.topCategory = selectedGlobalCategory();
+			// Only update topCategory if a radio button is actually checked (don't reset to empty)
+			const selectedCategory = selectedGlobalCategory();
+			if (selectedCategory) {
+				filterState.topCategory = selectedCategory;
+			}
 
 			filterState.ideas = Array.from(ideaFilterList?.querySelectorAll('input[type="checkbox"]:checked') || [])
 				.map((input) => String(input.value || '').trim())
@@ -889,9 +1402,61 @@
 			}
 		}
 
+		function setupMobileSearch() {
+			const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+			const mobileSearchModal = document.getElementById('mobileSearchModal');
+			const closeMobileSearchBtn = document.getElementById('closeMobileSearch');
+			const mobileSearchInput = document.getElementById('mobileSearchInput');
+			const submitMobileSearchBtn = document.getElementById('submitMobileSearch');
+
+			if (!mobileSearchBtn || !mobileSearchModal) return;
+
+			mobileSearchBtn.addEventListener('click', () => {
+				mobileSearchModal.classList.remove('hidden');
+				setTimeout(() => mobileSearchInput.focus(), 100);
+			});
+
+			closeMobileSearchBtn.addEventListener('click', () => {
+				mobileSearchModal.classList.add('hidden');
+				mobileSearchInput.value = '';
+			});
+
+			submitMobileSearchBtn.addEventListener('click', () => {
+				const searchValue = String(mobileSearchInput.value || '').trim();
+				if (searchValue) {
+					filterState.search = searchValue;
+					filterState.page = 1;
+					loadProductsFromApi();
+					mobileSearchModal.classList.add('hidden');
+					mobileSearchInput.value = '';
+				}
+			});
+
+			mobileSearchInput.addEventListener('keypress', (event) => {
+				if (event.key === 'Enter') {
+					const searchValue = String(mobileSearchInput.value || '').trim();
+					if (searchValue) {
+						filterState.search = searchValue;
+						filterState.page = 1;
+						loadProductsFromApi();
+						mobileSearchModal.classList.add('hidden');
+						mobileSearchInput.value = '';
+					}
+				}
+			});
+
+			mobileSearchModal.addEventListener('click', (event) => {
+				if (event.target === mobileSearchModal) {
+					mobileSearchModal.classList.add('hidden');
+					mobileSearchInput.value = '';
+				}
+			});
+		}
+
 		function setupFilters() {
 			setupRatingFilter();
 			setupSearchFilter();
+			setupMobileSearch();
 
 			const filterLists = [
 				mainCategoryFilterList,
@@ -921,7 +1486,7 @@
 		async function loadSidebarFilters() {
 			if (!IS_LIVE_HOST) return;
 			try {
-				const response = await fetch(`${API_BASE_URL}/api/products/filters`);
+				const response = await fetch(`${API_BASE_URL}/products/filters`);
 				if (!response.ok) {
 					throw new Error(`Failed to load filters (${response.status})`);
 				}
@@ -963,14 +1528,213 @@
 		}
 
 		async function loadProductsFromApi() {
-			if (!IS_LIVE_HOST) {
-				if (resultsMeta) resultsMeta.textContent = 'Open on localhost to load live catalog data.';
-				return;
-			}
 			try {
 				setLoadingState();
+
+				// Handle recommended products filter
+				if (filterState.filter === 'recommended') {
+					const userId = (() => {
+						try {
+							const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+							if (rawUser) {
+								const parsed = JSON.parse(rawUser);
+								return String(parsed.id || parsed.userId || parsed.customerId || '').trim();
+							}
+						} catch (_) {}
+						return '';
+					})();
+
+					if (!userId) {
+						if (productsGrid) {
+							productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">Please sign in to view recommended products.</div>';
+						}
+						return;
+					}
+
+					const recommendedResponse = await fetch(`${API_BASE_URL}/homepage?userId=${encodeURIComponent(userId)}&sectionLimit=50&flashDealLimit=0`);
+					if (!recommendedResponse.ok) throw new Error('Failed to load recommendations');
+					const recommendedData = await recommendedResponse.json();
+					const rows = Array.isArray(recommendedData?.data?.productRows) ? recommendedData.data.productRows : [];
+					const recRow = rows.find((r) => r.id === 'recommended-for-you');
+					const recommendedProducts = recRow?.products || [];
+
+					if (!recommendedProducts.length) {
+						if (productsGrid) {
+							productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">No recommendations available yet. Browse more products to get personalized suggestions.</div>';
+						}
+						return;
+					}
+
+					const pageSize = 24;
+					const totalCount = recommendedProducts.length;
+					const totalPages = Math.max(Math.ceil(totalCount / pageSize), 1);
+					const currentPage = Math.min(Math.max(filterState.page, 1), totalPages);
+					const startIndex = (currentPage - 1) * pageSize;
+					const pageItems = recommendedProducts.slice(startIndex, startIndex + pageSize);
+
+					lastPagination = {
+						currentPage,
+						totalPages,
+						hasNextPage: currentPage < totalPages,
+						hasPrevPage: currentPage > 1,
+						totalProducts: totalCount
+					};
+
+					filterState.page = currentPage;
+					renderProducts(pageItems, totalCount);
+					lucide.createIcons();
+					return;
+				}
+
+				// Handle trending products filter
+				if (filterState.filter === 'trending') {
+					const trendingResponse = await fetch(`${API_BASE_URL}/homepage?sectionLimit=500&flashDealLimit=0`);
+					if (!trendingResponse.ok) throw new Error('Failed to load trending products');
+					const trendingData = await trendingResponse.json();
+					const rows = Array.isArray(trendingData?.data?.productRows) ? trendingData.data.productRows : [];
+					const trendRow = rows.find((r) => r.id === 'trending-products');
+					const trendingProducts = trendRow?.products || [];
+
+					if (!trendingProducts.length) {
+						if (productsGrid) {
+							productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">No trending products available at the moment.</div>';
+						}
+						return;
+					}
+
+					const pageSize = 24;
+					const totalCount = trendingProducts.length;
+					const totalPages = Math.max(Math.ceil(totalCount / pageSize), 1);
+					const currentPage = Math.min(Math.max(filterState.page, 1), totalPages);
+					const startIndex = (currentPage - 1) * pageSize;
+					const pageItems = trendingProducts.slice(startIndex, startIndex + pageSize);
+
+					lastPagination = {
+						currentPage,
+						totalPages,
+						hasNextPage: currentPage < totalPages,
+						hasPrevPage: currentPage > 1,
+						totalProducts: totalCount
+					};
+
+					filterState.page = currentPage;
+					renderProducts(pageItems, totalCount);
+					lucide.createIcons();
+					return;
+				}
+
+				// Handle best-sellers products filter
+				if (filterState.filter === 'best-sellers') {
+					const bestSellersResponse = await fetch(`${API_BASE_URL}/homepage?sectionLimit=500&flashDealLimit=0`);
+					if (!bestSellersResponse.ok) throw new Error('Failed to load best sellers');
+					const bestSellersData = await bestSellersResponse.json();
+					const rows = Array.isArray(bestSellersData?.data?.productRows) ? bestSellersData.data.productRows : [];
+					const bestRow = rows.find((r) => r.id === 'best-sellers');
+					const bestSellerProducts = bestRow?.products || [];
+
+					if (!bestSellerProducts.length) {
+						if (productsGrid) {
+							productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">No best sellers available at the moment.</div>';
+						}
+						return;
+					}
+
+					const pageSize = 24;
+					const totalCount = bestSellerProducts.length;
+					const totalPages = Math.max(Math.ceil(totalCount / pageSize), 1);
+					const currentPage = Math.min(Math.max(filterState.page, 1), totalPages);
+					const startIndex = (currentPage - 1) * pageSize;
+					const pageItems = bestSellerProducts.slice(startIndex, startIndex + pageSize);
+
+					lastPagination = {
+						currentPage,
+						totalPages,
+						hasNextPage: currentPage < totalPages,
+						hasPrevPage: currentPage > 1,
+						totalProducts: totalCount
+					};
+
+					filterState.page = currentPage;
+					renderProducts(pageItems, totalCount);
+					lucide.createIcons();
+					return;
+				}
+
+				// Handle limited-time-deals products filter
+				if (filterState.filter === 'limited-time-deals') {
+					const dealsResponse = await fetch(`${API_BASE_URL}/homepage?sectionLimit=500&flashDealLimit=0`);
+					if (!dealsResponse.ok) throw new Error('Failed to load limited time deals');
+					const dealsData = await dealsResponse.json();
+					const rows = Array.isArray(dealsData?.data?.productRows) ? dealsData.data.productRows : [];
+					const dealsRow = rows.find((r) => r.id === 'limited-time-deals');
+					const limitedDealsProducts = dealsRow?.products || [];
+
+					if (!limitedDealsProducts.length) {
+						if (productsGrid) {
+							productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">No limited time deals available at the moment.</div>';
+						}
+						return;
+					}
+
+					const pageSize = 24;
+					const totalCount = limitedDealsProducts.length;
+					const totalPages = Math.max(Math.ceil(totalCount / pageSize), 1);
+					const currentPage = Math.min(Math.max(filterState.page, 1), totalPages);
+					const startIndex = (currentPage - 1) * pageSize;
+					const pageItems = limitedDealsProducts.slice(startIndex, startIndex + pageSize);
+
+					lastPagination = {
+						currentPage,
+						totalPages,
+						hasNextPage: currentPage < totalPages,
+						hasPrevPage: currentPage > 1,
+						totalProducts: totalCount
+					};
+
+					filterState.page = currentPage;
+					renderProducts(pageItems, totalCount);
+					lucide.createIcons();
+					return;
+				}
+
+				// Handle seasonal products filter
+				if (filterState.filter === 'seasonal') {
+					const seasonalResponse = await fetch(`${API_BASE_URL}/homepage?sectionLimit=500&flashDealLimit=0`);
+					if (!seasonalResponse.ok) throw new Error('Failed to load seasonal products');
+					const seasonalData = await seasonalResponse.json();
+					const rows = Array.isArray(seasonalData?.data?.productRows) ? seasonalData.data.productRows : [];
+					const seasonalRow = rows.find((r) => r.id === 'seasonal-collection');
+					const seasonalProducts = seasonalRow?.products || [];
+
+					if (!seasonalProducts.length) {
+						if (productsGrid) {
+							productsGrid.innerHTML = '<div class="col-span-full bg-white rounded-lg p-6 text-sm text-gray-500">No seasonal products available at the moment.</div>';
+						}
+						return;
+					}
+
+					const pageSize = 24;
+					const totalCount = seasonalProducts.length;
+					const totalPages = Math.max(Math.ceil(totalCount / pageSize), 1);
+					const currentPage = Math.min(Math.max(filterState.page, 1), totalPages);
+					const startIndex = (currentPage - 1) * pageSize;
+					const pageItems = seasonalProducts.slice(startIndex, startIndex + pageSize);
+
+					lastPagination = {
+						currentPage,
+						totalPages,
+						hasNextPage: currentPage < totalPages,
+						hasPrevPage: currentPage > 1,
+						totalProducts: totalCount
+					};
+
+					filterState.page = currentPage;
+					renderProducts(pageItems, totalCount);
+					lucide.createIcons();
+					return;
+				}
 				const params = buildProductsQueryParams();
-				const response = await fetch(`${API_BASE_URL}/api/products?${params.toString()}`);
+				const response = await fetch(`${API_BASE_URL}/products?${params.toString()}`);
 				if (!response.ok) {
 					throw new Error(`Failed to load products (${response.status})`);
 				}
@@ -1046,19 +1810,45 @@
 		filterOverlay?.addEventListener('click', closeFilterFunc);
 
 		async function initializeProductPage() {
+			if (filterState.filter === 'recommended') {
+				if (catalogTitle) catalogTitle.textContent = 'Recommended For You';
+				if (resultsMeta) resultsMeta.textContent = 'Products based on your browsing history';
+			} else if (filterState.filter === 'trending') {
+				if (catalogTitle) catalogTitle.textContent = 'Trending Products';
+				if (resultsMeta) resultsMeta.textContent = 'Popular products right now';
+			} else if (filterState.filter === 'best-sellers') {
+				if (catalogTitle) catalogTitle.textContent = 'Best Sellers';
+				if (resultsMeta) resultsMeta.textContent = 'Most purchased products';
+			} else if (filterState.filter === 'seasonal') {
+				if (catalogTitle) catalogTitle.textContent = 'Seasonal Collection';
+				if (resultsMeta) resultsMeta.textContent = 'Products for the current season';
+			} else if (filterState.filter === 'limited-time-deals') {
+				if (catalogTitle) catalogTitle.textContent = 'Limited Time Deals';
+				if (resultsMeta) resultsMeta.textContent = 'Active discounts and special offers';
+			} else if (normalizedSortBy === 'newest') {
+				if (catalogTitle) catalogTitle.textContent = 'New Arrivals';
+				if (resultsMeta) resultsMeta.textContent = 'Showing the latest arrivals';
+			}
 			if (productSearchInput && filterState.search) {
 				productSearchInput.value = filterState.search;
 			}
 
-			if (IS_LIVE_HOST) {
+			try {
 				await loadSidebarFilters();
+			} catch (error) {
+				console.warn('Sidebar filter load skipped:', error);
 			}
+			
+			// Pre-check the category radio button if loaded from URL with category parameter
+			if (hasCategoryMode && filterState.topCategory) {
+				const radioInput = mainCategoryFilterList?.querySelector(`input[type="radio"][value="${filterState.topCategory}"]`);
+				if (radioInput) {
+					radioInput.checked = true;
+				}
+			}
+			
 			setupFilters();
-			if (IS_LIVE_HOST) {
-				loadProductsFromApi();
-			} else if (resultsMeta) {
-				resultsMeta.textContent = 'Open on localhost to load live catalog data.';
-			}
+			loadProductsFromApi();
 
 			// Cart helpers and event delegation for Add to Cart buttons
 			function resolveCurrentUserId() {
@@ -1076,7 +1866,7 @@
 				if (!IS_LIVE_HOST) return;
 				try {
 					const userId = resolveCurrentUserId();
-					const res = await fetch(`${API_BASE_URL}/api/cart?userId=${encodeURIComponent(userId)}`);
+					const res = await fetch(`${API_BASE_URL}/cart?userId=${encodeURIComponent(userId)}`);
 					if (!res.ok) return;
 					const payload = await res.json().catch(() => ({}));
 					const data = payload?.data || payload;
@@ -1093,7 +1883,7 @@
 				try {
 					const userId = resolveCurrentUserId();
 					const token = localStorage.getItem('lumina_session_token') || localStorage.getItem('lumina.session.token');
-					const res = await fetch(`${API_BASE_URL}/api/cart/items?userId=${encodeURIComponent(userId)}`, {
+					const res = await fetch(`${API_BASE_URL}/cart/items?userId=${encodeURIComponent(userId)}`, {
 						method: 'POST',
 						credentials: 'include',
 						headers: { 
@@ -1121,7 +1911,7 @@
 				try {
 					const userId = resolveCurrentUserId();
 					const token = localStorage.getItem('lumina_session_token') || localStorage.getItem('lumina.session.token') || localStorage.getItem('lumina.auth.token');
-					const res = await fetch(`${API_BASE_URL}/api/wishlist/${encodeURIComponent(userId)}`, {
+					const res = await fetch(`${API_BASE_URL}/wishlist/${encodeURIComponent(userId)}`, {
 						method: 'POST',
 						credentials: 'include',
 						headers: { 
@@ -1160,6 +1950,115 @@
 			// Initial cart count
 			updateCartCount();
 		}
+
+		// Account Menu Functions
+		function resolveAuthState() {
+			const state = { isLoggedIn: false, fullName: '' };
+
+			try {
+				const rawUser = localStorage.getItem('lumina.auth.user') || localStorage.getItem('lumina.customer.session');
+				const isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+				if (rawUser) {
+					const parsed = JSON.parse(rawUser);
+					const name = String(parsed.fullName || parsed.name || '').trim();
+					state.isLoggedIn = Boolean(name) || isLoggedIn;
+					state.fullName = name;
+				} else {
+					state.isLoggedIn = isLoggedIn;
+				}
+			} catch (_) {
+				state.isLoggedIn = localStorage.getItem('lumina.isLoggedIn') === 'true';
+			}
+
+			return state;
+		}
+
+		function renderAccountFlyout() {
+			const auth = resolveAuthState();
+			const content = document.getElementById('accountMenuContent');
+			const label = document.getElementById('accountMenuLabel');
+			if (!content || !label) return;
+
+			if (!auth.isLoggedIn) {
+				label.textContent = 'Account';
+				content.innerHTML = `
+					<div class="px-4 py-3 border-b border-gray-200 text-center">
+						<a href="login_register.html" class="signin-btn">Sign in</a>
+						<p class="text-[10px] text-gray-500 mt-1">New customer? <a href="login_register.html" class="text-blue-600 hover:underline">Start here.</a></p>
+					</div>
+					<div class="grid grid-cols-2 gap-0">
+						<div class="px-4 py-3 border-r border-gray-200">
+							<h4 class="account-col-title">Your Lists</h4>
+							<a href="wishlist.html" class="account-link">Create a List</a>
+							<a href="login_register.html" class="account-link">Find a List or Registry</a>
+						</div>
+						<div class="px-4 py-3">
+							<h4 class="account-col-title">Your Account</h4>
+							<a href="login_register.html" class="account-link">Customer Dashboard</a>
+							<a href="login_register.html" class="account-link">My Profile</a>
+							<a href="login_register.html" class="account-link">My Orders</a>
+							<a href="login_register.html" class="account-link">Cart</a>
+							<a href="login_register.html" class="account-link">My Addresses</a>
+							<a href="login_register.html" class="account-link">Messages</a>
+							<a href="login_register.html" class="account-link">Returns & Refunds</a>
+							<a href="login_register.html" class="account-link">Security Settings</a>
+							<a href="login_register.html" class="account-link">Help & Support</a>
+						</div>
+					</div>
+				`;
+			} else {
+				const firstName = auth.fullName ? auth.fullName.split(' ')[0] : 'Account';
+				label.textContent = firstName;
+				content.innerHTML = `
+					<div class="px-4 py-3 border-b border-gray-200 text-center">
+						<a href="Customer_Dashboard.html" class="signin-btn">Go to Dashboard</a>
+						<p class="text-[10px] text-gray-500 mt-1">Signed in as ${auth.fullName || 'Customer'}</p>
+					</div>
+					<div class="grid grid-cols-2 gap-0">
+						<div class="px-4 py-3 border-r border-gray-200">
+							<h4 class="account-col-title">Your Lists</h4>
+							<a href="wishlist.html" class="account-link">Wishlist</a>
+							<a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+							<a href="my_messages.html" class="account-link">Messages</a>
+						</div>
+						<div class="px-4 py-3">
+							<h4 class="account-col-title">Your Account</h4>
+							<a href="Customer_Dashboard.html" class="account-link">Customer Dashboard</a>
+							<a href="my_profile.html" class="account-link">My Profile</a>
+							<a href="my_orders.html" class="account-link">My Orders</a>
+							<a href="cart.html" class="account-link">Cart</a>
+							<a href="my_addresses.html" class="account-link">My Addresses</a>
+							<a href="my_messages.html" class="account-link">Messages</a>
+							<a href="my_returns_refunds.html" class="account-link">Returns & Refunds</a>
+
+							<a href="help_support.html" class="account-link">Help & Support</a>
+						</div>
+					</div>
+				`;
+			}
+		}
+
+		const accountMenuButton = document.getElementById('accountMenuButton');
+		const accountMenuDropdown = document.getElementById('accountMenuDropdown');
+		const accountMenuWrap = document.getElementById('accountMenuWrap');
+
+		if (accountMenuButton && accountMenuDropdown) {
+			accountMenuButton.addEventListener('click', () => {
+				const isHidden = accountMenuDropdown.classList.contains('hidden');
+				accountMenuDropdown.classList.toggle('hidden', !isHidden);
+				if (!isHidden) {
+					accountMenuDropdown.classList.add('hidden');
+				}
+			});
+
+			document.addEventListener('click', (event) => {
+				if (accountMenuWrap && !accountMenuWrap.contains(event.target)) {
+					accountMenuDropdown.classList.add('hidden');
+				}
+			});
+		}
+
+		renderAccountFlyout();
 
 		if (document.readyState === 'loading') {
 			document.addEventListener('DOMContentLoaded', initializeProductPage, { once: true });

@@ -795,6 +795,46 @@ router.post('/validate-payment', (req, res) => {
 });
 
 /**
+ * POST /api/checkout/create-payment-intent
+ * Body: { amount: integer, orderId?: string }
+ * Returns: { clientSecret }
+ */
+router.post('/create-payment-intent', async (req, res) => {
+  try {
+    if (!stripe) return res.status(500).json({ success: false, message: 'Stripe not configured' });
+    const amount = Number(req.body.amount || 0);
+    if (!amount || amount <= 0) return res.status(400).json({ success: false, message: 'Invalid amount' });
+
+    const pi = await stripe.paymentIntents.create({
+      amount: Math.round(amount),
+      currency: 'pkr',
+      metadata: {
+        orderId: String(req.body.orderId || '')
+      }
+    });
+
+    return res.json({ success: true, clientSecret: pi.client_secret, paymentIntentId: pi.id });
+  } catch (err) {
+    console.error('Failed to create payment intent', err && err.message);
+    return res.status(500).json({ success: false, message: 'Failed to create payment intent', error: err && err.message });
+  }
+});
+
+/**
+ * GET /api/checkout/stripe-config
+ * Returns publishable key for Stripe Elements (must be set in env as STRIPE_PUBLISHABLE_KEY)
+ */
+router.get('/stripe-config', (req, res) => {
+  try {
+    const publishable = process.env.STRIPE_PUBLISHABLE_KEY || null;
+    if (!publishable) return res.status(500).json({ success: false, message: 'Stripe publishable key not configured' });
+    res.json({ success: true, publishableKey: publishable });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to fetch stripe config' });
+  }
+});
+
+/**
  * POST /api/checkout/place-order
  * Create order from cart
  * Body: {
@@ -1025,7 +1065,7 @@ router.post('/place-order', async (req, res) => {
             quantity: Number(item.quantity) || 1
           }));
 
-          const origin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+          const origin = process.env.FRONTEND_ORIGIN || process.env.PUBLIC_APP_URL || 'http://localhost:5000';
           const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items,

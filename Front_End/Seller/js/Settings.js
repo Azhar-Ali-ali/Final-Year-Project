@@ -1,4 +1,5 @@
-const API_BASE = 'http://localhost:5000/api/seller/settings';
+const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+const API_BASE = `${API_BASE_URL}/seller/settings`;
 const pendingVerificationUploads = {};
 const pendingBankStatement = { file: null, dataUrl: '' };
 
@@ -84,6 +85,27 @@ function switchTab(tabName, btn) {
   const tab = document.getElementById(`${tabName}-tab`);
   if (tab) tab.classList.add('active');
   if (btn) btn.classList.add('active');
+}
+
+function activateTabFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const requestedTab = String(params.get('tab') || 'profile').toLowerCase();
+  const tabMap = {
+    profile: 'profile',
+    security: 'security',
+    store: 'store',
+    payment: 'payment',
+    notifications: 'notifications',
+    privacy: 'privacy',
+    verification: 'verification',
+    integrations: 'integrations'
+  };
+
+  const tabName = tabMap[requestedTab] || 'profile';
+  const buttons = Array.from(document.querySelectorAll('.tab-btn'));
+  const targetButton = buttons.find((button) => (button.textContent || '').trim().toLowerCase() === tabName);
+
+  switchTab(tabName, targetButton || null);
 }
 
 function formatDate(value) {
@@ -330,6 +352,7 @@ async function loadAllSettings() {
   setValue('email', profile?.email || '');
   setValue('phone', profile?.phone || '');
   setValue('newEmail', profile?.email || '');
+  setValue('currentEmailDisplay', profile?.email || '');
 
   setValue('storeBusinessName', store?.businessName || '');
   setValue('businessCategory', store?.category || 'Other');
@@ -900,6 +923,7 @@ function submitVerification() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  activateTabFromQuery();
   loadAllSettings().catch((error) => console.error('Failed to load settings:', error));
 });
 

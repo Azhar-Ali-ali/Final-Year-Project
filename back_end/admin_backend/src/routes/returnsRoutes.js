@@ -60,7 +60,8 @@ router.get('/requests', async (req, res) => {
         su.full_name AS "sellerName",
         sp.store_name AS "storeName"
       FROM lumina.return_requests rr
-      JOIN lumina.order_items oi ON oi.id = rr.order_item_id
+      JOIN lumina.return_items ri ON ri.return_request_id = rr.id
+      JOIN lumina.order_items oi ON oi.id = ri.order_item_id
       JOIN lumina.orders o ON o.id = oi.order_id
       LEFT JOIN lumina.products p ON p.id = oi.product_id
       JOIN lumina.users cu ON cu.id = rr.customer_id
@@ -153,7 +154,81 @@ router.patch('/requests/:returnRequestId/status', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Return request not found' });
     }
 
-    return res.json({ success: true, message: 'Return request updated', data: result.rows[0] });
+    const updated = result.rows[0];
+
+    // If refund completed, create seller ledger entry (10% fee) and issue a coupon to customer
+    if (String(status) === 'refunded') {
+      try {
+        await req.db.query('BEGIN');
+
+        // fetch order item and customer for this return request
+        const fetchSql = `
+          SELECT oi.id AS order_item_id, oi.total_amount AS line_total, oi.unit_price, oi.quantity, oi.seller_id, rr.customer_id
+          FROM lumina.return_requests rr
+          JOIN lumina.return_items ri ON ri.return_request_id = rr.id
+          JOIN lumina.order_items oi ON oi.id = ri.order_item_id
+          WHERE (rr.return_code = $1 OR rr.id::text = $1)
+          LIMIT 1
+        `;
+        const fetchRes = await req.db.query(fetchSql, [returnRequestId]);
+        if (fetchRes.rows.length) {
+          const row = fetchRes.rows[0];
+          const orderItemId = row.order_item_id;
+          const sellerId = row.seller_id;
+          const customerId = row.customer_id;
+          const lineTotal = Number(refundAmount || row.line_total || (row.unit_price * row.quantity) || 0);
+
+          // compute fee = 10% of lineTotal
+          const fee = Number((lineTotal * 0.10).toFixed(2));
+
+          // insert seller ledger entry
+          await req.db.query(
+            `INSERT INTO public.seller_ledger (seller_id, order_item_id, entry_type, amount, note, created_at)
+             VALUES ($1, $2, 'refund_debit', $3, $4, NOW())`,
+            [sellerId, orderItemId, fee, 'Return processing fee (10%)']
+          );
+
+          // create a one-time coupon for the customer equal to the refund amount
+          const code = `RET-${Date.now().toString(36).toUpperCase().slice(-8)}`;
+          const couponInsertSql = `
+            INSERT INTO public.coupons (code, description, discount_type, discount_value, usage_limit, used_count, starts_at, ends_at, is_active, created_at)
+            VALUES ($1, $2, 'flat', $3, 1, 0, NOW(), NOW() + INTERVAL '30 days', true, NOW())
+            RETURNING id, code, discount_value, starts_at, ends_at
+          `;
+          const couponRes = await req.db.query(couponInsertSql, [
+            code,
+            'Return credit - one time use',
+            lineTotal
+          ]);
+
+          const coupon = couponRes.rows[0];
+
+          // record refund entry
+          await req.db.query(
+            `INSERT INTO public.refunds (return_request_id, amount, status, transaction_ref, processed_at, created_at)
+             VALUES ($1, $2, 'processed', $3, NOW(), NOW())`,
+            [updated.id, lineTotal, coupon.code]
+          );
+
+          await req.db.query('COMMIT');
+
+          // attach coupon info to response
+          updated.generatedCoupon = {
+            code: coupon.code,
+            amount: Number(coupon.discount_value || 0),
+            startsAt: coupon.starts_at,
+            endsAt: coupon.ends_at
+          };
+        } else {
+          await req.db.query('ROLLBACK');
+        }
+      } catch (e) {
+        try { await req.db.query('ROLLBACK'); } catch (_) {}
+        console.error('Failed to apply refund ledger/coupon:', e && e.message);
+      }
+    }
+
+    return res.json({ success: true, message: 'Return request updated', data: updated });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to update return request', error: error.message });
   }

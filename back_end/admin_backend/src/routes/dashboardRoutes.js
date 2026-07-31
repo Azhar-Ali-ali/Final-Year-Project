@@ -18,6 +18,24 @@ async function safeQuery(db, sql, params = []) {
   }
 }
 
+function toGrowthPercent(current, previous) {
+  const currentValue = toNumber(current);
+  const previousValue = toNumber(previous);
+
+  if (previousValue <= 0) {
+    return currentValue > 0 ? 100 : 0;
+  }
+
+  const diff = ((currentValue - previousValue) / previousValue) * 100;
+  return Number.isFinite(diff) ? Number(diff.toFixed(1)) : 0;
+}
+
+function formatGrowth(value) {
+  const normalized = Number(value || 0);
+  const sign = normalized >= 0 ? '+' : '-';
+  return `${sign}${Math.abs(normalized).toFixed(1)}%`;
+}
+
 function emptySales(labels) {
   return {
     labels,
@@ -29,7 +47,7 @@ function emptySales(labels) {
 router.get('/summary', async (req, res) => {
   const db = req.db;
 
-  const [userStatsRows, orderStatsRows, issueRows, lowStockRows, payoutOverview] = await Promise.all([
+  const [userStatsRows, orderStatsRows, issueRows, lowStockRows, payoutOverview, userGrowthRows, orderGrowthRows] = await Promise.all([
     safeQuery(db, `
       SELECT
         COUNT(*) FILTER (WHERE role = 'customer')::int AS total_users,
@@ -53,7 +71,20 @@ router.get('/summary', async (req, res) => {
       FROM product_variants
       WHERE stock_quantity <= 5
     `),
-    paymentPayoutService.getOverview(db)
+    paymentPayoutService.getOverview(db),
+    safeQuery(db, `
+      SELECT
+        COUNT(*) FILTER (WHERE role = 'customer' AND created_at >= now() - interval '30 days')::int AS new_users,
+        COUNT(*) FILTER (WHERE role = 'customer' AND created_at < now() - interval '30 days')::int AS previous_users
+      FROM users
+      WHERE role = 'customer'
+    `),
+    safeQuery(db, `
+      SELECT
+        COUNT(*) FILTER (WHERE placed_at >= now() - interval '30 days')::int AS new_orders,
+        COUNT(*) FILTER (WHERE placed_at < now() - interval '30 days')::int AS previous_orders
+      FROM orders
+    `)
   ]);
 
   const userStats = userStatsRows[0] || {};
@@ -61,21 +92,26 @@ router.get('/summary', async (req, res) => {
   const issueStats = issueRows[0] || {};
   const lowStock = lowStockRows[0] || {};
   const moneyStats = payoutOverview || {};
+  const userGrowth = userGrowthRows[0] || {};
+  const orderGrowth = orderGrowthRows[0] || {};
+
+  const userGrowthPercent = toGrowthPercent(toNumber(userGrowth.new_users), toNumber(userGrowth.previous_users));
+  const orderGrowthPercent = toGrowthPercent(toNumber(orderGrowth.new_orders), toNumber(orderGrowth.previous_orders));
 
   const data = [
     {
       title: 'Total Users',
       icon: 'group',
       value: toNumber(userStats.total_users),
-      growth: '0%',
-      compare: 'from database',
-      positive: true
+      growth: formatGrowth(userGrowthPercent),
+      compare: 'vs previous 30 days',
+      positive: userGrowthPercent >= 0
     },
     {
       title: 'Total Sellers',
       icon: 'storefront',
       value: toNumber(userStats.total_sellers),
-      growth: '0%',
+      growth: formatGrowth(0),
       compare: 'from database',
       positive: true
     },
@@ -83,7 +119,7 @@ router.get('/summary', async (req, res) => {
       title: 'Total Products',
       icon: 'inventory_2',
       value: 0,
-      growth: '0%',
+      growth: formatGrowth(0),
       compare: 'from database',
       positive: true
     },
@@ -91,15 +127,15 @@ router.get('/summary', async (req, res) => {
       title: 'Total Orders',
       icon: 'shopping_cart',
       value: toNumber(orderStats.total_orders),
-      growth: '0%',
-      compare: 'from database',
-      positive: true
+      growth: formatGrowth(orderGrowthPercent),
+      compare: 'vs previous 30 days',
+      positive: orderGrowthPercent >= 0
     },
     {
       title: 'Pending Orders',
       icon: 'pending',
       value: toNumber(orderStats.pending_orders),
-      growth: '0%',
+      growth: formatGrowth(0),
       compare: 'from database',
       positive: false
     },
@@ -107,7 +143,7 @@ router.get('/summary', async (req, res) => {
       title: 'Pending Seller Approvals',
       icon: 'verified',
       value: toNumber(userStats.pending_seller_approvals),
-      growth: '0%',
+      growth: formatGrowth(0),
       compare: 'from database',
       positive: true
     },
@@ -115,7 +151,7 @@ router.get('/summary', async (req, res) => {
       title: 'Total Revenue',
       icon: 'payments',
       value: Math.round(toNumber(moneyStats.totalGrossSales)),
-      growth: '0%',
+      growth: formatGrowth(0),
       compare: 'delivered and paid only',
       positive: true
     },
@@ -123,7 +159,7 @@ router.get('/summary', async (req, res) => {
       title: 'Pending Amount',
       icon: 'hourglass_top',
       value: Math.round(toNumber(moneyStats.pendingAmount)),
-      growth: '0%',
+      growth: formatGrowth(0),
       compare: 'not delivered or not paid yet',
       positive: false
     },
@@ -131,7 +167,7 @@ router.get('/summary', async (req, res) => {
       title: 'Total Commission Earned',
       icon: 'monetization_on',
       value: Math.round(toNumber(moneyStats.totalCommission)),
-      growth: '0%',
+      growth: formatGrowth(0),
       compare: 'estimated from database',
       positive: true
     },
@@ -139,7 +175,7 @@ router.get('/summary', async (req, res) => {
       title: 'Refund Requests',
       icon: 'assignment_returned',
       value: toNumber(issueStats.refund_requests),
-      growth: '0%',
+      growth: formatGrowth(0),
       compare: 'from database',
       positive: true
     },
@@ -147,7 +183,7 @@ router.get('/summary', async (req, res) => {
       title: 'Dispute Cases',
       icon: 'report',
       value: toNumber(issueStats.dispute_cases),
-      growth: '0%',
+      growth: formatGrowth(0),
       compare: 'from database',
       positive: false
     },
@@ -155,7 +191,7 @@ router.get('/summary', async (req, res) => {
       title: 'Low Stock Alerts',
       icon: 'warning',
       value: toNumber(lowStock.low_stock_alerts),
-      growth: '0%',
+      growth: formatGrowth(0),
       compare: 'from database',
       positive: true
     }

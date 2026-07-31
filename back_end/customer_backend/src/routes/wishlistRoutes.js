@@ -22,8 +22,16 @@ function isLikelyUuid(value) {
   return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim());
 }
 
+function isSupportedCustomerId(value) {
+  if (typeof value !== 'string') return false;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  return isLikelyUuid(trimmed) || /^[A-Za-z0-9_.:-]+$/.test(trimmed);
+}
+
 function getSessionCustomerId(req) {
-  return String(req.auth?.session?.userId || req.headers['x-user-id'] || '').trim();
+  const routeUserId = req.params?.userId || req.params?.customerId || '';
+  return String(routeUserId || req.auth?.session?.userId || req.headers['x-user-id'] || req.query?.userId || req.body?.userId || '').trim();
 }
 
 function buildEmptyWishlist(userId) {
@@ -136,7 +144,7 @@ async function getWishlistFromDatabase(req, userId) {
 }
 
 async function getWishlistForUser(req, userId) {
-  if (req.db && typeof req.db.query === 'function' && isLikelyUuid(userId)) {
+  if (req.db && typeof req.db.query === 'function' && isSupportedCustomerId(userId)) {
     try {
       return await getWishlistFromDatabase(req, userId);
     } catch (error) {
@@ -166,7 +174,7 @@ router.get('/:userId', async (req, res) => {
     const userId = getSessionCustomerId(req);
     const { category, availability, sortBy, order = 'desc' } = req.query;
 
-    if (!isLikelyUuid(userId)) {
+    if (!isSupportedCustomerId(userId)) {
       return res.status(401).json({ success: false, message: 'Authentication required' });
     }
     
@@ -176,7 +184,7 @@ router.get('/:userId', async (req, res) => {
 
     // Filter by availability
     if (availability === 'available' || availability === 'unavailable') {
-      if (baseWishlist.items && baseWishlist.items.length && isLikelyUuid(userId)) {
+      if (baseWishlist.items && baseWishlist.items.length && isSupportedCustomerId(userId)) {
         wishlist = availability === 'available'
           ? baseWishlist.items.filter((item) => item.isAvailable)
           : baseWishlist.items.filter((item) => !item.isAvailable);
@@ -246,7 +254,7 @@ router.get('/:userId', async (req, res) => {
 router.get('/:userId/summary', (req, res) => {
   try {
     const userId = getSessionCustomerId(req);
-    if (!isLikelyUuid(userId)) {
+    if (!isSupportedCustomerId(userId)) {
       return res.status(401).json({ success: false, message: 'Authentication required' });
     }
     const summary = getWishlistSummary(userId);
@@ -297,7 +305,7 @@ router.get('/:userId/check/:productId', (req, res) => {
 router.get('/:userId/availability', (req, res) => {
   try {
     const userId = getSessionCustomerId(req);
-    if (!isLikelyUuid(userId)) {
+    if (!isSupportedCustomerId(userId)) {
       return res.status(401).json({ success: false, message: 'Authentication required' });
     }
     const result = getWishlistAvailability(userId);
@@ -328,10 +336,10 @@ router.post('/:userId', async (req, res) => {
     // Debug: log incoming request details to help diagnose bad requests
     console.log('[Wishlist POST] userId resolved:', userId, 'body:', req.body);
 
-    if (!isLikelyUuid(userId)) {
+    if (!isSupportedCustomerId(userId)) {
       return res.status(401).json({ success: false, message: 'Authentication required' });
     }
-    
+
     if (!productId) {
       return res.status(400).json({
         success: false,
@@ -343,13 +351,25 @@ router.post('/:userId', async (req, res) => {
 
     if (req.db && typeof req.db.query === 'function' && isLikelyUuid(userId)) {
       const productResult = await req.db.query(
-        'SELECT id FROM public.products WHERE id = $1 LIMIT 1',
+        `
+        SELECT id
+        FROM public.products
+        WHERE status = 'active'
+          AND (
+            id::text = $1
+            OR slug = $1
+            OR sku = $1
+          )
+        LIMIT 1
+        `,
         [String(productId)]
       );
 
       if (!productResult.rows.length) {
         return res.status(404).json({ success: false, error: 'Product not found' });
       }
+
+      const resolvedProductId = productResult.rows[0].id;
 
       const insertResult = await req.db.query(
         `
@@ -358,7 +378,7 @@ router.post('/:userId', async (req, res) => {
         ON CONFLICT (customer_id, product_id) DO NOTHING
         RETURNING id
         `,
-        [userId, String(productId)]
+        [userId, resolvedProductId]
       );
 
       if (!insertResult.rows.length) {
@@ -369,7 +389,7 @@ router.post('/:userId', async (req, res) => {
       result = {
         success: true,
         message: 'Product added to wishlist',
-        item: refreshed.items.find((item) => item.productId === String(productId)),
+        item: refreshed.items.find((item) => item.productId === String(resolvedProductId)),
         wishlistCount: refreshed.summary.totalItems
       };
     } else {
@@ -400,11 +420,11 @@ router.delete('/:userId/item/:itemId', async (req, res) => {
     const { itemId } = req.params;
     let result;
 
-    if (!isLikelyUuid(userId)) {
+    if (!isSupportedCustomerId(userId)) {
       return res.status(401).json({ success: false, message: 'Authentication required' });
     }
 
-    if (req.db && typeof req.db.query === 'function' && isLikelyUuid(userId)) {
+    if (req.db && typeof req.db.query === 'function' && isSupportedCustomerId(userId)) {
       const deleteResult = await req.db.query(
         'DELETE FROM public.wishlists WHERE customer_id = $1 AND id = $2 RETURNING id',
         [userId, itemId]

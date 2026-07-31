@@ -6,8 +6,11 @@ const dotenv = require('dotenv');
 const path = require('path');
 const axios = require('axios');
 const { Server } = require('socket.io');
+const Stripe = require('stripe');
 const { query, testConnection, closePool } = require('../../database/postgresClient');
 const { extractToken, getActiveSession } = require('../../shared/sessionStore');
+const multer = require('multer');
+const FormData = require('form-data');
 
 // Admin routes
 const adminDashboardRoutes = require('./routes/dashboardRoutes');
@@ -25,6 +28,7 @@ const adminAuthRoutes = require('./routes/adminAuthRoutes');
 const adminSupportRoutes = require('./routes/supportRoutes');
 const adminCommissionSettingsRoutes = require('./routes/commissionSettingsRoutes');
 const adminReturnsRoutes = require('./routes/returnsRoutes');
+const adminRolesRoutes = require('./routes/adminRolesRoutes');
 
 // Seller routes
 const sellerDashboardRoutes = require('../../seller_backend/src/routes/dashboardRoutes');
@@ -59,16 +63,22 @@ const customerReturnsRoutes = require('../../customer_backend/src/routes/returns
 
 dotenv.config();
 
+const isProduction = process.env.NODE_ENV === 'production';
 const app = express();
 const server = http.createServer(app);
 const PORT = Number(process.env.PORT) || 5000;
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || '*';
 const SOCKET_CORS_ORIGIN = FRONTEND_ORIGIN === '*' ? true : FRONTEND_ORIGIN;
 const HUGGING_FACE_API_URL = process.env.HUGGING_FACE_API_URL || 'https://api-inference.huggingface.co/models/theArijitDas/distilbert-finetuned-fake-reviews';
-const HUGGING_FACE_TOKEN = process.env.HUGGING_FACE_TOKEN || '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';
+const HUGGING_FACE_TOKEN = process.env.HUGGING_FACE_TOKEN;
 const HUGGING_FACE_HEADERS = {
   Authorization: `Bearer ${HUGGING_FACE_TOKEN}`
 };
+
+app.disable('x-powered-by');
+if (isProduction) {
+  app.set('trust proxy', 1);
+}
 
 app.use(cors({
   origin: FRONTEND_ORIGIN === '*' ? true : FRONTEND_ORIGIN,
@@ -76,7 +86,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(morgan('dev'));
+app.use(morgan(isProduction ? 'combined' : 'dev'));
 
 // Friendly handler for invalid JSON bodies (body-parser SyntaxError)
 app.use((err, req, res, next) => {
@@ -215,6 +225,44 @@ function requireRole(role) {
   };
 }
 
+function permissionAllows(userPermission, requiredPermission) {
+  const normalizedUser = String(userPermission || '').trim().toLowerCase();
+  const normalizedRequired = String(requiredPermission || '').trim().toLowerCase();
+
+  if (!normalizedRequired) return true;
+  if (!normalizedUser) return false;
+  if (normalizedUser === '*' || normalizedUser === normalizedRequired) return true;
+
+  const [userModule, userAction] = normalizedUser.split('.');
+  const [requiredModule, requiredAction] = normalizedRequired.split('.');
+  if (!userModule || !requiredModule || userModule !== requiredModule) {
+    return false;
+  }
+
+  if (userAction === 'manage' || userAction === '*') {
+    return true;
+  }
+
+  return false;
+}
+
+function requirePermission(permission) {
+  return (req, res, next) => {
+    if (!req.auth || !req.auth.user) {
+      return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
+
+    const permissions = Array.isArray(req.auth.user.permissions) ? req.auth.user.permissions : [];
+    const hasAccess = permissions.some((entry) => permissionAllows(entry, String(permission).trim().toLowerCase()));
+
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, message: 'Forbidden: insufficient permissions' });
+    }
+
+    next();
+  };
+}
+
 function adminPageGuard(req, res, next) {
   const requestedPath = String(req.path || '').toLowerCase();
   if (requestedPath.includes('admin_login.html')) {
@@ -261,6 +309,109 @@ app.get('/api/health', async (req, res) => {
         error: error.message || error.code || 'Database connection failed'
       }
     });
+  }
+});
+
+// Stripe integration endpoints (publishable key + create PaymentIntent)
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
+
+app.get('/api/stripe/config', (req, res) => {
+  return res.json({
+    success: true,
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || ''
+  });
+});
+
+// Backwards-compatible aliases used by frontend
+app.get('/api/checkout/stripe-config', (req, res) => {
+  return res.json({ success: true, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '' });
+});
+
+app.post('/api/stripe/create-payment-intent', async (req, res) => {
+  try {
+    if (!stripe) return res.status(500).json({ success: false, message: 'Stripe not configured on server' });
+
+    const amount = Number(req.body.amount || 0);
+    const currency = String(req.body.currency || 'pkr').toLowerCase();
+    const metadata = req.body.metadata || {};
+
+    if (!amount || amount <= 0) return res.status(400).json({ success: false, message: 'Invalid amount' });
+
+    const intent = await stripe.paymentIntents.create({
+      amount: Math.round(amount),
+      currency,
+      automatic_payment_methods: { enabled: true },
+      metadata
+    });
+
+    return res.json({ success: true, clientSecret: intent.client_secret, paymentIntentId: intent.id });
+  } catch (err) {
+    console.error('create-payment-intent error', err && err.message);
+    return res.status(500).json({ success: false, message: 'Failed to create payment intent', error: String(err && err.message) });
+  }
+});
+
+// Alias for frontend legacy path
+app.post('/api/checkout/create-payment-intent', async (req, res) => {
+  // forward to same logic
+  try {
+    if (!stripe) return res.status(500).json({ success: false, message: 'Stripe not configured on server' });
+    const amount = Number(req.body.amount || 0);
+    const currency = String(req.body.currency || 'pkr').toLowerCase();
+    const metadata = req.body.metadata || {};
+    if (!amount || amount <= 0) return res.status(400).json({ success: false, message: 'Invalid amount' });
+    const intent = await stripe.paymentIntents.create({ amount: Math.round(amount), currency, automatic_payment_methods: { enabled: true }, metadata });
+    return res.json({ success: true, clientSecret: intent.client_secret, paymentIntentId: intent.id });
+  } catch (err) {
+    console.error('create-payment-intent alias error', err && err.message);
+    return res.status(500).json({ success: false, message: 'Failed to create payment intent', error: String(err && err.message) });
+  }
+});
+
+// Visual Search: accept image upload, forward to AI service, return real products from DB
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+app.post('/api/visual-search', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'Image file is required (field name: image)' });
+
+    const top_k = Number(req.query.top_k || req.body.top_k || 5);
+    const AI_URL = process.env.AI_SERVICE_URL || 'http://127.0.0.1:8000/api/visual-search';
+
+    const form = new FormData();
+    form.append('image', req.file.buffer, {
+      filename: req.file.originalname || 'upload.jpg',
+      contentType: req.file.mimetype || 'image/jpeg'
+    });
+
+    const forwardUrl = `${AI_URL}?top_k=${encodeURIComponent(top_k)}`;
+
+    const aiResp = await axios.post(forwardUrl, form, { headers: { ...form.getHeaders(), ...(process.env.HUGGING_FACE_HEADERS || {}) } });
+
+    const recommendations = (aiResp?.data?.recommendations) || [];
+    const productIds = recommendations.map((r) => String(r.product_id));
+
+    if (!productIds.length) {
+      return res.json({ success: true, recommendations: [], products: [] });
+    }
+
+    // Discover an appropriate id column in the products table and query it.
+    const candidateColumns = ['product_id', 'id', 'productid', 'sku', 'code', 'pid'];
+    const colRes = await query("SELECT column_name FROM information_schema.columns WHERE table_name='products'");
+    const existing = Array.isArray(colRes?.rows) ? colRes.rows.map(r => String(r.column_name).toLowerCase()) : [];
+    const found = candidateColumns.find(c => existing.includes(c));
+
+    if (!found) {
+      console.warn('No suitable product id column found in products table; returning recommendations without DB enrichment');
+      return res.json({ success: true, recommendations, products: [] });
+    }
+
+    const sql = `SELECT * FROM products WHERE ${found}::text = ANY($1)`;
+    const dbRes = await query(sql, [productIds]);
+
+    return res.json({ success: true, recommendations, products: dbRes.rows });
+  } catch (error) {
+    console.error('visual-search error:', error?.message || error);
+    return res.status(500).json({ success: false, message: 'Visual search failed', error: String(error?.message || error) });
   }
 });
 
@@ -315,21 +466,22 @@ app.post('/submit-review', async (req, res) => {
 
 // Admin endpoints
 app.use('/api/admin/auth', adminAuthRoutes);
-app.use('/api/admin/dashboard', authenticateRequest, requireRole('admin'), adminDashboardRoutes);
-app.use('/api/admin/cms', authenticateRequest, requireRole('admin'), adminCmsRoutes);
-app.use('/api/admin/disputes', authenticateRequest, requireRole('admin'), adminDisputeRoutes);
-app.use('/api/admin/logistics', authenticateRequest, requireRole('admin'), adminLogisticsRoutes);
-app.use('/api/admin/orders', authenticateRequest, requireRole('admin'), adminOrderRoutes);
-app.use('/api/admin/payments', authenticateRequest, requireRole('admin'), adminPaymentPayoutRoutes);
-app.use('/api/admin/catalog', authenticateRequest, requireRole('admin'), adminProductCatalogRoutes);
-app.use('/api/admin/reports', authenticateRequest, requireRole('admin'), adminReportsAnalyticsRoutes);
-app.use('/api/admin/reviews', authenticateRequest, requireRole('admin'), adminReviewsRatingsRoutes);
-app.use('/api/admin/sellers', authenticateRequest, requireRole('admin'), adminSellerManagementRoutes);
-app.use('/api/admin/users', authenticateRequest, requireRole('admin'), adminUserManagementRoutes);
-app.use('/api/admin/support', authenticateRequest, requireRole('admin'), adminSupportRoutes);
-app.use('/api/admin/commission-settings', authenticateRequest, requireRole('admin'), adminCommissionSettingsRoutes);
-app.use('/api/admin/marketplace-settings', authenticateRequest, requireRole('admin'), adminCommissionSettingsRoutes);
-app.use('/api/admin/returns', authenticateRequest, requireRole('admin'), adminReturnsRoutes);
+app.use('/api/admin/roles', authenticateRequest, requireRole('admin'), requirePermission('settings.manage'), adminRolesRoutes);
+app.use('/api/admin/dashboard', authenticateRequest, requireRole('admin'), requirePermission('dashboard.view'), adminDashboardRoutes);
+app.use('/api/admin/cms', authenticateRequest, requireRole('admin'), requirePermission('cms.view'), adminCmsRoutes);
+app.use('/api/admin/disputes', authenticateRequest, requireRole('admin'), requirePermission('support.view'), adminDisputeRoutes);
+app.use('/api/admin/logistics', authenticateRequest, requireRole('admin'), requirePermission('logistics.view'), adminLogisticsRoutes);
+app.use('/api/admin/orders', authenticateRequest, requireRole('admin'), requirePermission('orders.view'), adminOrderRoutes);
+app.use('/api/admin/payments', authenticateRequest, requireRole('admin'), requirePermission('payments.view'), adminPaymentPayoutRoutes);
+app.use('/api/admin/catalog', authenticateRequest, requireRole('admin'), requirePermission('products.view'), adminProductCatalogRoutes);
+app.use('/api/admin/reports', authenticateRequest, requireRole('admin'), requirePermission('reports.view'), adminReportsAnalyticsRoutes);
+app.use('/api/admin/reviews', authenticateRequest, requireRole('admin'), requirePermission('reviews.view'), adminReviewsRatingsRoutes);
+app.use('/api/admin/sellers', authenticateRequest, requireRole('admin'), requirePermission('sellers.view'), adminSellerManagementRoutes);
+app.use('/api/admin/users', authenticateRequest, requireRole('admin'), requirePermission('customers.view'), adminUserManagementRoutes);
+app.use('/api/admin/support', authenticateRequest, requireRole('admin'), requirePermission('support.view'), adminSupportRoutes);
+app.use('/api/admin/commission-settings', authenticateRequest, requireRole('admin'), requirePermission('settings.view'), adminCommissionSettingsRoutes);
+app.use('/api/admin/marketplace-settings', authenticateRequest, requireRole('admin'), requirePermission('settings.view'), adminCommissionSettingsRoutes);
+app.use('/api/admin/returns', authenticateRequest, requireRole('admin'), requirePermission('orders.view'), adminReturnsRoutes);
 
 // Seller endpoints
 app.use('/api/seller/dashboard', authenticateRequest, requireRole('seller'), sellerDashboardRoutes);
@@ -429,25 +581,34 @@ const sellerJsPath = path.resolve(__dirname, '../../..', 'Front_End/Seller/js');
 const sellerRootPath = path.resolve(__dirname, '../../..', 'Front_End/Seller');
 const customerPagesPath = path.resolve(__dirname, '../../..');
 
+const uploadsPath = path.resolve(__dirname, '../../..', 'uploads');
+
+const staticOptions = isProduction ? { maxAge: '30d', immutable: true } : { maxAge: 0 };
+const htmlStaticOptions = isProduction ? { maxAge: '1d' } : { maxAge: 0 };
+const uploadsStaticOptions = isProduction ? { maxAge: '7d' } : { maxAge: 0 };
+
+// Serve uploaded files publicly
+app.use('/uploads', express.static(uploadsPath, uploadsStaticOptions));
+
 // Serve JS files without auth guards (these are public assets)
-app.use('/js', express.static(adminJsPath));
-app.use('/js', express.static(sellerJsPath));
+app.use('/js', express.static(adminJsPath, staticOptions));
+app.use('/js', express.static(sellerJsPath, staticOptions));
 
 // Serve admin pages with auth guard
-app.use('/admin-pages', adminPageGuard, express.static(adminPagesPath));
+app.use('/admin-pages', adminPageGuard, express.static(adminPagesPath, htmlStaticOptions));
 
 // Serve seller pages with auth guard
-app.use('/seller-pages', sellerPageGuard, express.static(sellerPagesPath));
-app.use('/Seller/pages', sellerPageGuard, express.static(sellerPagesPath));
-app.use('/Seller/js', express.static(sellerJsPath));
-app.use('/Front_End/Seller', sellerPageGuard, express.static(sellerRootPath));
+app.use('/seller-pages', sellerPageGuard, express.static(sellerPagesPath, htmlStaticOptions));
+app.use('/Seller/pages', sellerPageGuard, express.static(sellerPagesPath, htmlStaticOptions));
+app.use('/Seller/js', express.static(sellerJsPath, staticOptions));
+app.use('/Front_End/Seller', sellerPageGuard, express.static(sellerRootPath, htmlStaticOptions));
 
 // Serve customer pages
-app.use('/customer-pages/Front_End/Seller', sellerPageGuard, express.static(sellerRootPath));
-app.use('/customer-pages', express.static(customerPagesPath));
+app.use('/customer-pages/Front_End/Seller', sellerPageGuard, express.static(sellerRootPath, htmlStaticOptions));
+app.use('/customer-pages', express.static(customerPagesPath, htmlStaticOptions));
 
 // Serve top-level customer pages directly (e.g. /login_register.html)
-app.use('/', express.static(customerPagesPath));
+app.use('/', express.static(customerPagesPath, htmlStaticOptions));
 
 // Root aliases for common customer auth pages
 app.get('/login_register.html', (req, res) => {
@@ -488,7 +649,7 @@ async function startServer() {
   }
 
   server.listen(PORT, () => {
-    console.log(`Unified backend running on http://localhost:${PORT}`);
+    console.log(`[Unified API] Listening on port ${PORT}`);
   });
 }
 

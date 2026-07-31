@@ -1,6 +1,7 @@
 console.log('Inventory-management.html script loaded');
 
-const API_BASE = 'http://localhost:5000/api/seller/inventory';
+const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+const API_BASE = `${API_BASE_URL}/seller/inventory`;
 
 function getSellerId() {
   const candidateKeys = ['sellerId', 'seller_id', 'currentSellerId', 'sellerUserId', 'userId'];
@@ -138,44 +139,41 @@ function renderInventoryTable() {
 }
 
 function renderPagination() {
-  const paginationDiv = document.getElementById('inventoryPagination');
-  paginationDiv.innerHTML = '';
+  const container = document.getElementById('inventoryPagination');
+  if (!container) return;
 
-  const totalPages = Math.ceil(filteredInventory.length / itemsPerPage);
-  if (!totalPages) return;
+  const totalPages = Math.max(1, Math.ceil(filteredInventory.length / itemsPerPage));
+  if (currentPage > totalPages) currentPage = totalPages;
 
-  const prevBtn = document.createElement('button');
-  prevBtn.textContent = 'Prev';
-  prevBtn.disabled = currentPage === 1;
-  prevBtn.addEventListener('click', () => {
-    if (currentPage > 1) {
-      currentPage -= 1;
-      renderInventoryTable();
-    }
-  });
-  paginationDiv.appendChild(prevBtn);
-
-  for (let i = 1; i <= totalPages; i += 1) {
-    const pageBtn = document.createElement('button');
-    pageBtn.textContent = i;
-    pageBtn.className = i === currentPage ? 'active' : '';
-    pageBtn.addEventListener('click', () => {
-      currentPage = i;
-      renderInventoryTable();
-    });
-    paginationDiv.appendChild(pageBtn);
+  if (totalPages <= 1) {
+    container.innerHTML = '';
+    return;
   }
 
-  const nextBtn = document.createElement('button');
-  nextBtn.textContent = 'Next';
-  nextBtn.disabled = currentPage === totalPages;
-  nextBtn.addEventListener('click', () => {
-    if (currentPage < totalPages) {
-      currentPage += 1;
-      renderInventoryTable();
+  let html = '';
+  if (currentPage > 1) {
+    html += `<button onclick="goPage(${currentPage - 1})">← Prev</button>`;
+  }
+
+  for (let index = 1; index <= totalPages; index += 1) {
+    if (index <= 2 || index >= totalPages - 1 || Math.abs(index - currentPage) <= 1) {
+      html += `<button onclick="goPage(${index})" class="${currentPage === index ? 'active' : ''}">${index}</button>`;
+    } else if (index === currentPage - 2 || index === currentPage + 2) {
+      html += '<button disabled>...</button>';
     }
-  });
-  paginationDiv.appendChild(nextBtn);
+  }
+
+  if (currentPage < totalPages) {
+    html += `<button onclick="goPage(${currentPage + 1})">Next →</button>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function goPage(page) {
+  currentPage = page;
+  renderInventoryTable();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function openAdjustStockModal(productId) {
@@ -533,17 +531,27 @@ function openKYCModal() {
   const closeKYCModalBtn = document.getElementById('closeKYCModal');
 
   updateKYCDisplay();
-  kycModal.classList.add('active');
+  if (kycModal) {
+    kycModal.classList.add('active');
+  }
 
-  closeKYCModalBtn.addEventListener('click', closeKYCModal_handler);
+  if (closeKYCModalBtn) {
+    closeKYCModalBtn.addEventListener('click', closeKYCModal_handler);
+  }
 }
 
 function closeKYCModal_handler() {
-  document.getElementById('kycModal').classList.remove('active');
+  const kycModal = document.getElementById('kycModal');
+  if (kycModal) {
+    kycModal.classList.remove('active');
+  }
 }
 
 function closeKYCModal() {
-  document.getElementById('kycModal').classList.remove('active');
+  const kycModal = document.getElementById('kycModal');
+  if (kycModal) {
+    kycModal.classList.remove('active');
+  }
 }
 
 function updateKYCDisplay() {
@@ -563,11 +571,18 @@ function updateKYCDisplay() {
 
   const statusDisplay = document.getElementById('kycStatusDisplay');
   const statusDetail = document.getElementById('kycStatusDetail');
+  const resolvedStatus = statusMap[kycState.status] || 'Under Review';
+  const resolvedColor = colorMap[kycState.status] || '#0066c0';
 
-  statusDisplay.textContent = statusMap[kycState.status] || 'Under Review';
-  statusDetail.textContent = statusMap[kycState.status] || 'Under Review';
-  statusDisplay.style.color = colorMap[kycState.status] || '#0066c0';
-  statusDetail.style.color = colorMap[kycState.status] || '#0066c0';
+  if (statusDisplay) {
+    statusDisplay.textContent = resolvedStatus;
+    statusDisplay.style.color = resolvedColor;
+  }
+
+  if (statusDetail) {
+    statusDetail.textContent = resolvedStatus;
+    statusDetail.style.color = resolvedColor;
+  }
 }
 
 function viewKYCProfile() {

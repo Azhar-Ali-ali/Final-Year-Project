@@ -1,4 +1,13 @@
-const API_BASE = '/api/admin/reports';
+function getReportsApiBase() {
+  const base = (typeof window !== 'undefined' && (window.API_BASE_URL || window.ADMIN_API_BASE_URL || `${window.location.origin}/api`)) || `${window.location.origin}/api`;
+  return `${base}/admin/reports`;
+}
+
+const API_BASE = getReportsApiBase();
+
+function getAdminToken() {
+  return localStorage.getItem('lumina.admin.authToken') || localStorage.getItem('lumina.auth.token') || localStorage.getItem('adminToken') || '';
+}
 
 const state = {
   overview: null,
@@ -7,8 +16,7 @@ const state = {
   sales: [],
   orders: [],
   users: null,
-  products: [],
-  customReports: []
+  products: []
 };
 
 function q(id) {
@@ -21,11 +29,18 @@ function normalize(value) {
 
 function formatCurrency(value) {
   const amount = Number(value || 0);
-  return `\u09F3${amount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+  if (!Number.isFinite(amount)) return 'PKR 0';
+  return `PKR ${amount.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 }
 
 function formatNumber(value) {
-  return Number(value || 0).toLocaleString('en-IN');
+  const amount = Number(value || 0);
+  return Number.isFinite(amount) ? amount.toLocaleString('en-PK') : '0';
+}
+
+function formatPercent(value) {
+  const amount = Number(value || 0);
+  return Number.isFinite(amount) ? `${amount.toFixed(2)}%` : '0.00%';
 }
 
 function formatDate(value) {
@@ -55,11 +70,16 @@ function getAdminId() {
 }
 
 async function api(path, options = {}) {
+  const token = getAdminToken();
   const response = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
       'x-admin-id': getAdminId(),
+      ...(token ? {
+        Authorization: `Bearer ${token}`,
+        'x-session-token': token
+      } : {}),
       ...(options.headers || {})
     }
   });
@@ -73,7 +93,7 @@ async function api(path, options = {}) {
 
 function currentOverviewFilters() {
   return {
-    period: q('filter-overview-period')?.value || 'week',
+    period: q('filter-overview-period')?.value || 'month',
     region: q('filter-overview-region')?.value || ''
   };
 }
@@ -81,9 +101,10 @@ function currentOverviewFilters() {
 async function loadOverview() {
   const params = new URLSearchParams(currentOverviewFilters());
   const res = await api(`/overview?${params.toString()}`);
-  state.overview = res.data?.summary || null;
-  state.trend = res.data?.trend || [];
-  state.categories = res.data?.categories || [];
+  const data = res.data || {};
+  state.overview = data.summary || null;
+  state.trend = Array.isArray(data.trend) ? data.trend : [];
+  state.categories = Array.isArray(data.categories) ? data.categories : [];
 }
 
 async function loadSales() {
@@ -93,7 +114,7 @@ async function loadSales() {
     search: q('search-sales')?.value || ''
   });
   const res = await api(`/sales?${params.toString()}`);
-  state.sales = res.data || [];
+  state.sales = Array.isArray(res.data) ? res.data : [];
 }
 
 async function loadOrders() {
@@ -104,7 +125,7 @@ async function loadOrders() {
     search: q('search-orders')?.value || ''
   });
   const res = await api(`/orders?${params.toString()}`);
-  state.orders = res.data || [];
+  state.orders = Array.isArray(res.data) ? res.data : [];
 }
 
 async function loadUsers() {
@@ -122,12 +143,7 @@ async function loadProducts() {
     search: q('search-products')?.value || ''
   });
   const res = await api(`/products?${params.toString()}`);
-  state.products = res.data || [];
-}
-
-async function loadCustomReports() {
-  const res = await api('/custom');
-  state.customReports = res.data || [];
+  state.products = Array.isArray(res.data) ? res.data : [];
 }
 
 function renderOverview() {
@@ -136,7 +152,8 @@ function renderOverview() {
     todayGMV: 0,
     periodGMV: 0,
     commissionEarned: 0,
-    refundRate: 0
+    refundRate: 0,
+    totalOrders: 0
   };
 
   if (kpi) {
@@ -154,26 +171,27 @@ function renderOverview() {
         <div class="stat-label">Commission Earned</div>
       </div>
       <div class="stat-card warning">
-        <div class="stat-value">${Number(summary.refundRate || 0).toFixed(2)}%</div>
+        <div class="stat-value">${formatPercent(summary.refundRate)}</div>
         <div class="stat-label">Refund Rate</div>
       </div>
     `;
   }
 
-  const maxRevenue = Math.max(1, ...state.trend.map((x) => Number(x.revenue || 0)));
-  const trendBars = state.trend.slice(-7).map((item) => {
+  const trendData = Array.isArray(state.trend) ? state.trend : [];
+  const maxRevenue = Math.max(1, ...trendData.map((x) => Number(x.revenue || 0)));
+  const trendBars = trendData.slice(-7).map((item) => {
     const h = Math.max(30, Math.round((Number(item.revenue || 0) / maxRevenue) * 220));
     return `<div style="flex: 1; background: linear-gradient(to top, var(--success), var(--info)); height: ${h}px; border-radius: 4px; display: flex; align-items: flex-end; justify-content: center; color: white; font-size: 11px; font-weight: 600;">${formatNumber(item.orders || 0)}</div>`;
   }).join('');
 
-  const revenueBox = document.querySelector('#overview div[style*="height: 300px"]');
+  const revenueBox = q('overview-trend') || document.querySelector('#overview div[style*="height: 300px"]');
   if (revenueBox) revenueBox.innerHTML = trendBars || '<div class="subtle">No trend data found</div>';
 
   const categoriesEl = q('chart-categories');
   if (categoriesEl) {
     categoriesEl.innerHTML = state.categories.map((cat) => `
       <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
-        <span><strong>${cat.name}</strong><br><span class="subtle">${formatNumber(cat.orders)} orders</span></span>
+        <span><strong>${cat.name || 'Uncategorized'}</strong><br><span class="subtle">${formatNumber(cat.orders)} orders</span></span>
         <span style="font-weight: 700; color: var(--info);">${formatCurrency(cat.revenue)}</span>
       </div>
     `).join('') || '<div class="subtle">No category data found</div>';
@@ -228,8 +246,8 @@ function renderOrders() {
         <td>${row.customer || 'Unknown'}</td>
         <td style="text-align: right;">${formatCurrency(row.amount)}</td>
         <td style="text-align: center;">${formatNumber(row.items)}</td>
-        <td><span class="badge ${statusClass}">${status}</span></td>
-        <td><span class="badge ${paymentClass}">${payment}</span></td>
+        <td><span class="badge ${statusClass}">${status || 'pending'}</span></td>
+        <td><span class="badge ${paymentClass}">${payment || 'pending'}</span></td>
         <td style="font-size: 11px;">${formatDate(row.date)}</td>
         <td><button class="btn sm ghost">Details</button></td>
       </tr>
@@ -247,8 +265,9 @@ function renderUsers() {
   const data = state.users || { growth: [], allDistribution: [] };
 
   if (growthEl) {
-    const maxVal = Math.max(1, ...data.growth.map((g) => Number(g.buyers || 0) + Number(g.sellers || 0) + Number(g.admins || 0)));
-    growthEl.innerHTML = data.growth.slice(-6).map((g) => {
+    const growthData = Array.isArray(data.growth) ? data.growth : [];
+    const maxVal = Math.max(1, ...growthData.map((g) => Number(g.buyers || 0) + Number(g.sellers || 0) + Number(g.admins || 0)));
+    growthEl.innerHTML = growthData.slice(-6).map((g) => {
       const total = Number(g.buyers || 0) + Number(g.sellers || 0) + Number(g.admins || 0);
       const h = Math.max(24, Math.round((total / maxVal) * 180));
       return `<div style="flex: 1; background: linear-gradient(to top, var(--info), var(--purple)); height: ${h}px; border-radius: 4px;" title="${formatDate(g.day)}"></div>`;
@@ -293,8 +312,8 @@ function renderProducts() {
 
     return `
       <tr>
-        <td><strong>${p.name}</strong></td>
-        <td>${p.category}</td>
+        <td><strong>${p.name || 'Unnamed product'}</strong></td>
+        <td>${p.category || 'Uncategorized'}</td>
         <td style="text-align: center;">${formatNumber(p.sales)}</td>
         <td style="text-align: right;">${formatCurrency(p.revenue)}</td>
         <td style="text-align: center;">\u2b50 ${Number(p.avgRating || 0).toFixed(1)}</td>
@@ -310,65 +329,15 @@ function renderProducts() {
   }
 }
 
-function renderCustomReports() {
-  const grid = q('custom-reports-grid');
-  if (!grid) return;
-
-  grid.innerHTML = state.customReports.map((r) => `
-    <div style="background: white; border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
-      <div style="font-weight: 700; margin-bottom: 8px;">${r.name}</div>
-      <div style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">
-        <div>Created: ${formatDate(r.createdAt)}</div>
-        <div>Last run: ${r.lastRun ? formatDate(r.lastRun) : 'Never'}</div>
-      </div>
-      <div style="display: flex; gap: 8px;">
-        <button class="btn sm success" onclick="runCustomReport('${r.id}')">Run Now</button>
-        <button class="btn sm ghost">Edit</button>
-      </div>
-    </div>
-  `).join('');
-
-  if (!state.customReports.length) {
-    grid.innerHTML = '<div class="subtle">No custom reports created yet</div>';
-  }
-}
-
 async function refreshAll() {
-  await Promise.all([loadOverview(), loadSales(), loadOrders(), loadUsers(), loadProducts(), loadCustomReports()]);
+  await Promise.all([loadOverview(), loadSales(), loadOrders(), loadUsers(), loadProducts()]);
   renderOverview();
   renderSales();
   renderOrders();
   renderUsers();
   renderProducts();
-  renderCustomReports();
 }
 
-async function runCustomReport(id) {
-  try {
-    await api(`/custom/${id}/run`, { method: 'POST', body: JSON.stringify({}) });
-    await loadCustomReports();
-    renderCustomReports();
-    showToast('Report executed successfully');
-  } catch (error) {
-    showToast(error.message, 'error');
-  }
-}
-
-async function createCustomReport() {
-  const name = prompt('Enter custom report name:');
-  if (!name) return;
-  try {
-    await api('/custom', {
-      method: 'POST',
-      body: JSON.stringify({ name, description: 'Created from Admin Reports page' })
-    });
-    await loadCustomReports();
-    renderCustomReports();
-    showToast('Custom report created');
-  } catch (error) {
-    showToast(error.message, 'error');
-  }
-}
 
 async function saveSchedule() {
   const reportType = q('schedule-report-type')?.value || '';
@@ -406,7 +375,7 @@ async function exportReport() {
     });
 
     if (format === 'csv') {
-      const url = result.data?.downloadUrl || `/api/admin/reports/download?reportType=${encodeURIComponent(reportType)}&format=csv`;
+      const url = result.data?.downloadUrl || `/admin/reports/download?reportType=${encodeURIComponent(reportType)}&format=csv`;
       const link = document.createElement('a');
       link.href = url;
       link.style.display = 'none';
@@ -452,7 +421,6 @@ function bindActions() {
   q('btn-export-orders')?.addEventListener('click', () => openModal('export-modal'));
   q('btn-export-products')?.addEventListener('click', () => openModal('export-modal'));
 
-  q('btn-create-custom')?.addEventListener('click', createCustomReport);
 
   document.querySelectorAll('.modal').forEach((modal) => {
     modal.addEventListener('click', (e) => {
@@ -475,6 +443,10 @@ async function initializeReportsAnalytics() {
   try {
     bindActions();
     bindFilters();
+    const overviewPeriod = q('filter-overview-period');
+    if (overviewPeriod && overviewPeriod.value === 'today') {
+      overviewPeriod.value = 'month';
+    }
     await refreshAll();
   } catch (error) {
     showToast(error.message || 'Failed to load reports data', 'error');
@@ -483,6 +455,5 @@ async function initializeReportsAnalytics() {
 
 window.closeModal = closeModal;
 window.openModal = openModal;
-window.runCustomReport = runCustomReport;
 
 document.addEventListener('DOMContentLoaded', initializeReportsAnalytics);

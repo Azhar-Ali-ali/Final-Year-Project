@@ -86,7 +86,36 @@ async function ensureNotificationTable(req) {
   `);
 }
 
-async function createSellerNotification(req, sellerId, title, body, type = 'info', meta = {}) {
+async function getNotificationPreference(req, sellerId, preferenceKey) {
+  try {
+    const result = await req.db.query(
+      `
+        SELECT email_notifications, sms_notifications, push_notifications, marketing_opt_in
+        FROM lumina.user_preferences
+        WHERE user_id = $1
+        LIMIT 1
+      `,
+      [sellerId]
+    );
+
+    const row = result.rows[0] || {};
+    if (preferenceKey === 'orderAlerts') return Boolean(row.email_notifications ?? true);
+    if (preferenceKey === 'paymentAlerts') return Boolean(row.sms_notifications ?? true);
+    if (preferenceKey === 'chatNotifications') return Boolean(row.push_notifications ?? true);
+    if (preferenceKey === 'promotions') return !Boolean(row.marketing_opt_in ?? false);
+    if (preferenceKey === 'reviews') return Boolean(row.email_notifications ?? true);
+    return true;
+  } catch (_) {
+    return true;
+  }
+}
+
+async function createSellerNotification(req, sellerId, title, body, type = 'info', meta = {}, preferenceKey = null) {
+  if (preferenceKey) {
+    const isEnabled = await getNotificationPreference(req, sellerId, preferenceKey);
+    if (!isEnabled) return null;
+  }
+
   await ensureNotificationTable(req);
   await req.db.query(
     `
@@ -95,6 +124,8 @@ async function createSellerNotification(req, sellerId, title, body, type = 'info
     `,
     [sellerId, title, body, type, JSON.stringify(meta || {})]
   );
+
+  return { success: true };
 }
 
 async function getBankAccountCount(req, sellerId) {
@@ -663,66 +694,65 @@ router.get('/chart', async (req, res) => {
 
     const sql = period === 'weekly'
       ? `
-        WITH data AS (
+        WITH seller_order_totals AS (
           SELECT
-            EXTRACT(WEEK FROM created_at)::int AS bucket,
-            SUM(amount)::numeric AS value
-          FROM public.seller_ledger
-          WHERE seller_id = $1
-            AND created_at >= CURRENT_DATE - INTERVAL '28 days'
-            AND entry_type = 'sale_credit'
-          GROUP BY EXTRACT(WEEK FROM created_at)
+            o.id AS order_id,
+            o.status::text AS order_status,
+            COALESCE(UPPER(COALESCE((SELECT p.status::text FROM public.payments p WHERE p.order_id = o.id ORDER BY p.created_at DESC LIMIT 1), 'pending')), 'PENDING') AS payment_status,
+            o.placed_at AS order_placed_at,
+            o.created_at AS order_created_at,
+            SUM(GREATEST(0, COALESCE(oi.line_total, 0) - COALESCE(oi.commission_amount, 0)))::numeric AS seller_earning
+          FROM public.orders o
+          JOIN public.order_items oi ON oi.order_id = o.id
+          WHERE oi.seller_id = $1
+          GROUP BY o.id, o.status, o.placed_at, o.created_at
+        ),
+        filtered_orders AS (
+          SELECT *
+          FROM seller_order_totals
+          WHERE LOWER(COALESCE(order_status, 'pending')) = 'delivered'
+        ),
+        data AS (
+          SELECT
+            EXTRACT(WEEK FROM COALESCE(order_placed_at, order_created_at))::int AS bucket,
+            SUM(seller_earning)::numeric AS value
+          FROM filtered_orders
+          WHERE COALESCE(order_placed_at, order_created_at) >= CURRENT_DATE - INTERVAL '28 days'
+          GROUP BY EXTRACT(WEEK FROM COALESCE(order_placed_at, order_created_at))
         )
         SELECT bucket AS month_index, value FROM data ORDER BY bucket ASC
       `
       : `
-        WITH data AS (
+        WITH seller_order_totals AS (
           SELECT
-            EXTRACT(MONTH FROM created_at)::int AS bucket,
-            SUM(amount)::numeric AS value
-          FROM public.seller_ledger
-          WHERE seller_id = $1
-            AND created_at >= DATE_TRUNC('year', CURRENT_DATE)
-            AND entry_type = 'sale_credit'
-          GROUP BY EXTRACT(MONTH FROM created_at)
+            o.id AS order_id,
+            o.status::text AS order_status,
+            COALESCE(UPPER(COALESCE((SELECT p.status::text FROM public.payments p WHERE p.order_id = o.id ORDER BY p.created_at DESC LIMIT 1), 'pending')), 'PENDING') AS payment_status,
+            o.placed_at AS order_placed_at,
+            o.created_at AS order_created_at,
+            SUM(GREATEST(0, COALESCE(oi.line_total, 0) - COALESCE(oi.commission_amount, 0)))::numeric AS seller_earning
+          FROM public.orders o
+          JOIN public.order_items oi ON oi.order_id = o.id
+          WHERE oi.seller_id = $1
+          GROUP BY o.id, o.status, o.placed_at, o.created_at
+        ),
+        filtered_orders AS (
+          SELECT *
+          FROM seller_order_totals
+          WHERE LOWER(COALESCE(order_status, 'pending')) = 'delivered'
+        ),
+        data AS (
+          SELECT
+            EXTRACT(MONTH FROM COALESCE(order_placed_at, order_created_at))::int AS bucket,
+            SUM(seller_earning)::numeric AS value
+          FROM filtered_orders
+          WHERE COALESCE(order_placed_at, order_created_at) >= DATE_TRUNC('year', CURRENT_DATE)
+          GROUP BY EXTRACT(MONTH FROM COALESCE(order_placed_at, order_created_at))
         )
         SELECT bucket AS month_index, value FROM data ORDER BY bucket ASC
       `;
 
-    let result = await req.db.query(sql, [sellerId]);
-    if (!result.rows.length) {
-      const fallbackSql = period === 'weekly'
-        ? `
-          WITH data AS (
-            SELECT
-              EXTRACT(WEEK FROM COALESCE(o.placed_at, o.created_at))::int AS bucket,
-              SUM(oi.line_total)::numeric AS value
-            FROM public.order_items oi
-            JOIN public.orders o ON o.id = oi.order_id
-            WHERE oi.seller_id = $1
-              AND COALESCE(o.placed_at, o.created_at) >= CURRENT_DATE - INTERVAL '28 days'
-              AND COALESCE(to_jsonb(o)->>'payment_status', 'pending') <> 'pending'
-            GROUP BY EXTRACT(WEEK FROM COALESCE(o.placed_at, o.created_at))
-          )
-          SELECT bucket AS month_index, value FROM data ORDER BY bucket ASC
-        `
-        : `
-          WITH data AS (
-            SELECT
-              EXTRACT(MONTH FROM COALESCE(o.placed_at, o.created_at))::int AS bucket,
-              SUM(oi.line_total)::numeric AS value
-            FROM public.order_items oi
-            JOIN public.orders o ON o.id = oi.order_id
-            WHERE oi.seller_id = $1
-              AND COALESCE(o.placed_at, o.created_at) >= DATE_TRUNC('year', CURRENT_DATE)
-              AND COALESCE(to_jsonb(o)->>'payment_status', 'pending') <> 'pending'
-            GROUP BY EXTRACT(MONTH FROM COALESCE(o.placed_at, o.created_at))
-          )
-          SELECT bucket AS month_index, value FROM data ORDER BY bucket ASC
-        `;
-
-      result = await req.db.query(fallbackSql, [sellerId]);
-    }
+    const result = await req.db.query(sql, [sellerId]);
     const labels = period === 'weekly'
       ? ['W1', 'W2', 'W3', 'W4']
       : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -958,7 +988,7 @@ router.post('/withdrawals', async (req, res) => {
       [sellerId, -amount, `Withdrawal request ${payoutRef}`]
     );
 
-    await createSellerNotification(req, sellerId, 'Payout request submitted', `Your payout request for ${toMoney(amount)} is awaiting admin review.`, 'info', { payoutReference: payoutRef, amount });
+    await createSellerNotification(req, sellerId, 'Payout request submitted', `Your payout request for ${toMoney(amount)} is awaiting admin review.`, 'info', { payoutReference: payoutRef, amount }, 'paymentAlerts');
     await refreshSellerPayoutState(req.db, sellerId);
 
     const withdrawal = insertResult.rows[0];
@@ -1080,3 +1110,4 @@ router.get('/export', async (req, res) => {
 module.exports = router;
 module.exports.normalizePayoutStatus = normalizePayoutStatus;
 module.exports.shouldSuppressLedgerPayoutEntry = shouldSuppressLedgerPayoutEntry;
+module.exports.__testCreateSellerNotification = createSellerNotification;

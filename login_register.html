@@ -135,10 +135,10 @@
 						</div>
 
 						<!-- Social Login -->
-						<button class="w-full border-2 border-gray-300 rounded-xl py-3 font-semibold hover:border-black transition-all flex items-center justify-center gap-2">
+						<a href="/api/auth/google" class="w-full border-2 border-gray-300 rounded-xl py-3 font-semibold hover:border-black transition-all flex items-center justify-center gap-2">
 							<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5">
 							Continue with Google
-						</button>
+						</a>
 
 						<p class="text-center text-sm text-gray-600 mt-6">
 							Don't have an account? <button onclick="switchMainTab('register')" class="text-blue-600 hover:underline font-semibold">Register now</button>
@@ -219,10 +219,10 @@
 							</div>
 
 							<!-- Social Register -->
-							<button class="w-full border-2 border-gray-300 rounded-xl py-3 font-semibold hover:border-black transition-all flex items-center justify-center gap-2">
+							<a href="/api/auth/google" class="w-full border-2 border-gray-300 rounded-xl py-3 font-semibold hover:border-black transition-all flex items-center justify-center gap-2">
 								<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5">
 								Sign up with Google
-							</button>
+							</a>
 
 							<p class="text-center text-sm text-gray-600 mt-6">
 								Already have an account? <button onclick="switchMainTab('login')" class="text-blue-600 hover:underline font-semibold">Login</button>
@@ -506,8 +506,8 @@
 
 	<script>
 		lucide.createIcons();
-		const API_BASE_URL = 'http://localhost:5000/api';
-		const IS_LIVE_HOST = location.protocol !== 'file:' && location.hostname === 'localhost';
+		const API_BASE_URL = `${window.location.origin}/api`;
+		const IS_LIVE_HOST = location.protocol !== 'file:';
 
 		let currentLoginRole = 'customer';
 		let currentRegisterType = 'customer';
@@ -520,6 +520,7 @@
 			}
 			const response = await fetch(`${API_BASE_URL}${path}`, {
 				...options,
+				credentials: 'include',
 				headers: {
 					'Content-Type': 'application/json',
 					...(options.headers || {})
@@ -543,10 +544,14 @@
 			}
 
 			const user = authData.user;
+			const role = String(user.role || 'customer').toLowerCase();
 			localStorage.setItem('lumina.auth.user', JSON.stringify(user));
-			localStorage.setItem('lumina.customer.session', JSON.stringify(user));
-			localStorage.setItem('lumina.auth.role', String(user.role || 'customer'));
+			localStorage.setItem('lumina.auth.role', role);
 			localStorage.setItem('lumina.isLoggedIn', 'true');
+			localStorage.setItem('lumina.customer.session', JSON.stringify(user));
+			if (role === 'seller') {
+				localStorage.setItem('lumina.seller.session', JSON.stringify(user));
+			}
 			if (authData.token) localStorage.setItem('lumina.auth.token', authData.token);
 		}
 

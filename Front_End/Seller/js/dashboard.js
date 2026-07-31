@@ -1,7 +1,8 @@
 console.log('Dashboard script loaded');
 
 try {
-  const API_BASE = 'http://localhost:5000/api/seller/dashboard';
+  const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+  const API_BASE = `${API_BASE_URL}/seller/dashboard`;
   let currentPage = 1;
   const itemsPerPage = 10;
   let totalPages = 1;
@@ -9,18 +10,16 @@ try {
   let notifications = [];
 
   const notifBell = document.getElementById('notifBell');
-  const notifPanel = document.getElementById('notifPanel');
-  const notifClose = document.getElementById('notifClose');
   const notifList = document.getElementById('notifList');
+  const notifPreviewList = document.getElementById('notifPreviewList');
+  const fullNotificationsModal = document.getElementById('fullNotificationsModal');
+  const openFullNotificationsModalButton = document.getElementById('openFullNotificationsModal');
+  const closeFullNotificationsModalButton = document.getElementById('closeFullNotificationsModal');
+  const fullNotificationsList = document.getElementById('fullNotificationsList');
   const ordersTableBody = document.getElementById('ordersTableBody');
   const orderSearch = document.getElementById('orderSearch');
   const orderFilter = document.getElementById('orderFilter');
   const metricCards = document.querySelectorAll('.metric-value');
-  const metricChanges = document.querySelectorAll('.metric-change');
-
-  metricChanges.forEach((item) => {
-    item.textContent = '0%';
-  });
 
   function getSessionAuthUser() {
     try {
@@ -202,20 +201,93 @@ try {
     return `PKR ${amount.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
-  function renderNotifications() {
-    if (!notifList) return;
-    notifList.innerHTML = '';
+  function getNotificationIcon(type) {
+    const normalized = String(type || '').toLowerCase();
+    if (normalized.includes('order')) return '🛒';
+    if (normalized.includes('stock') || normalized.includes('warning')) return '⚠️';
+    if (normalized.includes('return')) return '↩️';
+    if (normalized.includes('payment') || normalized.includes('payout') || normalized.includes('withdraw')) return '💰';
+    if (normalized.includes('review') || normalized.includes('message') || normalized.includes('customer')) return '⭐';
+    if (normalized.includes('account') || normalized.includes('profile')) return '👤';
+    return '🔔';
+  }
 
-    notifications.forEach((notif) => {
-      const li = document.createElement('li');
-      li.className = `notif-item ${notif.unread ? 'unread' : ''}`;
-      li.innerHTML = `
-        <div class="notif-item-title">${notif.title}</div>
-        <div class="notif-item-text">${notif.text}</div>
-        <div class="notif-item-time">${notif.time || 'Recently'}</div>
-      `;
-      notifList.appendChild(li);
-    });
+  function renderNotifications() {
+    if (notifList) {
+      notifList.innerHTML = '';
+      notifications.forEach((notif) => {
+        const li = document.createElement('li');
+        li.className = `notif-item ${notif.unread ? 'unread' : ''}`;
+        li.innerHTML = `
+          <div class="notif-item-title">${notif.title}</div>
+          <div class="notif-item-text">${notif.text}</div>
+          <div class="notif-item-time">${notif.time || 'Recently'}</div>
+        `;
+        notifList.appendChild(li);
+      });
+    }
+
+    if (notifPreviewList) {
+      notifPreviewList.innerHTML = '';
+      const previewNotifications = notifications.slice(0, 3);
+
+      if (!previewNotifications.length) {
+        notifPreviewList.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500">No notifications yet.</div>';
+        return;
+      }
+
+      previewNotifications.forEach((notif) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer';
+        wrapper.innerHTML = `
+          <div class="flex items-start gap-2">
+            <span class="mt-0.5 text-base">${getNotificationIcon(notif.type)}</span>
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-gray-900">${notif.title}</p>
+              <p class="text-xs text-gray-500 mt-1">${notif.text}</p>
+            </div>
+          </div>
+        `;
+        notifPreviewList.appendChild(wrapper);
+      });
+    }
+  }
+
+  function renderFullNotificationsModal() {
+    if (!fullNotificationsList) return;
+
+    if (!notifications.length) {
+      fullNotificationsList.innerHTML = '<div class="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">No notifications available right now.</div>';
+      return;
+    }
+
+    fullNotificationsList.innerHTML = notifications.map((item) => `
+      <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
+        <div class="flex items-start gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg shadow-sm">${getNotificationIcon(item.type)}</div>
+          <div>
+            <p class="text-sm font-semibold text-gray-900">${item.title}</p>
+            <p class="mt-1 text-sm text-gray-600">${item.text}</p>
+            <p class="mt-2 text-xs font-medium uppercase tracking-widest text-gray-400">${item.time || 'Recently'}</p>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function openFullNotifications() {
+    if (!fullNotificationsModal) return;
+    renderFullNotificationsModal();
+    fullNotificationsModal.classList.remove('hidden');
+    fullNotificationsModal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeFullNotifications() {
+    if (!fullNotificationsModal) return;
+    fullNotificationsModal.classList.add('hidden');
+    fullNotificationsModal.classList.remove('flex');
+    document.body.style.overflow = '';
   }
 
   function renderOrdersTable() {
@@ -527,11 +599,16 @@ try {
     });
   }
 
-  if (notifBell && notifPanel) {
-    notifBell.addEventListener('click', () => notifPanel.classList.add('active'));
+  if (openFullNotificationsModalButton) {
+    openFullNotificationsModalButton.addEventListener('click', openFullNotifications);
   }
-  if (notifClose && notifPanel) {
-    notifClose.addEventListener('click', () => notifPanel.classList.remove('active'));
+  if (closeFullNotificationsModalButton) {
+    closeFullNotificationsModalButton.addEventListener('click', closeFullNotifications);
+  }
+  if (fullNotificationsModal) {
+    fullNotificationsModal.addEventListener('click', (event) => {
+      if (event.target === fullNotificationsModal) closeFullNotifications();
+    });
   }
 
   if (orderSearch && orderFilter) {

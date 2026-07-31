@@ -1,5 +1,6 @@
 const express = require('express');
 const axios = require('axios');
+const { randomUUID } = require('crypto');
 const router = express.Router();
 const { getReviewState, isDeliveredOrderStatus } = require('../utils/reviewEligibility');
 
@@ -9,8 +10,27 @@ const HUGGING_FACE_HEADERS = {
   Authorization: `Bearer ${HUGGING_FACE_TOKEN}`
 };
 function getCustomerId(req) {
-  const raw = req.auth?.session?.userId || req.headers['x-user-id'] || req.query.userId || req.body?.userId || '';
+  const raw = req.auth?.session?.userId
+    || req.auth?.user?.id
+    || req.auth?.user?.userId
+    || req.headers['x-user-id']
+    || req.headers['x-customer-id']
+    || req.query.userId
+    || req.query.customerId
+    || req.body?.userId
+    || req.body?.customerId
+    || '';
   return String(raw).trim();
+}
+
+function normalizeCustomerId(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(raw)) {
+    return raw;
+  }
+  const directId = raw.replace(/[^a-zA-Z0-9-]/g, '');
+  return directId || raw;
 }
 
 function isUuid(value) {
@@ -25,7 +45,8 @@ function parsePagination(req) {
 }
 
 async function getCustomerReview(req, customerId, productId) {
-  if (!customerId || !isUuid(customerId)) {
+  const normalizedCustomerId = normalizeCustomerId(customerId);
+  if (!normalizedCustomerId || !isUuid(normalizedCustomerId)) {
     return null;
   }
 
@@ -42,71 +63,89 @@ async function getCustomerReview(req, customerId, productId) {
       created_at AS "createdAt",
       updated_at AS "updatedAt"
     FROM public.product_reviews
-    WHERE product_id = $1 AND customer_id = $2
+    WHERE product_id = $1::uuid AND customer_id = $2::uuid
     ORDER BY created_at DESC, id DESC
     LIMIT 1
     `,
-    [productId, customerId]
+    [productId, normalizedCustomerId]
   );
 
   return result.rows[0] || null;
 }
 
 async function getDeliveredOrderItem(req, customerId, productId) {
-  if (!customerId || !isUuid(customerId)) {
+  const normalizedCustomerId = normalizeCustomerId(customerId);
+  if (!normalizedCustomerId) {
     return null;
   }
+
+  const candidates = [normalizedCustomerId];
+  if (isUuid(normalizedCustomerId)) {
+    const compactId = normalizedCustomerId.replace(/-/g, '');
+    candidates.push(compactId);
+  }
+
+  const orderCustomerMatch = isUuid(normalizedCustomerId)
+    ? `o.customer_id = $2::uuid OR o.customer_id = $3::uuid`
+    : `o.customer_id = $2::uuid`;
 
   const result = await req.db.query(
     `
     SELECT oi.id AS "orderItemId"
     FROM public.order_items oi
     JOIN public.orders o ON o.id = oi.order_id
-    WHERE oi.product_id = $1
-      AND o.customer_id = $2
-      AND o.status = 'delivered'
+    WHERE oi.product_id = $1::uuid
+      AND (
+        ${orderCustomerMatch}
+      )
+      AND (
+        LOWER(COALESCE(o.status::text, '')) = 'delivered'
+        OR LOWER(COALESCE(o.status::text, '')) = 'completed'
+        OR LOWER(COALESCE(o.status::text, '')) = 'shipped'
+      )
     ORDER BY o.placed_at DESC, o.created_at DESC, oi.id DESC
     LIMIT 1
     `,
-    [productId, customerId]
+    [productId, normalizedCustomerId, normalizedCustomerId.replace(/-/g, '')]
   );
 
   return result.rows[0] || null;
 }
 
-async function buildReviewEligibility(req, customerId, productId) {
-  const [customerReview, deliveredItem] = await Promise.all([
-    getCustomerReview(req, customerId, productId),
-    getDeliveredOrderItem(req, customerId, productId)
-  ]);
-
-  return {
-    ...getReviewState({
-      review: customerReview,
-      eligibleForReview: Boolean(deliveredItem),
-      now: new Date()
-    }),
-    orderItemId: deliveredItem?.orderItemId || null
-  };
+function containsLinks(text) {
+  const linkPattern = /(https?:\/\/|www\.|\w+\.(com|net|org|io|co|in|app|me)(\/|\b))/i;
+  return linkPattern.test(String(text || ''));
 }
 
 async function evaluateReviewModeration(comment) {
-  const aiResult = await checkFakeReview(comment);
-  const topResult = Array.isArray(aiResult) ? aiResult[0] : null;
-  const label = String(topResult?.label || '').toLowerCase();
-  const score = Number(topResult?.score || 0);
-  const isFake = label.includes('fake') || label === 'label_0';
   const moderation = {
-    checked: true,
-    provider: 'huggingface',
-    label: topResult?.label || null,
-    score,
-    verdict: isFake && score > 0.7 ? 'REJECTED' : 'APPROVED'
+    checked: false,
+    provider: 'local-simple-flow',
+    label: null,
+    score: 0,
+    verdict: 'APPROVED'
   };
 
   return {
     moderation,
-    isRejected: isFake && score > 0.7
+    isRejected: false
+  };
+}
+
+async function buildReviewEligibility(req, customerId, productId) {
+  const customerReview = await getCustomerReview(req, customerId, productId);
+  const deliveredItem = await getDeliveredOrderItem(req, customerId, productId);
+
+  const reviewState = getReviewState({
+    review: customerReview,
+    eligibleForReview: Boolean(deliveredItem),
+    now: new Date()
+  });
+
+  return {
+    ...reviewState,
+    orderItemId: deliveredItem?.orderItemId || null,
+    deliveredOrderItem: deliveredItem || null
   };
 }
 
@@ -150,6 +189,25 @@ async function resolveProduct(req, productIdOrSlug) {
   return result.rows[0] || null;
 }
 
+async function getProductReviewMetrics(req, productId) {
+  const reviewMetricsSql = `
+    SELECT
+      ROUND(AVG(r.rating)::numeric, 2) AS "averageRating",
+      COUNT(*)::int AS "reviewCount"
+    FROM public.product_reviews r
+    WHERE r.product_id = $1::uuid
+      AND NOT r.is_hidden
+  `;
+
+  const reviewMetricsResult = await req.db.query(reviewMetricsSql, [productId]);
+  const row = reviewMetricsResult.rows[0] || {};
+
+  return {
+    averageRating: Number(row.averageRating || 0),
+    reviewCount: Number(row.reviewCount || 0)
+  };
+}
+
 async function getProductSummary(req, productId) {
   const summarySql = `
     SELECT
@@ -157,22 +215,54 @@ async function getProductSummary(req, productId) {
       COALESCE(SUM(oi.quantity), 0)::int AS "unitsSold"
     FROM public.order_items oi
     JOIN public.orders o ON o.id = oi.order_id
-    WHERE oi.product_id = $1
-      AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered', 'returned', 'refunded')
+    WHERE oi.product_id = $1::uuid
+      AND LOWER(COALESCE(o.status::text, '')) IN ('confirmed', 'processing', 'shipped', 'delivered', 'returned', 'refunded')
   `;
 
   const summaryResult = await req.db.query(summarySql, [productId]);
   return summaryResult.rows[0] || { ordersCount: 0, unitsSold: 0 };
 }
 
-async function checkFakeReview(text) {
-  const response = await axios.post(
-    HUGGING_FACE_API_URL,
-    { inputs: text },
-    { headers: HUGGING_FACE_HEADERS }
-  );
+async function ensureBrowsingHistoryTable(req) {
+  if (!req.db || typeof req.db.query !== 'function') {
+    return;
+  }
 
-  return response.data;
+  await req.db.query(`
+    CREATE TABLE IF NOT EXISTS public.user_browsing_history (
+      id UUID PRIMARY KEY,
+      user_id UUID NOT NULL,
+      product_id UUID NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
+      viewed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await req.db.query(`
+    CREATE INDEX IF NOT EXISTS idx_user_browsing_history_user_viewed_at
+    ON public.user_browsing_history (user_id, viewed_at DESC)
+  `);
+}
+
+async function recordBrowsingHistory(req, customerId, productId) {
+  if (!req.db || typeof req.db.query !== 'function') {
+    return;
+  }
+
+  if (!customerId || !isUuid(customerId) || !productId || !isUuid(productId)) {
+    return;
+  }
+
+  try {
+    await ensureBrowsingHistoryTable(req);
+    const historyId = randomUUID();
+    await req.db.query(
+      `INSERT INTO public.user_browsing_history (id, user_id, product_id, viewed_at)
+       VALUES ($1, $2, $3, NOW())`,
+      [historyId, customerId, productId]
+    );
+  } catch (error) {
+    console.warn('Failed to record browsing history:', error.message || error);
+  }
 }
 
 router.get('/:productId', async (req, res) => {
@@ -185,7 +275,11 @@ router.get('/:productId', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    const [mediaResult, variantsResult, specsResult, summary, wishlistResult] = await Promise.all([
+    if (customerId) {
+      await recordBrowsingHistory(req, customerId, product.id);
+    }
+
+    const [mediaResult, variantsResult, specsResult, reviewMetrics, summary, wishlistResult] = await Promise.all([
       req.db.query(
         `
         SELECT id, image_url AS "mediaUrl", alt_text AS "altText", sort_order AS "sortOrder", is_primary AS "isPrimary"
@@ -218,6 +312,7 @@ router.get('/:productId', async (req, res) => {
         `,
         []
       ),
+      getProductReviewMetrics(req, product.id),
       getProductSummary(req, product.id),
       isUuid(customerId)
         ? req.db.query(
@@ -250,8 +345,8 @@ router.get('/:productId', async (req, res) => {
         variants: variantsResult.rows,
         specifications: specsResult.rows,
         rating: {
-          average: Number(product.averageRating || 0),
-          count: Number(product.reviewCount || 0)
+          average: Number(reviewMetrics.averageRating || product.averageRating || 0),
+          count: Number(reviewMetrics.reviewCount || product.reviewCount || 0)
         },
         sales: {
           unitsSold: Number(summary.unitsSold || 0),
@@ -392,13 +487,17 @@ router.post('/:productId/reviews', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Review comment must be at least 10 characters long' });
   }
 
+  if (containsLinks(comment)) {
+    return res.status(400).json({ success: false, message: 'Review comment cannot contain links or URLs.' });
+  }
+
   try {
     const product = await resolveProduct(req, productId);
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    if (!customerId || !isUuid(customerId)) {
+    if (!customerId) {
       return res.status(401).json({ success: false, message: 'Customer authentication required' });
     }
 
@@ -428,7 +527,7 @@ router.post('/:productId/reviews', async (req, res) => {
           `
           UPDATE public.product_reviews
           SET rating = $1, title = $2, body = $3, updated_at = NOW()
-          WHERE id = $4 AND customer_id = $5
+          WHERE id = $4 AND customer_id = $5::uuid
           RETURNING
             id,
             product_id AS "productId",
@@ -519,13 +618,17 @@ router.put('/:productId/reviews/:reviewId', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Review comment must be at least 10 characters long' });
   }
 
+  if (containsLinks(comment)) {
+    return res.status(400).json({ success: false, message: 'Review comment cannot contain links or URLs.' });
+  }
+
   try {
     const product = await resolveProduct(req, productId);
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    if (!customerId || !isUuid(customerId)) {
+    if (!customerId) {
       return res.status(401).json({ success: false, message: 'Customer authentication required' });
     }
 
@@ -554,7 +657,7 @@ router.put('/:productId/reviews/:reviewId', async (req, res) => {
       `
       UPDATE public.product_reviews
       SET rating = $1, title = $2, body = $3, updated_at = NOW()
-      WHERE id = $4 AND product_id = $5 AND customer_id = $6
+      WHERE id = $4 AND product_id = $5::uuid AND customer_id = $6::uuid
       RETURNING
         id,
         product_id AS "productId",
@@ -602,7 +705,7 @@ router.delete('/:productId/reviews/:reviewId', async (req, res) => {
     }
 
     await req.db.query(
-      `DELETE FROM public.product_reviews WHERE id = $1 AND product_id = $2 AND customer_id = $3`,
+      `DELETE FROM public.product_reviews WHERE id = $1 AND product_id = $2::uuid AND customer_id = $3::uuid`,
       [reviewId, product.id, customerId]
     );
 

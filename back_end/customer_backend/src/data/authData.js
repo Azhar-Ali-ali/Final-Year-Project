@@ -372,11 +372,13 @@ function requestPasswordReset(identifier, role) {
     used: false
   };
 
+  const baseAppUrl = (process.env.PUBLIC_APP_URL || process.env.FRONTEND_ORIGIN || 'http://localhost:5000').replace(/\/$/, '');
+
   return {
     success: true,
     user,
     token,
-    resetUrl: `http://localhost:5000/reset-password.html?token=${encodeURIComponent(token)}&email=${encodeURIComponent(user.email || '')}&role=${encodeURIComponent(user.role)}`
+    resetUrl: `${baseAppUrl}/reset-password.html?token=${encodeURIComponent(token)}&email=${encodeURIComponent(user.email || '')}&role=${encodeURIComponent(user.role)}`
   };
 }
 

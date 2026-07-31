@@ -272,7 +272,7 @@
 			width: 100%;
 			border-collapse: collapse;
 			font-size: 13px;
-			min-width: 1200px;
+			min-width: 100%;
 		}
 
 		thead th {
@@ -559,16 +559,45 @@
 		}
 
 		@media (max-width: 1100px) {
-			table { min-width: 900px; }
+			table { min-width: 100%; }
 		}
 
 		@media (max-width: 768px) {
-			.toolbar { flex-direction: column; align-items: stretch; }
-			.filters { width: 100%; }
-			.search { width: 100%; }
+			.content { padding: 16px; }
+			.panel { padding: 16px; }
+			.toolbar { flex-direction: column; align-items: stretch; padding: 12px; }
+			.filters {
+				width: 100%;
+				display: grid;
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+			.filters .select { width: 100%; min-width: 0; }
+			.search { width: 100%; min-width: 0; }
 			.page-header { flex-direction: column; align-items: flex-start; }
+			.page-header .title { font-size: 18px; }
+			.page-header .actions { width: 100%; justify-content: stretch; }
+			.page-header .actions .btn { width: 100%; justify-content: center; }
+			.tabs { flex-direction: column; }
+			.tab { width: 100%; justify-content: center; }
 			.modal-card { max-width: 95vw; }
 			.cards-grid { grid-template-columns: 1fr; }
+			.table-wrapper { overflow-x: auto; }
+			main .content { padding: 12px; }
+		}
+
+		@media (max-width: 480px) {
+			body { font-size: 14px; }
+			.content { padding: 12px; }
+			.search input { padding-left: 40px; }
+			.page-header .title { font-size: 16px; }
+			.toolbar { gap: 10px; padding: 10px; }
+			.filters { gap: 10px; grid-template-columns: 1fr; }
+			.card-actions { flex-direction: column; }
+			.card-actions .btn { width: 100%; }
+			.select { font-size: 12px; }
+			.form-group input,
+			.form-group textarea,
+			.form-group select { font-size: 12px; }
 		}
 
 		.glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
@@ -586,6 +615,12 @@
 
 		@media (min-width: 768px) {
 			.main-content { margin-left: 256px; }
+		}
+
+		@media (max-width: 768px) {
+			.aside, .sidebar-mobile { width: 100%; }
+			#sidebar { position: relative; width: 100%; height: auto; top: 0; border-right: none; }
+			#sidebarOverlay { display: none; }
 		}
 
 		.sidebar-mobile { transition: transform 0.3s ease; }
@@ -610,32 +645,22 @@
 			</div>
 
 			<div class="flex items-center gap-3 shrink-0">
-				<button class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors group">
-					<i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
-					<span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-					<div class="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 p-0 dropdown-hidden z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
-						<div class="px-4 py-3 border-b border-gray-100">
+				<div class="relative group">
+					<button id="bellButton" class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors" type="button">
+						<i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
+						<span id="notificationDot" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+					</button>
+					<div class="notification-dropdown absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 p-0 z-50 opacity-0 transform scale-95 transition-all pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto">
+						<div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
 							<p class="text-xs font-bold uppercase tracking-widest text-gray-600">Admin alerts</p>
+							<span id="notificationCount" class="text-[11px] font-semibold text-gray-500">0 new</span>
 						</div>
-						<div class="max-h-80 overflow-y-auto">
-							<div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
-								<p class="text-xs font-bold text-gray-900">New seller #S422</p>
-								<p class="text-xs text-gray-500 mt-1">Request pending verification</p>
-							</div>
-							<div class="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
-								<p class="text-xs font-bold text-gray-900">Order #2451 flagged</p>
-								<p class="text-xs text-gray-500 mt-1">Payment discrepancy</p>
-							</div>
-							<div class="px-4 py-3 hover:bg-gray-50 cursor-pointer">
-								<p class="text-xs font-bold text-gray-900">System update</p>
-								<p class="text-xs text-gray-500 mt-1">Analytics ready</p>
-							</div>
-						</div>
+						<div id="notificationList" class="max-h-80 overflow-y-auto"></div>
 						<div class="px-4 py-2 border-t border-gray-100 text-center">
-							<a href="#" class="text-xs font-bold text-gray-600 hover:text-black uppercase tracking-widest">View All</a>
+							<button id="viewAllNotifications" type="button" class="text-xs font-bold text-gray-600 hover:text-black uppercase tracking-widest">View All</button>
 						</div>
 					</div>
-				</button>
+				</div>
 
 				<div class="relative group">
 					<button class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -671,16 +696,24 @@
 					</div>
 				</div>
 
-				<button class="hidden sm:flex items-center gap-2 px-4 py-2 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-gray-900 transition-colors">
-					<i data-lucide="plus" class="w-4 h-4"></i>
-					<span class="hidden lg:block">New</span>
-				</button>
-				<button class="sm:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
-					<i data-lucide="plus" class="w-5 h-5 text-gray-700"></i>
-				</button>
 			</div>
 		</div>
 	</nav>
+
+	<div id="notificationsModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200] p-4">
+		<div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+			<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+				<div>
+					<h3 class="text-lg font-semibold text-gray-900">All notifications</h3>
+					<p class="text-sm text-gray-500">Recent admin activity and important alerts</p>
+				</div>
+				<button id="closeNotificationsModal" type="button" class="p-2 rounded-lg hover:bg-gray-100">
+					<i data-lucide="x" class="w-5 h-5 text-gray-700"></i>
+				</button>
+			</div>
+			<div id="notificationsModalBody" class="p-5 overflow-y-auto max-h-[60vh]"></div>
+		</div>
+	</div>
 
 	<aside id="sidebar" class="hidden md:block fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-100 z-50 overflow-y-auto">
 		<nav class="p-4 space-y-2">
@@ -720,7 +753,7 @@
 				<i data-lucide="credit-card" class="w-4 h-4"></i>
 				Payments
 			</a>
-			<a href="Dispute_Support_System.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+			<a href="dispute&support.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
 				<i data-lucide="shield-alert" class="w-4 h-4"></i>
 				Dispute & Support
 			</a>
@@ -731,13 +764,9 @@
 
 			<div class="h-px bg-gray-100 my-4"></div>
 
-			<a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+			<a href="setting.html" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-lg transition-all">
 				<i data-lucide="settings" class="w-4 h-4"></i>
 				Settings
-			</a>
-			<a href="#" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
-				<i data-lucide="help-circle" class="w-4 h-4"></i>
-				Help
 			</a>
 		</nav>
 	</aside>
@@ -771,26 +800,6 @@
 					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">image</span>
 					Banners & Visuals
 				</button>
-				<button class="tab" data-tab="landing-pages">
-					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">web</span>
-					Landing Pages
-				</button>
-				<button class="tab" data-tab="blog">
-					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">article</span>
-					Blog & SEO
-				</button>
-				<button class="tab" data-tab="faq">
-					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">help</span>
-					FAQs
-				</button>
-				<button class="tab" data-tab="legal">
-					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">gavel</span>
-					Legal Pages
-				</button>
-				<button class="tab" data-tab="media">
-					<span class="material-symbols-rounded" style="font-size: 18px; margin-right: 6px;">collections</span>
-					Media Library
-				</button>
 			</div>
 
 			<!-- Banners Tab -->
@@ -823,8 +832,10 @@
 							<select class="select" id="filter-banner-location">
 								<option value="">All Locations</option>
 								<option value="homepage">Homepage</option>
-								<option value="shoes">Shoes Category</option>
-								<option value="electronics">Electronics Category</option>
+								<option value="men">Men</option>
+								<option value="women">Women</option>
+								<option value="kids">Kids</option>
+								<option value="accessories">Accessories</option>
 								<option value="flash-sale">Flash Sale</option>
 							</select>
 						</div>
@@ -834,229 +845,9 @@
 				</section>
 			</div>
 
-			<!-- Landing Pages Tab -->
-			<div class="tab-content" id="landing-pages">
-				<section class="panel">
-					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; justify-content: space-between;">
-						<div style="display: flex; align-items: center; gap: 8px;">
-							<span class="material-symbols-rounded">web</span>
-							Campaign Landing Pages
-						</div>
-						<button class="btn primary sm" id="btn-create-landing">
-							<span class="material-symbols-rounded">add</span>
-							New Page
-						</button>
-					</div>
+			<!-- Blog Tab removed -->
 
-					<div class="toolbar">
-						<div class="search">
-							<span class="material-symbols-rounded">search</span>
-							<input type="text" placeholder="Search pages..." id="search-landing">
-						</div>
-						<div class="filters">
-							<select class="select" id="filter-landing-status">
-								<option value="">All Status</option>
-								<option value="published">Published</option>
-								<option value="scheduled">Scheduled</option>
-								<option value="draft">Draft</option>
-							</select>
-						</div>
-					</div>
-
-					<div class="overflow-x-auto">
-						<table>
-							<thead>
-								<tr>
-									<th>Page Name</th>
-									<th>URL Slug</th>
-									<th>Status</th>
-									<th>Views</th>
-									<th>Created</th>
-									<th>Published/Scheduled</th>
-									<th>Actions</th>
-								</tr>
-							</thead>
-							<tbody id="landing-tbody"></tbody>
-						</table>
-					</div>
-				</section>
-			</div>
-
-			<!-- Blog Tab -->
-			<div class="tab-content" id="blog">
-				<section class="panel">
-					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; justify-content: space-between;">
-						<div style="display: flex; align-items: center; gap: 8px;">
-							<span class="material-symbols-rounded">article</span>
-							Blog Posts & SEO Management
-						</div>
-						<button class="btn primary sm" id="btn-create-blog">
-							<span class="material-symbols-rounded">add</span>
-							New Post
-						</button>
-					</div>
-
-					<div class="toolbar">
-						<div class="search">
-							<span class="material-symbols-rounded">search</span>
-							<input type="text" placeholder="Search posts..." id="search-blog">
-						</div>
-						<div class="filters">
-							<select class="select" id="filter-blog-status">
-								<option value="">All Status</option>
-								<option value="published">Published</option>
-								<option value="draft">Draft</option>
-								<option value="scheduled">Scheduled</option>
-							</select>
-							<select class="select" id="filter-blog-category">
-								<option value="">All Categories</option>
-								<option value="tips">Tips & Tricks</option>
-								<option value="news">News</option>
-								<option value="guides">Guides</option>
-								<option value="updates">Updates</option>
-							</select>
-						</div>
-					</div>
-
-					<div class="overflow-x-auto">
-						<table>
-							<thead>
-								<tr>
-									<th>Title</th>
-									<th>Category</th>
-									<th>Status</th>
-									<th>SEO Score</th>
-									<th>Views</th>
-									<th>Created</th>
-									<th>Actions</th>
-								</tr>
-							</thead>
-							<tbody id="blog-tbody"></tbody>
-						</table>
-					</div>
-				</section>
-			</div>
-
-			<!-- FAQ Tab -->
-			<div class="tab-content" id="faq">
-				<section class="panel">
-					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; justify-content: space-between;">
-						<div style="display: flex; align-items: center; gap: 8px;">
-							<span class="material-symbols-rounded">help</span>
-							FAQ Management
-						</div>
-						<button class="btn primary sm" id="btn-create-faq">
-							<span class="material-symbols-rounded">add</span>
-							New FAQ
-						</button>
-					</div>
-
-					<div class="toolbar">
-						<div class="filters">
-							<select class="select" id="filter-faq-category">
-								<option value="">All Categories</option>
-								<option value="shipping">Shipping</option>
-								<option value="returns">Returns & Refunds</option>
-								<option value="payments">Payments</option>
-								<option value="orders">Orders</option>
-								<option value="general">General</option>
-							</select>
-						</div>
-					</div>
-
-					<div class="draggable-list" id="faq-list"></div>
-				</section>
-			</div>
-
-			<!-- Legal Pages Tab -->
-			<div class="tab-content" id="legal">
-				<section class="panel">
-					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-						<span class="material-symbols-rounded">gavel</span>
-						Legal & Trust Pages
-					</div>
-
-					<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
-						<div class="card">
-							<div class="card-header">
-								<div>
-									<div class="card-title">Terms & Conditions</div>
-									<div class="card-meta">Last updated: 2 days ago</div>
-								</div>
-								<span class="badge badge-published">Published</span>
-							</div>
-							<p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Version 3.2 | 5 versions available</p>
-							<div class="card-actions">
-								<button class="btn secondary sm" onclick="editLegalPage('terms')">Edit</button>
-								<button class="btn ghost sm" onclick="viewVersionHistory('terms')">History</button>
-							</div>
-						</div>
-
-						<div class="card">
-							<div class="card-header">
-								<div>
-									<div class="card-title">Privacy Policy</div>
-									<div class="card-meta">Last updated: 1 week ago</div>
-								</div>
-								<span class="badge badge-published">Published</span>
-							</div>
-							<p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Version 2.8 | 3 versions available</p>
-							<div class="card-actions">
-								<button class="btn secondary sm" onclick="editLegalPage('privacy')">Edit</button>
-								<button class="btn ghost sm" onclick="viewVersionHistory('privacy')">History</button>
-							</div>
-						</div>
-
-						<div class="card">
-							<div class="card-header">
-								<div>
-									<div class="card-title">About Us</div>
-									<div class="card-meta">Last updated: 3 weeks ago</div>
-								</div>
-								<span class="badge badge-published">Published</span>
-							</div>
-							<p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Company story & mission</p>
-							<div class="card-actions">
-								<button class="btn secondary sm" onclick="editLegalPage('about')">Edit</button>
-								<button class="btn ghost sm" onclick="viewVersionHistory('about')">Preview</button>
-							</div>
-						</div>
-					</div>
-				</section>
-			</div>
-
-			<!-- Media Library Tab -->
-			<div class="tab-content" id="media">
-				<section class="panel">
-					<div style="font-weight: 700; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; justify-content: space-between;">
-						<div style="display: flex; align-items: center; gap: 8px;">
-							<span class="material-symbols-rounded">collections</span>
-							Media Library
-						</div>
-						<button class="btn primary sm" id="btn-upload-media">
-							<span class="material-symbols-rounded">cloud_upload</span>
-							Upload
-						</button>
-					</div>
-
-					<div class="toolbar">
-						<div class="search">
-							<span class="material-symbols-rounded">search</span>
-							<input type="text" placeholder="Search files..." id="search-media">
-						</div>
-						<div class="filters">
-							<select class="select" id="filter-media-type">
-								<option value="">All Types</option>
-								<option value="image">Images</option>
-								<option value="video">Videos</option>
-								<option value="document">Documents</option>
-							</select>
-						</div>
-					</div>
-
-					<div class="cards-grid" id="media-grid"></div>
-				</section>
-			</div>
+				</div>
 			</div>
 		</div>
 	</main>
@@ -1128,13 +919,19 @@
 				<select id="banner-location" class="select">
 					<option value="">Select location</option>
 					<option value="homepage">Homepage</option>
-					<option value="shoes">Shoes Category</option>
-					<option value="electronics">Electronics Category</option>
-					<option value="flash-sale">Flash Sale Section</option>
-				</select>
-			</div>
+						<option value="men">Men</option>
+						<option value="women">Women</option>
+						<option value="kids">Kids</option>
+						<option value="accessories">Accessories</option>
+						<option value="flash-sale">Flash Sale Section</option>
+					</select>
+				</div>
 
-			<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+				<div class="form-group">
+					<label>Banner Headline</label>
+					<input type="text" id="banner-headline" placeholder="Enter headline for the banner">
+				</div>
+
 				<div class="form-group">
 					<label>Start Date & Time</label>
 					<input type="datetime-local" id="banner-start">
@@ -1142,12 +939,6 @@
 				<div class="form-group">
 					<label>End Date & Time</label>
 					<input type="datetime-local" id="banner-end">
-				</div>
-			</div>
-
-			<div class="form-group">
-				<label>Headline Text</label>
-				<input type="text" id="banner-headline" placeholder="Main heading">
 			</div>
 
 			<div class="form-group">
@@ -1510,7 +1301,14 @@
 
 	<!-- Scripts -->
 	<script src="../js/cms.js"></script>
+	<script src="../js/dashboard.js"></script>
+	<script src="../js/notificationsUI.js"></script>
+	<script src="../js/adminAccess.js"></script>
 	<script>
+		if (!requireAdminAccess('cms.view', '../../403.html')) {
+			throw new Error('Access denied');
+		}
+
 		lucide.createIcons();
 
 		const sidebarToggle = document.getElementById('sidebarToggle');
@@ -1552,3 +1350,4 @@
 	</script>
 </body>
 </html>
+

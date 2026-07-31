@@ -1,0 +1,42 @@
+C:\files\Final-Year-Project\digitalocean-nginx.conf:54:proxy_pass http://127.0.0.1:5000;
+C:\files\Final-Year-Project\digitalocean-nginx.conf:70:proxy_pass http://127.0.0.1:5000/socket.io/;
+C:\files\Final-Year-Project\digitalocean-nginx.conf:86:proxy_pass http://127.0.0.1:5000;
+C:\files\Final-Year-Project\fix_api_paths.py:29:text = text.replace("'http://localhost:5000/api/admin/reports'", "`${window.location.origin}/api/admin/reports`")
+C:\files\Final-Year-Project\fix_api_paths.py:30:text = text.replace("'http://localhost:5000'", "window.location.origin")
+C:\files\Final-Year-Project\fix_api_paths.py:31:text = text.replace("'http://127.0.0.1:5000'", "window.location.origin")
+C:\files\Final-Year-Project\kyc_validate.ps1:2:$baseUrl='http://localhost:5000'
+C:\files\Final-Year-Project\temp_update_api_base.py:19:("const API_BASE_URL = 'http://localhost:5000/api';", "const API_BASE_URL = `${window.location.origin}/api`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:20:("const API_BASE_URL = (location.protocol === 'file:' ? 'http://localhost:5000' : `${location.protocol}//${location.hostname}:5000`);", "const API_BASE_URL = `${window.location.origin}/api`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:21:("const API_BASE_URL = (location.protocol === 'file:' ? 'http://localhost:5000/api' : `${location.protocol}//${location.hostname}:5000/api`);", "const API_BASE_URL = `${window.location.origin}/api`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:22:("const API_BASE_URL = window.ADMIN_API_BASE_URL || 'http://localhost:5000';", "const API_BASE_URL = window.ADMIN_API_BASE_URL || window.location.origin;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:23:("const ADMIN_API_BASE_URL = window.ADMIN_API_BASE_URL || 'http://localhost:5000';", "const ADMIN_API_BASE_URL = window.ADMIN_API_BASE_URL || window.location.origin;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:24:("const API_BASE_URL = 'http://localhost:5000';", "const API_BASE_URL = window.location.origin;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:25:("const API_BASE = 'http://localhost:5000/api/seller/dashboard';", "const API_BASE = `${window.location.origin}/api/seller/dashboard`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:26:("const API_BASE = 'http://localhost:5000/api/seller/inventory';", "const API_BASE = `${window.location.origin}/api/seller/inventory`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:27:("const API_BASE = 'http://localhost:5000/api/seller/payments';", "const API_BASE = `${window.location.origin}/api/seller/payments`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:28:("const API_BASE = 'http://localhost:5000/api/seller/products';", "const API_BASE = `${window.location.origin}/api/seller/products`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:29:("const API_BASE = 'http://localhost:5000/api/seller/messages';", "const API_BASE = `${window.location.origin}/api/seller/messages`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:30:("const SOCKET_URL = 'http://localhost:5000';", "const SOCKET_URL = window.location.origin;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:31:("const API_BASE = 'http://localhost:5000/api/seller/returns';", "const API_BASE = `${window.location.origin}/api/seller/returns`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:32:("const API_BASE = 'http://localhost:5000/api/seller/performance';", "const API_BASE = `${window.location.origin}/api/seller/performance`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:33:("const API_BASE = 'http://localhost:5000/api/seller/settings';", "const API_BASE = `${window.location.origin}/api/seller/settings`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:34:("const API_BASE = 'http://localhost:5000/api/seller/disputes';", "const API_BASE = `${window.location.origin}/api/seller/disputes`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:35:("const API_BASE = 'http://localhost:5000/api/admin/support';", "const API_BASE = `${window.location.origin}/api/admin/support`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:36:("const API_BASE = 'http://localhost:5000/api/admin/users';", "const API_BASE = `${window.location.origin}/api/admin/users`;"),
+C:\files\Final-Year-Project\temp_update_api_base.py:37:("return 'http://localhost:5000/api/admin/reports';", "return `${window.location.origin}/api/admin/reports`;"),
+C:\files\Final-Year-Project\temp_verify_visual.py:13:req = urllib.request.Request('http://127.0.0.1:5000/api/visual-search?top_k=3', data=b''.join(body), method='POST')
+C:\files\Final-Year-Project\AI-Clothing-AI\db_catalog_sample.json:425:"image_url": "http://127.0.0.1:5000/uploads/products/b651ebf1-e479-481e-b99f--1fb3a735-e8c6-42c2-8ccb--hanes-men-s-hoodie-ecosmart-fleece-hooded-sweatshirt-for-men-women-midweight-fleece-big-tall-available-1783853755952-1-7a3c44db270b.jpg"
+C:\files\Final-Year-Project\AI-Clothing-AI\db_catalog_sample.json:985:"image_url": "http://127.0.0.1:5000/uploads/products/b651ebf1-e479-481e-b99f--c2d0db3f-116f-4391-8d91--kid-clothes-1783772269560-1-35b28b7cf19a.png"
+C:\files\Final-Year-Project\AI-Clothing-AI\app\main.py:17:"http://localhost:5000",
+C:\files\Final-Year-Project\AI-Clothing-AI\app\main.py:18:"http://127.0.0.1:5000",
+C:\files\Final-Year-Project\back_end\customer_backend\check-homepage-recs.js:4:const url = `http://localhost:5000/api/homepage?sectionLimit=8&flashDealLimit=8&userId=${userId}`;
+C:\files\Final-Year-Project\back_end\customer_backend\src\data\authData.js:375:const baseAppUrl = (process.env.PUBLIC_APP_URL || process.env.FRONTEND_ORIGIN || 'http://localhost:5000').replace(/\/$/, '');
+C:\files\Final-Year-Project\back_end\customer_backend\src\routes\authRoutes.js:136:callbackUrl: process.env.GOOGLE_CALLBACK_URL || `${process.env.PUBLIC_APP_URL || process.env.FRONTEND_ORIGIN || 'http://localhost:5000'}/api/auth/google/callback`
+C:\files\Final-Year-Project\back_end\customer_backend\src\routes\checkoutRoutes.js:1068:const origin = process.env.FRONTEND_ORIGIN || process.env.PUBLIC_APP_URL || 'http://localhost:5000';
+C:\files\Final-Year-Project\back_end\customer_backend\src\routes\homepageRoutes.js:27:const uploadHost = process.env.PUBLIC_UPLOAD_BASE_URL || process.env.PUBLIC_APP_URL || process.env.FRONTEND_ORIGIN || 'http://localhost:5000';
+C:\files\Final-Year-Project\back_end\scripts\normalize_db_catalog.js:10:const base = process.env.FRONTEND_BASE || 'http://127.0.0.1:5000';
+C:\files\Final-Year-Project\back_end\seller_backend\test_endpoints.ps1:2:"http://localhost:5000/api/health",
+C:\files\Final-Year-Project\back_end\seller_backend\test_endpoints.ps1:3:"http://localhost:5000/api/product-details/044e1de2-4a1f-44b2-a24a-7a4c47fbc65c?userId=1",
+C:\files\Final-Year-Project\back_end\seller_backend\test_endpoints.ps1:4:"http://localhost:5000/api/product-details/044e1de2-4a1f-44b2-a24a-7a4c47fbc65c/related?limit=4"
+C:\files\Final-Year-Project\Front_End\Seller\js\dashboard.js:629:console.warn('Dashboard data fetch disabled outside localhost:5000 runtime.');
+C:\files\Final-Year-Project\Front_End\Seller\js\Order-management.js:484:console.warn('Order page data fetch disabled outside localhost:5000 runtime.');

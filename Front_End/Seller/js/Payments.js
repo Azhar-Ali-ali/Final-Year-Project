@@ -1,4 +1,5 @@
-const API_BASE = 'http://localhost:5000/api/seller/payments';
+const API_BASE_URL = window.API_BASE_URL || `${window.location.origin}/api`;
+const API_BASE = `${API_BASE_URL}/seller/payments`;
 
 function getSellerId() {
   const candidateKeys = ['sellerId', 'seller_id', 'currentSellerId', 'sellerUserId', 'userId', 'lumina.seller.session', 'lumina.auth.user', 'lumina.auth', 'lumina.user'];
@@ -437,7 +438,13 @@ async function loadChart() {
   try {
     const response = await apiRequest('/chart?period=monthly&series=totalEarnings');
     const chartData = response.data || {};
-    const ctx = document.getElementById('earningsChart').getContext('2d');
+    const canvas = document.getElementById('earningsChart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const labels = Array.isArray(chartData.labels) && chartData.labels.length ? chartData.labels : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const rawData = Array.isArray(chartData.data) ? chartData.data : [];
+    const data = rawData.length ? rawData.map((value) => Number(value || 0)) : Array(labels.length).fill(0);
 
     if (chartInstance) {
       chartInstance.destroy();
@@ -446,10 +453,10 @@ async function loadChart() {
     chartInstance = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: chartData.labels || [],
+        labels,
         datasets: [{
           label: 'Total Earnings',
-          data: chartData.data || [],
+          data,
           borderColor: '#232f3e',
           backgroundColor: 'rgba(35, 47, 62, 0.1)',
           borderWidth: 3,
@@ -469,6 +476,13 @@ async function loadChart() {
           legend: {
             display: true,
             position: 'top'
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `PKR ${Number(context.parsed.y || 0).toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+              }
+            }
           }
         },
         scales: {

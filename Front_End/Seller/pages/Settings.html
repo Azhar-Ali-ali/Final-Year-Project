@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -23,25 +23,145 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background-color: #f5f5f5;
+            overflow-x: hidden;
+        }
+
+        .content-shell {
+            width: 100%;
+            min-width: 0;
+            overflow-x: hidden;
         }
 
         .container {
-            padding: 20px;
+            padding: 20px 16px 24px;
             margin-top: 80px;
             margin-left: 0;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            min-width: 0;
+            overflow-x: clip;
+        }
+
+        .container, .tab-content, .section, .section-body, .section-header, .page-header, .page-title, .page-subtitle {
+            min-width: 0;
+        }
+
+        .form-group,
+        .branding-info-item,
+        .upload-item,
+        .info-box,
+        .toggle-label,
+        .section-body > div,
+        .section-body > form,
+        .section-body > p {
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        input, select, textarea, button, .form-control, .btn, .upload-area, .upload-placeholder, .table {
+            max-width: 100%;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        .container * {
+            box-sizing: border-box;
+            max-width: 100%;
+            overflow-wrap: anywhere;
         }
 
         @media (min-width: 768px) {
-            .container {
+            .content-shell {
                 margin-left: 256px;
+                width: calc(100% - 256px);
+                max-width: calc(100% - 256px);
+            }
+
+            .container {
+                padding: 24px 24px 32px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .container {
+                padding: 28px 28px 36px;
+                max-width: 1440px;
+            }
+
+            .page-header {
+                margin-bottom: 24px;
+            }
+
+            .page-title {
+                font-size: 28px;
+            }
+
+            .tabs-container {
+                padding: 10px 12px;
+                gap: 10px;
+                justify-content: flex-start;
+                border-radius: 12px;
+            }
+
+            .tab-btn {
+                padding: 9px 16px;
+                border-radius: 999px;
+                font-size: 13px;
+            }
+
+            .section {
+                border-radius: 14px;
+                box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+            }
+
+            .section-header {
+                padding: 18px 24px;
+            }
+
+            .section-body {
+                padding: 24px 24px 28px;
+            }
+
+            .form-group {
+                margin-bottom: 16px;
+            }
+
+            .form-row {
+                gap: 18px;
+                margin-bottom: 18px;
+            }
+
+            .form-control {
+                padding: 11px 13px;
+                border-radius: 10px;
+            }
+
+            .btn {
+                padding: 10px 16px;
+                border-radius: 10px;
+            }
+
+            .btn-group {
+                margin-top: 22px;
+                gap: 10px;
             }
         }
 
         .page-header {
             margin-bottom: 20px;
+            max-width: 100%;
         }
 
         .page-title {
@@ -67,6 +187,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             overflow-x: auto;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .tab-btn {
@@ -108,6 +229,8 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             margin-bottom: 25px;
             overflow: hidden;
+            width: 100%;
+            max-width: 100%;
         }
 
         .section-header {
@@ -127,6 +250,7 @@
 
         .section-body {
             padding: 25px;
+            overflow-x: hidden;
         }
 
         /* Form Elements */
@@ -136,9 +260,12 @@
 
         .form-row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 20px;
             margin-bottom: 20px;
+            align-items: start;
+            width: 100%;
+            max-width: 100%;
         }
 
         .form-label {
@@ -224,11 +351,15 @@
             gap: 10px;
             margin-bottom: 15px;
             font-size: 14px;
+            flex-wrap: wrap;
+            max-width: 100%;
         }
 
         .toggle-text {
             font-weight: 600;
             color: #333;
+            max-width: 100%;
+            word-break: break-word;
         }
 
         /* Buttons */
@@ -298,6 +429,18 @@
             gap: 12px;
             margin-top: 25px;
             flex-wrap: wrap;
+            max-width: 100%;
+            width: 100%;
+            align-items: center;
+        }
+
+        .btn-group .btn {
+            flex: 1 1 calc(50% - 6px);
+            min-width: 180px;
+            max-width: 100%;
+            white-space: normal;
+            justify-content: center;
+            text-align: center;
         }
 
         /* Info Boxes */
@@ -405,13 +548,66 @@
         }
 
         /* Responsive */
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
             .form-row {
                 grid-template-columns: 1fr;
             }
 
+            .kyc-upload-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .container [style*="display: grid"] {
+                grid-template-columns: 1fr !important;
+            }
+
+            .container [style*="justify-content: space-between"] {
+                flex-wrap: wrap !important;
+                gap: 12px;
+            }
+
+            .upload-section,
+            .branding-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .page-title {
+                font-size: 22px;
+            }
+
+            .page-subtitle {
+                font-size: 13px;
+            }
+
+            .section-header {
+                padding: 16px 18px;
+            }
+
+            .section-body {
+                padding: 18px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
             .btn-group {
                 flex-direction: column;
+            }
+
+            .btn-group .btn {
+                flex: 1 1 100%;
+                width: 100%;
+                justify-content: center;
             }
 
             .btn {
@@ -421,6 +617,8 @@
 
             .tabs-container {
                 flex-direction: column;
+                padding: 8px;
+                gap: 8px;
             }
 
             .tab-btn {
@@ -436,12 +634,44 @@
             }
         }
 
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+                margin-top: 72px;
+            }
+
+            .page-title {
+                font-size: 20px;
+            }
+
+            .section-header {
+                padding: 14px 14px;
+            }
+
+            .section-body {
+                padding: 14px;
+            }
+
+            .form-control {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+
+            .toggle-label {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 6px;
+            }
+        }
+
         /* File Upload Styles */
         .upload-section {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 30px;
             margin-bottom: 30px;
+            width: 100%;
+            max-width: 100%;
         }
 
         .upload-item {
@@ -461,6 +691,7 @@
 
         .upload-area {
             width: 100%;
+            min-width: 0;
             height: 180px;
             border: 2px dashed #ddd;
             border-radius: 8px;
@@ -495,6 +726,8 @@
             font-size: 13px;
             text-align: center;
             pointer-events: none;
+            max-width: 100%;
+            padding: 12px;
         }
 
         .upload-placeholder .material-symbols-rounded {
@@ -513,12 +746,15 @@
 
         .branding-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 20px;
             margin-top: 20px;
             padding: 20px;
             background-color: #f9f9f9;
             border-radius: 8px;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
         }
 
         .branding-info-item {
@@ -548,6 +784,37 @@
             grid-column: 1 / -1;
             resize: vertical;
             min-height: 100px;
+        }
+
+        .kyc-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        .verification-summary,
+        .bank-statement-preview {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .verification-summary > div,
+        .bank-statement-preview > div {
+            min-width: 0;
+        }
+
+        .table {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            white-space: nowrap;
         }
 
         .branding-info-item input:focus,
@@ -741,13 +1008,21 @@
         <i data-lucide="help-circle" class="w-4 h-4"></i>
         Help & Support
       </a>
+
+      <div class="h-px bg-gray-100 my-4"></div>
+
+      <button type="button" onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-600 rounded-lg hover:bg-red-50 transition-all text-left">
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+        Logout
+      </button>
     </nav>
   </aside>
 
   <!-- MOBILE SIDEBAR OVERLAY -->
     <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden" onclick="closeMobileSidebar()"></div>
 
-  <div class="container">
+  <div class="content-shell">
+    <div class="container">
       <!-- Page Header -->
       <div class="page-header">
           <h1 class="page-title">Account Settings</h1>
@@ -768,7 +1043,6 @@
           <button class="tab-btn" onclick="switchTab('notifications', this)">Notifications</button>
           <button class="tab-btn" onclick="switchTab('privacy', this)">Privacy</button>
           <button class="tab-btn" onclick="switchTab('verification', this)">KYC</button>
-          <button class="tab-btn" onclick="switchTab('integrations', this)">Integrations</button>
       </div>
 
       <!-- ===== PROFILE TAB ===== -->
@@ -829,7 +1103,7 @@
                       <h3 style="margin-bottom: 15px;">Change Email Address</h3>
                       <div class="form-group">
                           <label class="form-label">Current Email</label>
-                          <input type="email" class="form-control" value="" disabled>
+                          <input type="email" class="form-control" id="currentEmailDisplay" value="" disabled>
                       </div>
                       <div class="form-group">
                           <label class="form-label" for="newEmail">New Email Address</label>
@@ -1252,7 +1526,7 @@
                   <!-- CNIC / National ID Upload -->
                   <div class="form-group" style="margin-bottom: 30px;">
                       <label class="form-label">Upload CNIC / National ID *</label>
-                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+                      <div class="kyc-upload-grid">
                           <!-- Front Side -->
                           <div>
                               <p style="font-size: 13px; color: #666; margin-bottom: 10px; font-weight: 600;">Front Side</p>
@@ -1288,7 +1562,7 @@
                   <!-- Selfie Upload -->
                   <div class="form-group" style="margin-bottom: 30px;">
                       <label class="form-label">Upload Selfie *</label>
-                      <div style="border: 2px dashed #ddd; border-radius: 8px; padding: 40px 20px; text-align: center; cursor: pointer; background-color: #f9f9f9; max-width: 400px; transition: all 0.3s;" onmouseover="this.style.borderColor='#232f3e'; this.style.backgroundColor='#f0f7ff'" onmouseout="this.style.borderColor='#ddd'; this.style.backgroundColor='#f9f9f9'" onclick="document.getElementById('selfie').click()">
+                      <div style="border: 2px dashed #ddd; border-radius: 8px; padding: 40px 20px; text-align: center; cursor: pointer; background-color: #f9f9f9; max-width: 100%; transition: all 0.3s;" onmouseover="this.style.borderColor='#232f3e'; this.style.backgroundColor='#f0f7ff'" onmouseout="this.style.borderColor='#ddd'; this.style.backgroundColor='#f9f9f9'" onclick="document.getElementById('selfie').click()">
                           <span class="material-symbols-rounded" style="font-size: 48px; color: #0066c0; display: block; margin-bottom: 10px;">face</span>
                           <p style="font-size: 13px; color: #333; margin: 0;">Click to upload selfie</p>
                           <p style="font-size: 11px; color: #999; margin: 5px 0 0 0;">PNG, JPG (max 5MB)</p>
@@ -1303,14 +1577,14 @@
                   <!-- Bank Statement Upload (Optional) -->
                   <div class="form-group" style="margin-bottom: 30px;">
                       <label class="form-label">Upload Bank Statement <span style="color: #999;">(Optional)</span></label>
-                      <div style="border: 2px dashed #ddd; border-radius: 8px; padding: 40px 20px; text-align: center; cursor: pointer; background-color: #f9f9f9; max-width: 400px; transition: all 0.3s;" onmouseover="this.style.borderColor='#232f3e'; this.style.backgroundColor='#f0f7ff'" onmouseout="this.style.borderColor='#ddd'; this.style.backgroundColor='#f9f9f9'" onclick="document.getElementById('bankStatement').click()">
+                      <div style="border: 2px dashed #ddd; border-radius: 8px; padding: 40px 20px; text-align: center; cursor: pointer; background-color: #f9f9f9; max-width: 100%; transition: all 0.3s;" onmouseover="this.style.borderColor='#232f3e'; this.style.backgroundColor='#f0f7ff'" onmouseout="this.style.borderColor='#ddd'; this.style.backgroundColor='#f9f9f9'" onclick="document.getElementById('bankStatement').click()">
                           <span class="material-symbols-rounded" style="font-size: 48px; color: #0066c0; display: block; margin-bottom: 10px;">description</span>
                           <p style="font-size: 13px; color: #333; margin: 0;">Click to upload bank statement</p>
                           <p style="font-size: 11px; color: #999; margin: 5px 0 0 0;">PDF, JPG, PNG (max 10MB)</p>
                       </div>
                       <input type="file" id="bankStatement" accept=".pdf,.jpg,.jpeg,.png" style="display: none;" onchange="handleBankStatementUpload(this)">
                       <div id="bankStatementPreview" style="display: none; margin-top: 15px;">
-                          <div style="background: #f9f9f9; padding: 15px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+                          <div class="bank-statement-preview" style="background: #f9f9f9; padding: 15px; border-radius: 6px;">
                               <div>
                                   <span class="material-symbols-rounded" style="color: #0066c0;">description</span>
                                   <span id="bankStatementName" style="margin-left: 10px; font-weight: 600;">Bank Statement</span>
@@ -1329,57 +1603,9 @@
           </div>
       </div>
 
-      <!-- ===== INTEGRATIONS TAB ===== -->
-      <div id="integrations-tab" class="tab-content">
-          <div class="section">
-              <div class="section-header">
-                  <div class="section-title">ðŸ”— Connected Apps & Integrations</div>
-              </div>
-              <div class="section-body">
-                  <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Connect your social media and e-commerce platforms to streamline your selling process.</p>
 
-                  <!-- Google -->
-                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 12px;">
-                      <div>
-                          <div style="font-weight: 600; color: #333;">ðŸ” Google Account</div>
-                          <div id="googleIntegrationStatus" style="font-size: 12px; color: #999;">--</div>
-                      </div>
-                      <button class="btn btn-danger" onclick="disconnectIntegration('google')">ðŸ”— Unlink</button>
-                  </div>
-
-                  <!-- Facebook -->
-                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 12px;">
-                      <div>
-                          <div style="font-weight: 600; color: #333;">f Facebook Login</div>
-                          <div id="facebookIntegrationStatus" style="font-size: 12px; color: #999;">--</div>
-                      </div>
-                      <button id="facebookIntegrationButton" class="btn btn-primary" onclick="connectIntegration('facebook')">ðŸ”— Link Account</button>
-                  </div>
-
-                  <!-- Shopify -->
-                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 12px;">
-                      <div>
-                          <div style="font-weight: 600; color: #333;">ðŸ›’ Shopify Store</div>
-                          <div id="shopifyIntegrationStatus" style="font-size: 12px; color: #999;">--</div>
-                      </div>
-                      <button id="shopifyIntegrationButton" class="btn btn-primary" onclick="connectIntegration('shopify')">ðŸ”— Connect</button>
-                  </div>
-              </div>
-          </div>
-      </div>
-
-      <!-- Logout Section -->
-      <div class="section" style="margin-top: 40px;">
-          <div class="section-header">
-              <div class="section-title">Account</div>
-          </div>
-          <div style="text-align: center; padding: 30px;">
-              <p style="color: #666; margin-bottom: 20px; font-size: 14px;">Want to sign out? You'll be logged out from all devices.</p>
-              <button class="btn btn-danger" onclick="logout()">Logout</button>
-          </div>
-      </div>
+    </div>
   </div>
-</div>
 
   <!-- FOOTER -->
   <footer class="bg-white border-t border-gray-100 mt-12 md:ml-64">

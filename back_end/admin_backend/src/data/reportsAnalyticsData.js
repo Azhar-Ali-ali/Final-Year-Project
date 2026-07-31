@@ -87,7 +87,8 @@ function getDateFilterSql(columnName, period, params) {
 
 async function getOverview(db, { period = 'week', region = '' } = {}) {
   const params = [];
-  const dateFilter = getDateFilterSql('o.placed_at', period, params);
+  // Use placed_at with fallback to created_at so older records without placed_at still count
+  const dateFilter = getDateFilterSql("COALESCE(o.placed_at, o.created_at)", period, params);
   const regionExpr = mapRegionCaseExpr();
 
   let regionSql = '';
@@ -146,7 +147,7 @@ async function getOverview(db, { period = 'week', region = '' } = {}) {
 
 async function getRevenueTrend(db, { period = 'week', region = '' } = {}) {
   const params = [];
-  const dateFilter = getDateFilterSql('o.placed_at', period, params);
+  const dateFilter = getDateFilterSql('COALESCE(o.placed_at, o.created_at)', period, params);
   const regionExpr = mapRegionCaseExpr();
 
   let regionSql = '';
@@ -158,15 +159,15 @@ async function getRevenueTrend(db, { period = 'week', region = '' } = {}) {
   const result = await db.query(
     `
       SELECT
-        DATE(o.placed_at) AS period,
+        DATE(COALESCE(o.placed_at, o.created_at)) AS period,
         COUNT(DISTINCT o.id)::int AS orders,
         COALESCE(SUM(o.grand_total), 0)::numeric(14,2) AS revenue
       FROM public.orders o
       LEFT JOIN public.user_addresses ua ON ua.id = o.shipping_address_id
       WHERE ${dateFilter}
       ${regionSql}
-      GROUP BY DATE(o.placed_at)
-      ORDER BY DATE(o.placed_at) ASC
+      GROUP BY DATE(COALESCE(o.placed_at, o.created_at))
+      ORDER BY DATE(COALESCE(o.placed_at, o.created_at)) ASC
     `,
     params
   );
@@ -176,7 +177,8 @@ async function getRevenueTrend(db, { period = 'week', region = '' } = {}) {
 
 async function getTopCategories(db, { period = 'week' } = {}) {
   const params = [];
-  const dateFilter = getDateFilterSql('o.placed_at', period, params);
+  // Use placed_at with fallback to created_at so category aggregation includes older rows
+  const dateFilter = getDateFilterSql("COALESCE(o.placed_at, o.created_at)", period, params);
 
   const result = await db.query(
     `
