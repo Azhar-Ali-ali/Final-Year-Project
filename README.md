@@ -1,4 +1,6 @@
 # LUMINA - AI-Powered E-Commerce Platform
+## Live Demo
+https://luminaclothes.app/customer-pages/homepage.html
 
 A comprehensive marketplace platform with AI-powered visual product recommendations, seller dashboard, and admin management system.
 
