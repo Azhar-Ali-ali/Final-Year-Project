@@ -131,8 +131,8 @@ async function findOrCreateOAuthUser(db, profileData) {
 
 function getGoogleOAuthConfig() {
   return {
-    clientId: process.env.GOOGLE_CLIENT_ID || '633012483567-runaudt8hr7jue0rj2b2p1u1cpfdklhu.apps.googleusercontent.com',
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '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',
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackUrl: process.env.GOOGLE_CALLBACK_URL || `${process.env.PUBLIC_APP_URL || process.env.FRONTEND_ORIGIN || 'http://localhost:5000'}/api/auth/google/callback`
   };
 }

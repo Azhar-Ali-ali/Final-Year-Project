@@ -5,7 +5,7 @@ const router = express.Router();
 const { getReviewState, isDeliveredOrderStatus } = require('../utils/reviewEligibility');
 
 const HUGGING_FACE_API_URL = process.env.HUGGING_FACE_API_URL || 'https://api-inference.huggingface.co/models/theArijitDas/distilbert-finetuned-fake-reviews';
-const HUGGING_FACE_TOKEN = process.env.HUGGING_FACE_TOKEN || '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';
+const HUGGING_FACE_TOKEN = process.env.HUGGING_FACE_TOKEN;
 const HUGGING_FACE_HEADERS = {
   Authorization: `Bearer ${HUGGING_FACE_TOKEN}`
 };
